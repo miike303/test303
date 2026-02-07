@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jeu de la vie · Cyberpunk</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <p class="kicker">Neon Biolabs · Simulation</p>
+        <h1>Jeu de la vie</h1>
+        <p class="subtitle">Grille cellulaire cyberpunk pour explorer l'émergence.</p>
+      </header>
+
+      <section class="panel">
+        <canvas id="life-canvas" aria-label="Grille du jeu de la vie"></canvas>
+        <div class="controls">
+          <button id="toggle">Démarrer</button>
+          <button id="step">Étape</button>
+          <button id="random">Randomiser</button>
+          <button id="clear">Nettoyer</button>
+          <label class="slider">
+            Vitesse
+            <input id="speed" type="range" min="1" max="30" value="10" />
+          </label>
+          <label class="slider">
+            Taille
+            <input id="scale" type="range" min="6" max="18" value="10" />
+          </label>
+        </div>
+      </section>
+
+      <footer>
+        <p>Cliquer pour activer/désactiver des cellules. Glisser pour dessiner.</p>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
