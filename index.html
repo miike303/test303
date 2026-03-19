@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gravity Lab</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <section class="panel">
+        <h1>Gravity Lab</h1>
+        <p class="subtitle">Simulation de gravité interactive</p>
+
+        <section class="intro-card" aria-labelledby="introTitle">
+          <h2 id="introTitle">Par où commencer ?</h2>
+          <ol class="quick-start">
+            <li>Clique sur <strong>Démarrer</strong>.</li>
+            <li>Choisis un <strong>préréglage</strong> pour voir un style différent.</li>
+            <li>Clique dans la zone de droite pour lancer une grosse rafale.</li>
+            <li>Teste les curseurs pour voir l'effet immédiatement.</li>
+          </ol>
+          <p class="support-text">Tu n'as rien fait de mal : il manquait juste un vrai mode d'emploi au démarrage.</p>
+        </section>
+
+        <div class="buttons hero-buttons">
+          <button id="startBtn">Démarrer</button>
+          <button id="burstBtn">Rafale</button>
+          <button id="pauseBtn">Pause</button>
+        </div>
+
+        <div class="control-group">
+          <label for="preset">Préréglage</label>
+          <select id="preset">
+            <option value="default">Découverte</option>
+            <option value="moon">Lune</option>
+            <option value="storm">Tempête</option>
+            <option value="lava">Lave</option>
+          </select>
+          <span class="helper">Astuce : commence par « Découverte », puis essaie « Tempête » ou « Lave ».</span>
+        </div>
+
+        <details class="guide-box" open>
+          <summary>Que fait chaque option ?</summary>
+          <ul class="guide-list">
+            <li><strong>Gravité</strong> : attire les particules vers le bas plus ou moins vite.</li>
+            <li><strong>Débit</strong> : nombre de nouvelles particules ajoutées en continu.</li>
+            <li><strong>Rebond</strong> : énergie gardée après un choc.</li>
+            <li><strong>Frottement</strong> : ralentit progressivement le mouvement.</li>
+            <li><strong>Vent</strong> : pousse les particules à gauche ou à droite.</li>
+            <li><strong>Traînées</strong> : laisse un effet visuel de passage.</li>
+            <li><strong>Attracteur souris</strong> : les particules suivent le curseur.</li>
+          </ul>
+        </details>
+
+        <div class="control-group">
+          <label for="gravity">Gravité</label>
+          <input id="gravity" type="range" min="0" max="2" step="0.01" value="0.35" />
+          <span id="gravityValue">0.35</span>
+        </div>
+
+        <div class="control-group">
+          <label for="spawnRate">Débit de particules</label>
+          <input id="spawnRate" type="range" min="0" max="20" step="1" value="6" />
+          <span id="spawnRateValue">6</span>
+        </div>
+
+        <div class="control-group">
+          <label for="bounce">Rebond</label>
+          <input id="bounce" type="range" min="0" max="1" step="0.01" value="0.78" />
+          <span id="bounceValue">0.78</span>
+        </div>
+
+        <div class="control-group">
+          <label for="drag">Frottement</label>
+          <input id="drag" type="range" min="0.9" max="1" step="0.001" value="0.995" />
+          <span id="dragValue">0.995</span>
+        </div>
+
+        <div class="control-group">
+          <label for="wind">Vent horizontal</label>
+          <input id="wind" type="range" min="-0.3" max="0.3" step="0.01" value="0" />
+          <span id="windValue">0.00</span>
+        </div>
+
+        <div class="control-group">
+          <label for="maxParticles">Max particules</label>
+          <input id="maxParticles" type="range" min="100" max="1500" step="50" value="700" />
+          <span id="maxParticlesValue">700</span>
+        </div>
+
+        <div class="control-group">
+          <label for="colorMode">Palette</label>
+          <select id="colorMode">
+            <option value="rainbow">Arc-en-ciel</option>
+            <option value="fire">Feu</option>
+            <option value="ice">Glace</option>
+            <option value="mono">Monochrome</option>
+          </select>
+          <span class="helper">Change la palette pour obtenir une ambiance différente sans toucher à la physique.</span>
+        </div>
+
+        <div class="switches">
+          <label><input id="trails" type="checkbox" checked /> Traînées</label>
+          <label><input id="attractor" type="checkbox" /> Attracteur souris</label>
+          <label><input id="autoBurst" type="checkbox" checked /> Rafales auto</label>
+        </div>
+
+        <div class="buttons secondary-buttons">
+          <button id="resetBtn">Réinitialiser</button>
+          <button id="demoBtn">Mode démo</button>
+        </div>
+
+        <p class="hint">Zone de droite : clique pour créer une explosion de particules. Si rien ne bouge, clique sur « Démarrer ».</p>
+      </section>
+
+      <section class="canvas-wrap">
+        <canvas id="sim"></canvas>
+        <div class="stats" id="stats"></div>
+        <div class="overlay" id="overlay" aria-live="polite">
+          <div class="overlay-card">
+            <p class="eyebrow">Bienvenue</p>
+            <h2>La simulation est prête.</h2>
+            <p>Commence simplement : clique sur <strong>Démarrer</strong>, puis clique dans le grand espace pour voir les particules apparaître.</p>
+            <div class="overlay-actions">
+              <button id="overlayStartBtn">Démarrer maintenant</button>
+              <button id="overlayDemoBtn">Lancer une démo</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
