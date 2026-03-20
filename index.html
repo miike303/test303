@@ -3,41 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jeu de la vie</title>
+    <title>Lemonade Stand</title>
     <style>
       :root {
-        color-scheme: dark;
-        --bg-dark: #1d120d;
-        --bg-panel: rgba(41, 24, 16, 0.88);
-        --brass: #c89b3c;
-        --antique-gold: #e4c27a;
-        --copper: #b96c3c;
-        --copper-bright: #d88e54;
-        --iron: #5a514a;
-        --iron-dark: #2f2724;
-        --paper: #f1e2bb;
-        --grid-bg: rgba(22, 16, 13, 0.94);
-        --cell-dead: #241915;
-        --cell-alive: #77d5b6;
-        --cell-glow: rgba(119, 213, 182, 0.52);
-        --shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+        color-scheme: light;
+        --bg: #fff9ee;
+        --bg-soft: #fff3cf;
+        --surface: rgba(255, 252, 243, 0.8);
+        --surface-strong: rgba(255, 255, 255, 0.92);
+        --line: rgba(158, 187, 133, 0.2);
+        --text: #5b4a36;
+        --muted: #8a7b65;
+        --lemon: #ffd85c;
+        --lemon-deep: #f0c633;
+        --mint: #8fd8bb;
+        --mint-deep: #58ba95;
+        --wood: #c9996d;
+        --wood-deep: #a67149;
+        --sky: #e8f8ff;
+        --danger: #f4987d;
+        --shadow: 0 20px 50px rgba(172, 144, 91, 0.12);
+        --shadow-soft: 0 10px 30px rgba(172, 144, 91, 0.08);
+        --radius-xl: 28px;
+        --radius-lg: 22px;
+        --radius-md: 16px;
+        --radius-sm: 12px;
       }
 
       * {
         box-sizing: border-box;
       }
 
+      html,
       body {
         margin: 0;
-        min-height: 100vh;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        color: var(--paper);
+        min-height: 100%;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
         background:
-          radial-gradient(circle at 15% 20%, rgba(216, 142, 84, 0.18), transparent 26%),
-          radial-gradient(circle at 85% 18%, rgba(200, 155, 60, 0.2), transparent 22%),
-          radial-gradient(circle at 50% 75%, rgba(185, 108, 60, 0.12), transparent 28%),
-          linear-gradient(135deg, #0e0907, #2a1a12 35%, #120c09 100%);
-        overflow-x: hidden;
+          radial-gradient(circle at top left, rgba(255, 216, 92, 0.38), transparent 26%),
+          radial-gradient(circle at top right, rgba(143, 216, 187, 0.3), transparent 20%),
+          linear-gradient(180deg, #fffdf7 0%, #fff8e7 42%, #f8f4e8 100%);
       }
 
       body::before,
@@ -46,724 +52,1325 @@
         position: fixed;
         inset: 0;
         pointer-events: none;
+        z-index: 0;
       }
 
       body::before {
         background:
-          radial-gradient(circle at 12% 14%, rgba(228, 194, 122, 0.16) 0 2px, transparent 3px) 0 0 / 120px 120px,
-          radial-gradient(circle at 88% 78%, rgba(228, 194, 122, 0.14) 0 2px, transparent 3px) 0 0 / 140px 140px,
-          linear-gradient(90deg, transparent 0 4%, rgba(90, 81, 74, 0.18) 4% 5%, transparent 5% 95%, rgba(90, 81, 74, 0.18) 95% 96%, transparent 96%),
-          linear-gradient(transparent 0 8%, rgba(90, 81, 74, 0.18) 8% 9%, transparent 9% 91%, rgba(90, 81, 74, 0.18) 91% 92%, transparent 92%);
-        opacity: 0.7;
+          radial-gradient(circle at 10% 22%, rgba(255, 255, 255, 0.9) 0 2px, transparent 2px) 0 0 / 120px 120px,
+          radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.75) 0 3px, transparent 3px) 0 0 / 150px 150px;
+        opacity: 0.5;
       }
 
       body::after {
-        background:
-          radial-gradient(circle at 8% 80%, rgba(0, 0, 0, 0.3), transparent 20%),
-          radial-gradient(circle at 92% 22%, rgba(0, 0, 0, 0.25), transparent 18%),
-          linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
-        mix-blend-mode: screen;
-        opacity: 0.6;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
       }
 
-      .page {
+      button,
+      input {
+        font: inherit;
+      }
+
+      .app {
         position: relative;
-        width: min(1100px, calc(100% - 24px));
-        margin: 20px auto;
-        padding: 24px;
-        border-radius: 28px;
+        z-index: 1;
+        width: min(1180px, calc(100% - 24px));
+        margin: 22px auto;
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero,
+      .shell,
+      .modal-card {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(26px, 5vw, 50px);
+        border-radius: var(--radius-xl);
         background:
-          linear-gradient(145deg, rgba(60, 36, 24, 0.95), rgba(30, 18, 13, 0.95)),
-          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 2px, transparent 2px 10px);
-        border: 1px solid rgba(228, 194, 122, 0.28);
-        box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 249, 230, 0.96)),
+          linear-gradient(180deg, rgba(143, 216, 187, 0.1), rgba(255, 216, 92, 0.12));
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        box-shadow: var(--shadow);
+      }
+
+      .hero::before,
+      .hero::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(8px);
+      }
+
+      .hero::before {
+        width: 220px;
+        height: 220px;
+        right: -70px;
+        top: -70px;
+        background: radial-gradient(circle, rgba(255, 216, 92, 0.42), rgba(255, 216, 92, 0));
+      }
+
+      .hero::after {
+        width: 180px;
+        height: 180px;
+        left: -50px;
+        bottom: -60px;
+        background: radial-gradient(circle, rgba(143, 216, 187, 0.35), rgba(143, 216, 187, 0));
+      }
+
+      .hero-grid {
+        display: grid;
+        gap: 22px;
+        grid-template-columns: 1.15fr 0.85fr;
+        align-items: center;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--muted);
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        box-shadow: var(--shadow-soft);
+      }
+
+      h1 {
+        margin: 18px 0 12px;
+        font-size: clamp(2.4rem, 6vw, 4.6rem);
+        line-height: 0.96;
+        letter-spacing: -0.04em;
+      }
+
+      .accent {
+        color: var(--wood-deep);
+      }
+
+      .lead {
+        margin: 0;
+        max-width: 62ch;
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.7;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 26px;
+      }
+
+      .button {
+        appearance: none;
+        border: none;
+        border-radius: 16px;
+        padding: 15px 20px;
+        cursor: pointer;
+        font-weight: 800;
+        transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease, background 180ms ease;
+        box-shadow: 0 10px 24px rgba(184, 146, 75, 0.15);
+      }
+
+      .button:hover,
+      .button:focus-visible {
+        transform: translateY(-2px);
+        filter: saturate(1.05) brightness(1.02);
+        outline: none;
+      }
+
+      .button:active {
+        transform: translateY(1px) scale(0.995);
+      }
+
+      .button-primary {
+        background: linear-gradient(180deg, #ffe37b 0%, #ffd34d 100%);
+        color: #61471f;
+      }
+
+      .button-secondary {
+        background: linear-gradient(180deg, #9be0c2 0%, #79d4ae 100%);
+        color: #265943;
+      }
+
+      .button-ghost {
+        background: rgba(255, 255, 255, 0.76);
+        color: var(--text);
+      }
+
+      .illustration {
+        position: relative;
+        min-height: 280px;
+        display: grid;
+        place-items: center;
+      }
+
+      .stand-card {
+        width: min(100%, 360px);
+        padding: 22px;
+        border-radius: 30px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 228, 0.96));
+        box-shadow: var(--shadow);
+      }
+
+      .awning {
+        position: relative;
+        height: 84px;
+        margin-bottom: 10px;
+        border-radius: 24px 24px 18px 18px;
+        background: repeating-linear-gradient(
+          90deg,
+          #fffef7 0 34px,
+          #ffd85c 34px 68px
+        );
+        box-shadow: inset 0 -8px 18px rgba(182, 142, 72, 0.14);
+      }
+
+      .awning::after {
+        content: "Fresh Lemonade";
+        position: absolute;
+        left: 50%;
+        bottom: 10px;
+        transform: translateX(-50%);
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.88);
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: #7d633a;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .counter {
+        position: relative;
+        padding: 18px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, #d9ae82 0%, #ba8459 100%);
         overflow: hidden;
       }
 
-      .page::before {
+      .counter::before {
         content: "";
         position: absolute;
-        inset: 14px;
-        border-radius: 20px;
-        border: 1px solid rgba(228, 194, 122, 0.16);
-        pointer-events: none;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(255,255,255,0.12), transparent 25%, transparent 75%, rgba(255,255,255,0.1));
       }
 
-      .rivets,
-      .rivets::before,
-      .rivets::after {
-        content: "";
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: radial-gradient(circle at 30% 30%, #f0d79a, #7a5424 58%, #332012 100%);
-        box-shadow: inset -2px -3px 4px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(40, 22, 13, 0.8);
+      .cups {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
       }
 
-      .rivets {
-        top: 12px;
-        left: 12px;
-      }
-
-      .rivets::before {
-        top: 0;
-        left: calc(100vw - min(1100px, calc(100vw - 24px)) - 36px);
-      }
-
-      .rivets::after {
-        top: calc(100% - 42px);
-        left: 0;
-      }
-
-      .header {
+      .cup {
         position: relative;
-        text-align: center;
-        padding: 12px 12px 20px;
-        margin-bottom: 18px;
+        width: 62px;
+        height: 86px;
+        border-radius: 14px 14px 18px 18px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.7));
+        border: 2px solid rgba(255,255,255,0.7);
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
       }
 
-      .header::before,
-      .header::after {
+      .cup::before {
         content: "";
         position: absolute;
-        top: 50%;
-        width: clamp(64px, 14vw, 150px);
-        height: 12px;
-        transform: translateY(-50%);
+        inset: 18px 7px 6px;
+        border-radius: 10px 10px 12px 12px;
+        background: linear-gradient(180deg, rgba(255, 228, 130, 0.92), rgba(255, 211, 77, 0.95));
+      }
+
+      .cup::after {
+        content: "";
+        position: absolute;
+        width: 8px;
+        height: 42px;
+        top: -4px;
+        right: 12px;
         border-radius: 999px;
-        background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(200, 155, 60, 0.8), rgba(0, 0, 0, 0));
-        opacity: 0.7;
+        background: linear-gradient(180deg, #76d4b5, #4db692);
+        transform: rotate(14deg);
       }
 
-      .header::before { left: 0; }
-      .header::after { right: 0; }
-
-      h1 {
-        margin: 0;
-        font-family: Georgia, "Times New Roman", serif;
-        font-size: clamp(2.2rem, 5vw, 4rem);
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--antique-gold);
-        text-shadow: 0 0 16px rgba(200, 155, 60, 0.25), 0 2px 0 #5a3d18;
+      .shell {
+        display: none;
+        gap: 18px;
+        grid-template-columns: minmax(280px, 350px) minmax(0, 1fr);
       }
 
-      .subtitle {
-        margin-top: 8px;
-        font-size: 0.95rem;
-        letter-spacing: 0.28em;
-        text-transform: uppercase;
-        color: #d4b98a;
-      }
-
-      .layout {
+      .shell.active,
+      .screen.active,
+      .modal.active {
         display: grid;
-        gap: 22px;
-        grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-        align-items: start;
-      }
-
-      .panel,
-      .board-shell {
-        position: relative;
-        background: var(--bg-panel);
-        border-radius: 24px;
-        border: 1px solid rgba(228, 194, 122, 0.18);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -12px 24px rgba(0, 0, 0, 0.2);
       }
 
       .panel {
-        padding: 18px;
+        background: var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-soft);
+        padding: 20px;
       }
 
-      .panel::before,
-      .board-shell::before {
-        content: "";
-        position: absolute;
-        inset: 10px;
-        border-radius: 16px;
-        border: 1px solid rgba(228, 194, 122, 0.1);
-        pointer-events: none;
+      .panel h2,
+      .panel h3,
+      .panel h4,
+      .modal-card h3 {
+        margin: 0;
       }
 
-      .panel-title {
-        margin: 0 0 16px;
-        font-family: Georgia, serif;
-        text-transform: uppercase;
-        letter-spacing: 0.14em;
-        font-size: 1rem;
-        color: var(--antique-gold);
-      }
-
-      .stats {
-        display: grid;
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
         gap: 12px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        margin-bottom: 18px;
+        margin-bottom: 16px;
       }
 
-      .gauge {
-        padding: 12px;
-        border-radius: 18px;
-        background:
-          radial-gradient(circle at 50% 20%, rgba(228, 194, 122, 0.22), transparent 56%),
-          linear-gradient(180deg, rgba(85, 58, 39, 0.95), rgba(40, 26, 18, 0.92));
-        border: 1px solid rgba(228, 194, 122, 0.14);
-        text-align: center;
-      }
-
-      .gauge-label {
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.14em;
-        color: #d6c09a;
-      }
-
-      .gauge-value {
-        margin-top: 6px;
-        font-size: clamp(1.3rem, 3vw, 1.9rem);
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 9px 12px;
+        background: rgba(255, 255, 255, 0.76);
+        color: var(--muted);
+        font-size: 0.88rem;
         font-weight: 700;
-        color: #fbe8bb;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .stat-card {
+        padding: 14px;
+        border-radius: 18px;
+        background: var(--surface-strong);
+        border: 1px solid rgba(255, 255, 255, 0.78);
+      }
+
+      .stat-label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .stat-value {
+        font-size: clamp(1.1rem, 2vw, 1.65rem);
+        font-weight: 800;
+      }
+
+      .weather-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #eefbff, #dff6ff);
+        color: #47748b;
+        font-weight: 700;
       }
 
       .controls {
         display: grid;
-        gap: 12px;
+        gap: 14px;
       }
 
-      .button-row {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-      }
-
-      button {
-        appearance: none;
-        border: none;
-        cursor: pointer;
-        padding: 14px 16px;
-        border-radius: 14px;
-        color: #1f120d;
-        font-weight: 800;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        background:
-          linear-gradient(180deg, #f2d58e 0%, #c99442 52%, #7e4a1f 100%);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.42),
-          inset 0 -3px 6px rgba(65, 31, 7, 0.38),
-          0 8px 14px rgba(0, 0, 0, 0.28);
-        transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
-      }
-
-      button:hover,
-      button:focus-visible {
-        transform: translateY(-1px);
-        filter: brightness(1.06);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.42),
-          inset 0 -3px 6px rgba(65, 31, 7, 0.38),
-          0 10px 18px rgba(0, 0, 0, 0.34);
-      }
-
-      button:active {
-        transform: translateY(2px);
-        box-shadow:
-          inset 0 3px 6px rgba(65, 31, 7, 0.42),
-          0 4px 8px rgba(0, 0, 0, 0.25);
-      }
-
-      .danger {
-        background: linear-gradient(180deg, #dfad77 0%, #b06237 54%, #6f331a 100%);
-        color: #fff1d9;
-      }
-
-      .secondary {
-        background: linear-gradient(180deg, #d8c7a0 0%, #957858 54%, #503a2c 100%);
-        color: #fdf0d8;
-      }
-
-      .slider-wrap {
-        margin-top: 8px;
+      .control-card {
         padding: 16px;
         border-radius: 18px;
-        background: rgba(25, 18, 14, 0.68);
-        border: 1px solid rgba(228, 194, 122, 0.12);
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.75);
       }
 
-      .slider-header {
+      .control-top {
         display: flex;
         justify-content: space-between;
-        align-items: center;
         gap: 12px;
         margin-bottom: 10px;
-        color: #e8d0a0;
-        font-size: 0.92rem;
+      }
+
+      .control-title {
+        font-weight: 800;
+      }
+
+      .control-copy {
+        margin: 4px 0 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .control-value {
+        min-width: 80px;
+        text-align: right;
+        font-weight: 800;
+        color: var(--wood-deep);
       }
 
       input[type="range"] {
         width: 100%;
-        accent-color: var(--copper-bright);
+        appearance: none;
+        height: 10px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(143,216,187,0.35), rgba(255,216,92,0.55));
+        outline: none;
       }
 
-      .legend {
-        margin-top: 18px;
-        padding: 14px 16px;
-        border-radius: 16px;
-        background: rgba(24, 17, 13, 0.75);
-        color: #d9c39e;
-        font-size: 0.93rem;
-        line-height: 1.5;
-      }
-
-      .board-shell {
-        padding: 18px;
-      }
-
-      .board-topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        padding: 4px 2px 14px;
-        color: #e8d2aa;
-        font-size: 0.95rem;
-      }
-
-      .status-light {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      .status-light::before {
-        content: "";
-        width: 14px;
-        height: 14px;
+      input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
-        background: radial-gradient(circle at 35% 35%, #fef2a8, #bc742b 65%, #48260f 100%);
-        box-shadow: 0 0 14px rgba(228, 194, 122, 0.45);
+        background: linear-gradient(180deg, #ffffff, #fff7c9);
+        border: 3px solid var(--lemon-deep);
+        box-shadow: 0 6px 12px rgba(184, 146, 75, 0.2);
       }
 
-      .board {
-        position: relative;
-        aspect-ratio: 1 / 1;
+      .quality-meter {
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(252, 247, 233, 0.96));
+        border: 1px solid rgba(255,255,255,0.78);
+      }
+
+      .meter-bar {
+        height: 12px;
         width: 100%;
-        border-radius: 18px;
+        margin: 10px 0 8px;
+        border-radius: 999px;
+        background: rgba(143, 216, 187, 0.18);
         overflow: hidden;
-        background:
-          linear-gradient(180deg, rgba(12, 9, 8, 0.82), rgba(27, 20, 17, 0.96)),
-          var(--grid-bg);
-        border: 1px solid rgba(228, 194, 122, 0.18);
-        box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
       }
 
-      canvas {
-        width: 100%;
+      .meter-fill {
         height: 100%;
-        display: block;
-        touch-action: none;
+        width: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #89d6b7, #ffd85c);
+        transition: width 260ms ease;
       }
 
-      .board-note {
-        margin: 12px 4px 0;
-        color: #cdb58b;
+      .tips-list,
+      .summary-list,
+      .bullet-list {
+        display: grid;
+        gap: 10px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+
+      .tips-list li,
+      .summary-list li,
+      .bullet-list li {
+        padding: 12px 14px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.82);
+        color: var(--muted);
+      }
+
+      .dashboard {
+        display: grid;
+        gap: 18px;
+      }
+
+      .headline-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 220px;
+        padding: 24px;
+        border-radius: var(--radius-xl);
+        background:
+          radial-gradient(circle at top right, rgba(255,255,255,0.42), transparent 28%),
+          linear-gradient(135deg, rgba(255, 235, 171, 0.85), rgba(143, 216, 187, 0.65));
+        box-shadow: var(--shadow-soft);
+      }
+
+      .headline-card::after {
+        content: "🍋";
+        position: absolute;
+        right: 20px;
+        bottom: 18px;
+        font-size: clamp(4rem, 10vw, 6.8rem);
+        opacity: 0.14;
+        transform: rotate(-10deg);
+      }
+
+      .headline-card p {
+        margin: 10px 0 0;
+        max-width: 52ch;
+        color: rgba(91, 74, 54, 0.82);
+        line-height: 1.65;
+      }
+
+      .message-ribbon {
+        margin-top: 18px;
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        padding: 12px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.75);
+        font-weight: 700;
+      }
+
+      .cards-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .info-card {
+        padding: 18px;
+        border-radius: 20px;
+        background: var(--surface);
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(255,255,255,0.72);
+      }
+
+      .info-card strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 1.5rem;
+      }
+
+      .history-card {
+        padding: 20px;
+        border-radius: var(--radius-xl);
+        background: var(--surface);
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(255,255,255,0.72);
+      }
+
+      .history-items {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .history-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 14px;
+        align-items: center;
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.88);
+        border: 1px solid rgba(255,255,255,0.72);
+        animation: fadeInUp 320ms ease;
+      }
+
+      .history-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, #fff3b6, #ffe17d);
+        font-size: 1.2rem;
+      }
+
+      .history-profit {
+        font-weight: 800;
+      }
+
+      .positive { color: #2f8b68; }
+      .negative { color: #d06b4a; }
+
+      .footer-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .screen {
+        display: none;
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        display: none;
+        place-items: center;
+        padding: 18px;
+        background: rgba(109, 91, 62, 0.18);
+      }
+
+      .modal-card {
+        width: min(620px, 100%);
+        padding: 24px;
+        border-radius: 28px;
+        background: rgba(255, 252, 243, 0.95);
+        box-shadow: 0 24px 60px rgba(120, 95, 63, 0.18);
+        border: 1px solid rgba(255,255,255,0.8);
+        animation: popIn 260ms ease;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 18px 0;
+      }
+
+      .summary-box {
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.9);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .tiny {
         font-size: 0.9rem;
       }
 
-      @media (max-width: 900px) {
-        .layout {
-          grid-template-columns: 1fr;
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
         }
-
-        .panel {
-          order: 2;
-        }
-
-        .board-shell {
-          order: 1;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
       }
 
-      @media (max-width: 560px) {
-        .page {
-          width: min(100% - 12px, 1000px);
-          margin: 6px auto;
-          padding: 14px;
+      @keyframes popIn {
+        from {
+          opacity: 0;
+          transform: translateY(12px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @media (max-width: 960px) {
+        .hero-grid,
+        .shell,
+        .cards-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .app {
+          width: min(100% - 16px, 100%);
+          margin: 12px auto 18px;
+        }
+
+        .hero,
+        .panel,
+        .headline-card,
+        .history-card {
+          padding: 18px;
           border-radius: 22px;
         }
 
-        .button-row,
-        .stats {
+        .stats-grid,
+        .summary-grid {
           grid-template-columns: 1fr;
         }
 
-        .board-topbar {
+        .hero-actions,
+        .footer-actions {
           flex-direction: column;
-          align-items: flex-start;
         }
 
-        .subtitle {
-          letter-spacing: 0.16em;
+        .button {
+          width: 100%;
         }
       }
     </style>
   </head>
   <body>
-    <main class="page">
-      <div class="rivets" aria-hidden="true"></div>
+    <main class="app">
+      <section class="hero screen active" id="homeScreen">
+        <div class="hero-grid">
+          <div>
+            <div class="eyebrow">🍹 Jeu casual d'été • Gestion simple et satisfaisante</div>
+            <h1>Lemonade <span class="accent">Stand</span></h1>
+            <p class="lead">
+              Ouvre ton petit kiosque, ajuste ta recette, observe la météo et fais prospérer
+              ton stand de limonade sur plusieurs journées. Trouve le bon équilibre entre prix,
+              fraîcheur et qualité pour maximiser tes profits.
+            </p>
+            <div class="hero-actions">
+              <button class="button button-primary" id="startGameButton">Commencer</button>
+              <button class="button button-ghost" id="previewTipsButton">Voir les conseils</button>
+            </div>
+          </div>
 
-      <header class="header">
-        <h1>Jeu de la vie</h1>
-        <div class="subtitle">Simulation cellulaire steampunk</div>
-      </header>
+          <div class="illustration">
+            <div class="stand-card" aria-hidden="true">
+              <div class="awning"></div>
+              <div class="counter">
+                <div class="cups">
+                  <div class="cup"></div>
+                  <div class="cup"></div>
+                  <div class="cup"></div>
+                </div>
+              </div>
+              <ul class="tips-list" style="margin-top: 16px;">
+                <li>☀️ Les journées chaudes attirent plus de clients.</li>
+                <li>🍋 Une recette équilibrée améliore la qualité perçue.</li>
+                <li>💰 Un prix trop haut peut faire fuir la file d'attente.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <section class="layout">
+      <section class="shell" id="gameShell">
         <aside class="panel">
-          <h2 class="panel-title">Panneau de commande</h2>
-
-          <div class="stats">
-            <div class="gauge">
-              <div class="gauge-label">Génération</div>
-              <div class="gauge-value" id="generationDisplay">0</div>
+          <div class="panel-header">
+            <div>
+              <h2>Préparation du kiosque</h2>
+              <p class="muted tiny">Ajuste ta recette avant de lancer la journée.</p>
             </div>
-            <div class="gauge">
-              <div class="gauge-label">Cellules vivantes</div>
-              <div class="gauge-value" id="aliveDisplay">0</div>
+            <div class="chip">📅 <span id="dayLabel">Jour 1 / 7</span></div>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card">
+              <span class="stat-label">Argent disponible</span>
+              <strong class="stat-value" id="cashValue">€ 18.00</strong>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Météo du jour</span>
+              <div class="weather-badge" id="weatherBadge">☀️ Ensoleillé</div>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Qualité estimée</span>
+              <strong class="stat-value" id="qualityValue">Délicate</strong>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Prévision clients</span>
+              <strong class="stat-value" id="forecastValue">~ 22</strong>
+            </article>
+          </div>
+
+          <div class="controls" style="margin-top: 18px;">
+            <div class="control-card">
+              <div class="control-top">
+                <div>
+                  <div class="control-title">Prix du verre</div>
+                  <p class="control-copy">Trouve un prix attirant sans brader ton stand.</p>
+                </div>
+                <div class="control-value" id="priceDisplay">€ 1.50</div>
+              </div>
+              <input id="priceInput" type="range" min="50" max="400" step="10" value="150" />
+            </div>
+
+            <div class="control-card">
+              <div class="control-top">
+                <div>
+                  <div class="control-title">Citrons</div>
+                  <p class="control-copy">Plus de citron donne une saveur vive et premium.</p>
+                </div>
+                <div class="control-value" id="lemonsDisplay">4</div>
+              </div>
+              <input id="lemonsInput" type="range" min="1" max="8" step="1" value="4" />
+            </div>
+
+            <div class="control-card">
+              <div class="control-top">
+                <div>
+                  <div class="control-title">Sucre</div>
+                  <p class="control-copy">L'équilibre est plus important qu'une boisson trop sucrée.</p>
+                </div>
+                <div class="control-value" id="sugarDisplay">4</div>
+              </div>
+              <input id="sugarInput" type="range" min="1" max="8" step="1" value="4" />
+            </div>
+
+            <div class="control-card">
+              <div class="control-top">
+                <div>
+                  <div class="control-title">Glace</div>
+                  <p class="control-copy">Indispensable quand la chaleur grimpe fort.</p>
+                </div>
+                <div class="control-value" id="iceDisplay">4</div>
+              </div>
+              <input id="iceInput" type="range" min="0" max="8" step="1" value="4" />
             </div>
           </div>
 
-          <div class="controls">
-            <div class="button-row">
-              <button id="startButton" type="button">Démarrer</button>
-              <button id="pauseButton" class="secondary" type="button">Pause</button>
+          <section class="quality-meter">
+            <div class="panel-header" style="margin-bottom: 0;">
+              <div>
+                <h3>Lecture rapide de ta recette</h3>
+                <p class="muted tiny">Une recette bien équilibrée attire naturellement plus de monde.</p>
+              </div>
             </div>
-            <div class="button-row">
-              <button id="randomButton" type="button">Aléatoire</button>
-              <button id="clearButton" class="danger" type="button">Effacer</button>
+            <div class="meter-bar">
+              <div class="meter-fill" id="qualityFill"></div>
             </div>
-          </div>
+            <div class="chip" id="qualityHint">🍋 Recette prometteuse</div>
+          </section>
 
-          <div class="slider-wrap">
-            <div class="slider-header">
-              <label for="speedControl">Vitesse de la machine</label>
-              <strong id="speedValue">10 ips</strong>
+          <section class="panel" id="tipsSection" style="margin-top: 18px; padding: 16px;">
+            <div class="panel-header" style="margin-bottom: 12px;">
+              <div>
+                <h3>Conseils</h3>
+                <p class="muted tiny">Parfait pour débuter sans stress.</p>
+              </div>
             </div>
-            <input id="speedControl" type="range" min="2" max="30" value="10" />
-          </div>
-
-          <div class="legend">
-            Touchez ou cliquez la grille pour allumer ou éteindre une cellule. La machine applique les règles classiques de Conway&nbsp;: survie avec 2 ou 3 voisines, naissance avec 3, extinction sinon.
-          </div>
+            <ul class="tips-list">
+              <li>Reste proche d'un prix moyen lors des journées nuageuses ou pluvieuses.</li>
+              <li>En canicule, une bonne dose de glace peut faire bondir la demande.</li>
+              <li>Si la qualité baisse, réduis les excès de sucre ou remonte légèrement le citron.</li>
+            </ul>
+          </section>
         </aside>
 
-        <section class="board-shell">
-          <div class="board-topbar">
-            <div class="status-light">Mécanisme analytique</div>
-            <div id="statusText">État : en pause</div>
+        <section class="dashboard">
+          <article class="headline-card">
+            <div class="eyebrow">🍋 Petit kiosque • Grande ambition</div>
+            <h2 id="headlineTitle" style="margin-top: 16px; font-size: clamp(1.8rem, 4vw, 3rem);">Une belle journée s'annonce</h2>
+            <p id="headlineText">
+              Ajuste ta recette avec soin puis lance la vente du jour. La météo, ton prix et la
+              fraîcheur perçue vont décider de la file d'attente devant ton stand.
+            </p>
+            <div class="message-ribbon" id="messageRibbon">✨ Les habitués reviennent pour une limonade bien fraîche.</div>
+          </article>
+
+          <div class="cards-grid">
+            <article class="info-card">
+              <span class="stat-label">Clients servis hier</span>
+              <strong id="lastCustomers">0</strong>
+              <span class="muted tiny">Le rythme de ton kiosque évolue chaque jour.</span>
+            </article>
+            <article class="info-card">
+              <span class="stat-label">Ventes d'hier</span>
+              <strong id="lastSales">€ 0.00</strong>
+              <span class="muted tiny">Un prix cohérent aide à convertir la foule.</span>
+            </article>
+            <article class="info-card">
+              <span class="stat-label">Profit d'hier</span>
+              <strong id="lastProfit">€ 0.00</strong>
+              <span class="muted tiny">Surveille ton bénéfice net et ajuste vite.</span>
+            </article>
           </div>
-          <div class="board">
-            <canvas id="lifeCanvas" aria-label="Grille du Jeu de la vie"></canvas>
-          </div>
-          <p class="board-note">Astuce&nbsp;: modifiez la vitesse, dessinez un motif, puis lancez l'automate.</p>
+
+          <article class="history-card">
+            <div class="panel-header">
+              <div>
+                <h3>Journal du kiosque</h3>
+                <p class="muted tiny">Résumé des journées pour suivre ta progression.</p>
+              </div>
+              <div class="footer-actions">
+                <button class="button button-primary" id="startDayButton">Commencer la journée</button>
+                <button class="button button-secondary" id="restartButton">Rejouer</button>
+              </div>
+            </div>
+            <div class="history-items" id="historyItems">
+              <div class="history-item">
+                <div class="history-icon">🌤️</div>
+                <div>
+                  <strong>Ton kiosque est prêt.</strong>
+                  <div class="muted tiny">Prépare la première recette et lance la journée.</div>
+                </div>
+                <div class="history-profit">—</div>
+              </div>
+            </div>
+          </article>
         </section>
       </section>
     </main>
 
+    <div class="modal" id="dayModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-card">
+        <div class="panel-header">
+          <div>
+            <h3 id="modalTitle">Résumé de fin de journée</h3>
+            <p class="muted tiny" id="modalSubtitle">Voici comment ton kiosque s'en est sorti.</p>
+          </div>
+          <div class="chip" id="modalDayChip">Jour 1</div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-box">
+            <span class="stat-label">Clients</span>
+            <strong class="stat-value" id="modalCustomers">0</strong>
+          </div>
+          <div class="summary-box">
+            <span class="stat-label">Ventes</span>
+            <strong class="stat-value" id="modalSales">€ 0.00</strong>
+          </div>
+          <div class="summary-box">
+            <span class="stat-label">Coût ingrédients</span>
+            <strong class="stat-value" id="modalCost">€ 0.00</strong>
+          </div>
+          <div class="summary-box">
+            <span class="stat-label">Profit</span>
+            <strong class="stat-value" id="modalProfit">€ 0.00</strong>
+          </div>
+        </div>
+
+        <ul class="summary-list" id="modalMessages"></ul>
+
+        <div class="footer-actions" style="margin-top: 20px;">
+          <button class="button button-primary" id="nextDayButton">Continuer</button>
+          <button class="button button-ghost" id="modalReplayButton">Rejouer</button>
+        </div>
+      </div>
+    </div>
+
     <script>
-      // --- Configuration générale du jeu ---
-      const canvas = document.getElementById("lifeCanvas");
-      const context = canvas.getContext("2d");
-      const generationDisplay = document.getElementById("generationDisplay");
-      const aliveDisplay = document.getElementById("aliveDisplay");
-      const statusText = document.getElementById("statusText");
-      const speedControl = document.getElementById("speedControl");
-      const speedValue = document.getElementById("speedValue");
-      const startButton = document.getElementById("startButton");
-      const pauseButton = document.getElementById("pauseButton");
-      const clearButton = document.getElementById("clearButton");
-      const randomButton = document.getElementById("randomButton");
+      (() => {
+        const TOTAL_DAYS = 7;
+        const STARTING_CASH = 18;
 
-      const state = {
-        cols: 0,
-        rows: 0,
-        cellSize: 0,
-        grid: [],
-        nextGrid: [],
-        generation: 0,
-        running: false,
-        speed: Number(speedControl.value),
-        lastStepTime: 0,
-        animationFrame: 0,
-        drawMode: null,
-      };
+        const weatherPool = [
+          {
+            key: "sunny",
+            label: "Ensoleillé",
+            icon: "☀️",
+            demand: 1.15,
+            priceTolerance: 1.02,
+            iceBonus: 0.05,
+            headline: "Le soleil attire la promenade",
+            copy: "Une journée lumineuse donne naturellement envie d'une boisson fraîche."
+          },
+          {
+            key: "cloudy",
+            label: "Nuageux",
+            icon: "⛅",
+            demand: 0.95,
+            priceTolerance: 0.98,
+            iceBonus: 0.02,
+            headline: "L'ambiance est douce mais plus calme",
+            copy: "Les clients viennent, mais ils comparent davantage les prix."
+          },
+          {
+            key: "heatwave",
+            label: "Canicule",
+            icon: "🔥",
+            demand: 1.38,
+            priceTolerance: 1.08,
+            iceBonus: 0.12,
+            headline: "La chaleur fait exploser les ventes",
+            copy: "Les passants cherchent une boisson glacée dès qu'ils aperçoivent ton kiosque."
+          },
+          {
+            key: "rain",
+            label: "Pluie",
+            icon: "🌧️",
+            demand: 0.62,
+            priceTolerance: 0.88,
+            iceBonus: -0.02,
+            headline: "La pluie ralentit le passage",
+            copy: "Les ventes seront plus modestes, mieux vaut rester séduisant sur le prix."
+          }
+        ];
 
-      // --- Initialisation de la grille en fonction de l'espace disponible ---
-      function initializeGrid() {
-        const boardRect = canvas.parentElement.getBoundingClientRect();
-        const size = Math.max(280, Math.floor(Math.min(boardRect.width, window.innerHeight * 0.65)));
-        const ratio = window.devicePixelRatio || 1;
+        const state = {
+          day: 1,
+          cash: STARTING_CASH,
+          recipe: {
+            price: 1.5,
+            lemons: 4,
+            sugar: 4,
+            ice: 4
+          },
+          history: [],
+          weather: null,
+          lastResult: null,
+          gameOver: false
+        };
 
-        canvas.width = size * ratio;
-        canvas.height = size * ratio;
-        canvas.style.width = `${size}px`;
-        canvas.style.height = `${size}px`;
-        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        const elements = {
+          homeScreen: document.getElementById("homeScreen"),
+          gameShell: document.getElementById("gameShell"),
+          startGameButton: document.getElementById("startGameButton"),
+          previewTipsButton: document.getElementById("previewTipsButton"),
+          startDayButton: document.getElementById("startDayButton"),
+          restartButton: document.getElementById("restartButton"),
+          modalReplayButton: document.getElementById("modalReplayButton"),
+          nextDayButton: document.getElementById("nextDayButton"),
+          dayModal: document.getElementById("dayModal"),
+          dayLabel: document.getElementById("dayLabel"),
+          cashValue: document.getElementById("cashValue"),
+          weatherBadge: document.getElementById("weatherBadge"),
+          qualityValue: document.getElementById("qualityValue"),
+          forecastValue: document.getElementById("forecastValue"),
+          priceInput: document.getElementById("priceInput"),
+          lemonsInput: document.getElementById("lemonsInput"),
+          sugarInput: document.getElementById("sugarInput"),
+          iceInput: document.getElementById("iceInput"),
+          priceDisplay: document.getElementById("priceDisplay"),
+          lemonsDisplay: document.getElementById("lemonsDisplay"),
+          sugarDisplay: document.getElementById("sugarDisplay"),
+          iceDisplay: document.getElementById("iceDisplay"),
+          qualityFill: document.getElementById("qualityFill"),
+          qualityHint: document.getElementById("qualityHint"),
+          headlineTitle: document.getElementById("headlineTitle"),
+          headlineText: document.getElementById("headlineText"),
+          messageRibbon: document.getElementById("messageRibbon"),
+          lastCustomers: document.getElementById("lastCustomers"),
+          lastSales: document.getElementById("lastSales"),
+          lastProfit: document.getElementById("lastProfit"),
+          historyItems: document.getElementById("historyItems"),
+          modalTitle: document.getElementById("modalTitle"),
+          modalSubtitle: document.getElementById("modalSubtitle"),
+          modalDayChip: document.getElementById("modalDayChip"),
+          modalCustomers: document.getElementById("modalCustomers"),
+          modalSales: document.getElementById("modalSales"),
+          modalCost: document.getElementById("modalCost"),
+          modalProfit: document.getElementById("modalProfit"),
+          modalMessages: document.getElementById("modalMessages")
+        };
 
-        const targetCells = window.innerWidth < 560 ? 24 : 36;
-        const cellSize = Math.max(10, Math.floor(size / targetCells));
-        const cols = Math.floor(size / cellSize);
-        const rows = Math.floor(size / cellSize);
+        function formatCurrency(value) {
+          return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value);
+        }
 
-        const previous = state.grid;
-        state.cols = cols;
-        state.rows = rows;
-        state.cellSize = cellSize;
-        state.grid = createEmptyGrid(cols, rows);
-        state.nextGrid = createEmptyGrid(cols, rows);
+        function clamp(value, min, max) {
+          return Math.min(max, Math.max(min, value));
+        }
 
-        if (previous.length) {
-          for (let y = 0; y < Math.min(previous.length, rows); y += 1) {
-            for (let x = 0; x < Math.min(previous[0].length, cols); x += 1) {
-              state.grid[y][x] = previous[y][x];
-            }
+        function pickWeather(day) {
+          const seed = Math.random() + day * 0.37;
+          const index = Math.floor((seed * 10) % weatherPool.length);
+          return weatherPool[index];
+        }
+
+        function getRecipeMetrics(recipe = state.recipe, weather = state.weather) {
+          const lemonBalance = 1 - Math.min(Math.abs(recipe.lemons - 4) / 4, 1);
+          const sugarBalance = 1 - Math.min(Math.abs(recipe.sugar - 4) / 4, 1);
+          const balanceGap = 1 - Math.min(Math.abs(recipe.lemons - recipe.sugar) / 6, 1);
+          const icePreference = weather && weather.key === "heatwave" ? 5 : weather && weather.key === "rain" ? 2 : 4;
+          const iceScore = 1 - Math.min(Math.abs(recipe.ice - icePreference) / 6, 1);
+          const qualityScore = clamp((lemonBalance * 0.32) + (sugarBalance * 0.28) + (balanceGap * 0.22) + (iceScore * 0.18), 0, 1);
+
+          let qualityLabel = "Correcte";
+          let hint = "🙂 Une recette honnête, mais elle peut encore progresser.";
+
+          if (qualityScore >= 0.88) {
+            qualityLabel = "Exquise";
+            hint = "😍 Les clients adorent ta recette.";
+          } else if (qualityScore >= 0.72) {
+            qualityLabel = "Très fraîche";
+            hint = "🍋 Recette prometteuse et très agréable à boire.";
+          } else if (qualityScore >= 0.52) {
+            qualityLabel = "Équilibrée";
+            hint = "✨ Ta limonade a une bonne base pour convaincre.";
+          } else if (qualityScore <= 0.28) {
+            qualityLabel = "Décevante";
+            hint = "🧪 La recette semble trop déséquilibrée pour séduire.";
+          }
+
+          return { qualityScore, qualityLabel, hint };
+        }
+
+        function estimateDemand() {
+          const weather = state.weather;
+          const { qualityScore } = getRecipeMetrics();
+          const priceSweetSpot = weather.key === "heatwave" ? 1.9 : weather.key === "rain" ? 1.25 : 1.55;
+          const pricePenalty = Math.abs(state.recipe.price - priceSweetSpot) / 2.4;
+          const priceFactor = clamp((1.05 - pricePenalty) * weather.priceTolerance, 0.45, 1.18);
+          const qualityFactor = 0.72 + (qualityScore * 0.6);
+          const baseCustomers = 26 + (state.day * 1.4);
+          const forecast = Math.round(baseCustomers * weather.demand * priceFactor * qualityFactor);
+          return clamp(forecast, 6, 80);
+        }
+
+        function buildMessages(result) {
+          const messages = [];
+          const { weather, qualityScore } = result;
+
+          if (weather.key === "heatwave") {
+            messages.push("🔥 La chaleur fait exploser les ventes aujourd'hui.");
+          }
+          if (weather.key === "rain") {
+            messages.push("🌧️ La pluie a ralenti le passage devant le kiosque.");
+          }
+          if (qualityScore >= 0.82) {
+            messages.push("🍋 Les clients adorent ta recette.");
+          } else if (qualityScore <= 0.35) {
+            messages.push("🧪 La recette semble avoir déçu une partie des passants.");
+          }
+          if (state.recipe.price >= 2.7 && result.customers < result.potentialCustomers * 0.75) {
+            messages.push("💸 Le prix est trop élevé pour une partie de la clientèle.");
+          }
+          if (state.recipe.price <= 1.1 && result.sales > 0) {
+            messages.push("🎯 Le prix doux a aidé à remplir la file d'attente.");
+          }
+          if (state.recipe.ice >= 6 && (weather.key === "sunny" || weather.key === "heatwave")) {
+            messages.push("🧊 La sensation glacée a rendu la limonade irrésistible.");
+          }
+          if (!messages.length) {
+            messages.push("✨ Journée stable : ton kiosque progresse avec régularité.");
+          }
+          return messages;
+        }
+
+        function playDay() {
+          const weather = state.weather;
+          const metrics = getRecipeMetrics();
+          const potentialCustomers = estimateDemand();
+          const variation = 0.85 + Math.random() * 0.3;
+          const customers = Math.max(0, Math.round(potentialCustomers * variation));
+          const ingredientCost = (state.recipe.lemons * 0.35) + (state.recipe.sugar * 0.18) + (state.recipe.ice * 0.12) + 0.6;
+          const sales = customers * state.recipe.price;
+          const profit = sales - ingredientCost;
+
+          state.cash = Math.max(0, state.cash + profit);
+
+          const result = {
+            day: state.day,
+            weather,
+            customers,
+            potentialCustomers,
+            sales,
+            ingredientCost,
+            profit,
+            qualityScore: metrics.qualityScore,
+            qualityLabel: metrics.qualityLabel,
+            messages: buildMessages({
+              weather,
+              customers,
+              potentialCustomers,
+              sales,
+              qualityScore: metrics.qualityScore
+            })
+          };
+
+          state.lastResult = result;
+          state.history.unshift(result);
+          renderHistory();
+          renderSummary(result);
+          updateLastDayCards(result);
+          openModal();
+        }
+
+        function renderHistory() {
+          if (!state.history.length) {
+            elements.historyItems.innerHTML = "";
+            return;
+          }
+
+          elements.historyItems.innerHTML = state.history
+            .map((item) => {
+              const profitClass = item.profit >= 0 ? "positive" : "negative";
+              return `
+                <article class="history-item">
+                  <div class="history-icon">${item.weather.icon}</div>
+                  <div>
+                    <strong>Jour ${item.day} • ${item.weather.label}</strong>
+                    <div class="muted tiny">${item.customers} clients • ${item.qualityLabel} • ${formatCurrency(item.sales)} de ventes</div>
+                  </div>
+                  <div class="history-profit ${profitClass}">${item.profit >= 0 ? "+" : ""}${formatCurrency(item.profit)}</div>
+                </article>
+              `;
+            })
+            .join("");
+        }
+
+        function renderSummary(result) {
+          elements.modalTitle.textContent = result.day >= TOTAL_DAYS ? "Fin de partie" : "Résumé de fin de journée";
+          elements.modalSubtitle.textContent = result.day >= TOTAL_DAYS
+            ? `Après ${TOTAL_DAYS} jours, voici le bilan de ton kiosque.`
+            : "Voici comment ton kiosque s'en est sorti.";
+          elements.modalDayChip.textContent = `Jour ${result.day}`;
+          elements.modalCustomers.textContent = result.customers;
+          elements.modalSales.textContent = formatCurrency(result.sales);
+          elements.modalCost.textContent = formatCurrency(result.ingredientCost);
+          elements.modalProfit.textContent = `${result.profit >= 0 ? "+" : ""}${formatCurrency(result.profit)}`;
+          elements.modalProfit.className = `stat-value ${result.profit >= 0 ? "positive" : "negative"}`;
+          elements.modalMessages.innerHTML = result.messages.map((message) => `<li>${message}</li>`).join("");
+          elements.nextDayButton.textContent = result.day >= TOTAL_DAYS ? "Voir le score final" : "Continuer";
+        }
+
+        function openModal() {
+          elements.dayModal.classList.add("active");
+        }
+
+        function closeModal() {
+          elements.dayModal.classList.remove("active");
+        }
+
+        function updateLastDayCards(result) {
+          elements.lastCustomers.textContent = result.customers;
+          elements.lastSales.textContent = formatCurrency(result.sales);
+          elements.lastProfit.textContent = `${result.profit >= 0 ? "+" : ""}${formatCurrency(result.profit)}`;
+          elements.lastProfit.className = result.profit >= 0 ? "positive" : "negative";
+        }
+
+        function updateForecast() {
+          const metrics = getRecipeMetrics();
+          const forecast = estimateDemand();
+          elements.qualityValue.textContent = metrics.qualityLabel;
+          elements.forecastValue.textContent = `~ ${forecast}`;
+          elements.qualityFill.style.width = `${Math.round(metrics.qualityScore * 100)}%`;
+          elements.qualityHint.textContent = metrics.hint;
+
+          const weather = state.weather;
+          elements.headlineTitle.textContent = weather.headline;
+          elements.headlineText.textContent = weather.copy;
+
+          if (metrics.qualityScore >= 0.82) {
+            elements.messageRibbon.textContent = "🍹 Ton mélange semble premium et très rafraîchissant.";
+          } else if (state.recipe.price > 2.6) {
+            elements.messageRibbon.textContent = "💸 Attention : ton tarif risque de freiner une partie des clients.";
+          } else if (weather.key === "heatwave") {
+            elements.messageRibbon.textContent = "🔥 La chaleur peut transformer ton stand en aimant à clients.";
+          } else {
+            elements.messageRibbon.textContent = "✨ Ajuste les curseurs pour viser une journée rentable et harmonieuse.";
           }
         }
 
-        drawGrid();
-        updateCounters();
-      }
+        function syncInputs() {
+          elements.priceDisplay.textContent = formatCurrency(state.recipe.price);
+          elements.lemonsDisplay.textContent = state.recipe.lemons;
+          elements.sugarDisplay.textContent = state.recipe.sugar;
+          elements.iceDisplay.textContent = state.recipe.ice;
+          elements.cashValue.textContent = formatCurrency(state.cash);
+          elements.dayLabel.textContent = `Jour ${state.day} / ${TOTAL_DAYS}`;
+          elements.weatherBadge.textContent = `${state.weather.icon} ${state.weather.label}`;
+          updateForecast();
+        }
 
-      function createEmptyGrid(cols, rows) {
-        return Array.from({ length: rows }, () => Array(cols).fill(0));
-      }
+        function assignWeather() {
+          state.weather = pickWeather(state.day);
+        }
 
-      // --- Rendu visuel de la grille ---
-      function drawGrid() {
-        const width = state.cols * state.cellSize;
-        const height = state.rows * state.cellSize;
+        function showGame() {
+          elements.homeScreen.classList.remove("active");
+          elements.gameShell.classList.add("active");
+        }
 
-        context.clearRect(0, 0, canvas.width, canvas.height);
+        function startGame() {
+          resetGame();
+          showGame();
+        }
 
-        const background = context.createLinearGradient(0, 0, 0, height);
-        background.addColorStop(0, "#1a120f");
-        background.addColorStop(1, "#0f0b09");
-        context.fillStyle = background;
-        context.fillRect(0, 0, width, height);
+        function resetGame() {
+          state.day = 1;
+          state.cash = STARTING_CASH;
+          state.history = [];
+          state.lastResult = null;
+          state.gameOver = false;
+          state.recipe = { price: 1.5, lemons: 4, sugar: 4, ice: 4 };
+          elements.priceInput.value = 150;
+          elements.lemonsInput.value = 4;
+          elements.sugarInput.value = 4;
+          elements.iceInput.value = 4;
+          elements.lastCustomers.textContent = "0";
+          elements.lastSales.textContent = formatCurrency(0);
+          elements.lastProfit.textContent = formatCurrency(0);
+          elements.lastProfit.className = "";
+          assignWeather();
+          renderHistory();
+          syncInputs();
+          closeModal();
+          elements.startDayButton.disabled = false;
+          elements.startDayButton.textContent = "Commencer la journée";
+        }
 
-        for (let y = 0; y < state.rows; y += 1) {
-          for (let x = 0; x < state.cols; x += 1) {
-            const px = x * state.cellSize;
-            const py = y * state.cellSize;
+        function nextDay() {
+          closeModal();
 
-            if (state.grid[y][x]) {
-              const aliveGradient = context.createRadialGradient(
-                px + state.cellSize * 0.5,
-                py + state.cellSize * 0.45,
-                state.cellSize * 0.12,
-                px + state.cellSize * 0.5,
-                py + state.cellSize * 0.5,
-                state.cellSize * 0.72
-              );
-              aliveGradient.addColorStop(0, "#cffff3");
-              aliveGradient.addColorStop(0.2, "#92f1d0");
-              aliveGradient.addColorStop(0.75, "#309a7c");
-              aliveGradient.addColorStop(1, "#17493c");
-              context.fillStyle = aliveGradient;
-              context.shadowColor = "rgba(119, 213, 182, 0.45)";
-              context.shadowBlur = state.cellSize * 0.32;
-              roundRect(context, px + 1, py + 1, state.cellSize - 2, state.cellSize - 2, 3);
-              context.fill();
-              context.shadowBlur = 0;
-            } else {
-              context.fillStyle = "rgba(47, 30, 23, 0.56)";
-              roundRect(context, px + 1, py + 1, state.cellSize - 2, state.cellSize - 2, 3);
-              context.fill();
-            }
+          if (state.day >= TOTAL_DAYS) {
+            const totalProfit = state.cash - STARTING_CASH;
+            const scoreText = totalProfit >= 30
+              ? "🌟 Incroyable ! Ton kiosque est la star de l'été."
+              : totalProfit >= 18
+              ? "👏 Très belle performance : ton stand devient une adresse favorite."
+              : totalProfit >= 8
+              ? "😊 Bon travail ! Ton kiosque est rentable et prometteur."
+              : "🍋 Début modeste : une meilleure recette ou un prix plus fin pourrait aider.";
+
+            renderSummary({
+              day: TOTAL_DAYS,
+              customers: state.history.reduce((sum, entry) => sum + entry.customers, 0),
+              sales: state.history.reduce((sum, entry) => sum + entry.sales, 0),
+              ingredientCost: state.history.reduce((sum, entry) => sum + entry.ingredientCost, 0),
+              profit: totalProfit,
+              messages: [
+                `🏁 Score final : ${formatCurrency(state.cash)} en caisse après ${TOTAL_DAYS} jours.`,
+                scoreText,
+                `📈 Meilleure journée : ${state.history.reduce((best, entry) => entry.profit > best.profit ? entry : best, state.history[0]).weather.icon} Jour ${state.history.reduce((best, entry) => entry.profit > best.profit ? entry : best, state.history[0]).day}.`
+              ]
+            });
+            openModal();
+            elements.nextDayButton.textContent = "Rejouer une partie";
+            state.gameOver = true;
+            elements.startDayButton.disabled = true;
+            elements.startDayButton.textContent = "Partie terminée";
+            return;
           }
+
+          state.day += 1;
+          assignWeather();
+          syncInputs();
         }
 
-        context.strokeStyle = "rgba(228, 194, 122, 0.14)";
-        context.lineWidth = 1;
-        for (let x = 0; x <= state.cols; x += 1) {
-          const px = x * state.cellSize + 0.5;
-          context.beginPath();
-          context.moveTo(px, 0);
-          context.lineTo(px, height);
-          context.stroke();
-        }
-        for (let y = 0; y <= state.rows; y += 1) {
-          const py = y * state.cellSize + 0.5;
-          context.beginPath();
-          context.moveTo(0, py);
-          context.lineTo(width, py);
-          context.stroke();
-        }
-      }
-
-      function roundRect(ctx, x, y, width, height, radius) {
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.arcTo(x + width, y, x + width, y + height, radius);
-        ctx.arcTo(x + width, y + height, x, y + height, radius);
-        ctx.arcTo(x, y + height, x, y, radius);
-        ctx.arcTo(x, y, x + width, y, radius);
-        ctx.closePath();
-      }
-
-      // --- Application des règles de Conway ---
-      function stepSimulation() {
-        let aliveCount = 0;
-
-        for (let y = 0; y < state.rows; y += 1) {
-          for (let x = 0; x < state.cols; x += 1) {
-            const neighbors = countNeighbors(x, y);
-            const current = state.grid[y][x];
-            let next = 0;
-
-            if (current === 1 && (neighbors === 2 || neighbors === 3)) {
-              next = 1;
-            } else if (current === 0 && neighbors === 3) {
-              next = 1;
-            }
-
-            state.nextGrid[y][x] = next;
-            aliveCount += next;
+        function handleNextAction() {
+          if (state.gameOver) {
+            startGame();
+            return;
           }
+          nextDay();
         }
 
-        [state.grid, state.nextGrid] = [state.nextGrid, state.grid];
-        state.generation += 1;
-        generationDisplay.textContent = String(state.generation);
-        aliveDisplay.textContent = String(aliveCount);
-        drawGrid();
-      }
+        function bindRange(input, key, formatter = (value) => value) {
+          input.addEventListener("input", (event) => {
+            const rawValue = Number(event.target.value);
+            state.recipe[key] = key === "price" ? rawValue / 100 : rawValue;
+            syncInputs();
+            formatter(rawValue);
+          });
+        }
 
-      function countNeighbors(cellX, cellY) {
-        let total = 0;
-        for (let y = -1; y <= 1; y += 1) {
-          for (let x = -1; x <= 1; x += 1) {
-            if (x === 0 && y === 0) continue;
-            const nx = cellX + x;
-            const ny = cellY + y;
-            if (nx >= 0 && nx < state.cols && ny >= 0 && ny < state.rows) {
-              total += state.grid[ny][nx];
-            }
+        elements.startGameButton.addEventListener("click", startGame);
+        elements.previewTipsButton.addEventListener("click", () => {
+          showGame();
+          resetGame();
+          document.getElementById("tipsSection").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+        elements.startDayButton.addEventListener("click", playDay);
+        elements.restartButton.addEventListener("click", startGame);
+        elements.modalReplayButton.addEventListener("click", startGame);
+        elements.nextDayButton.addEventListener("click", handleNextAction);
+        elements.dayModal.addEventListener("click", (event) => {
+          if (event.target === elements.dayModal) {
+            closeModal();
           }
-        }
-        return total;
-      }
+        });
 
-      // --- Animation fluide pilotée par requestAnimationFrame ---
-      function animate(timestamp) {
-        if (state.running) {
-          const interval = 1000 / state.speed;
-          if (!state.lastStepTime || timestamp - state.lastStepTime >= interval) {
-            state.lastStepTime = timestamp;
-            stepSimulation();
-          }
-        }
-        state.animationFrame = requestAnimationFrame(animate);
-      }
+        bindRange(elements.priceInput, "price");
+        bindRange(elements.lemonsInput, "lemons");
+        bindRange(elements.sugarInput, "sugar");
+        bindRange(elements.iceInput, "ice");
 
-      function setRunning(running) {
-        state.running = running;
-        statusText.textContent = running ? "État : en marche" : "État : en pause";
-        startButton.disabled = running;
-        pauseButton.disabled = !running;
-      }
-
-      function updateCounters() {
-        const alive = state.grid.flat().reduce((sum, value) => sum + value, 0);
-        generationDisplay.textContent = String(state.generation);
-        aliveDisplay.textContent = String(alive);
-      }
-
-      // --- Interaction utilisateur avec la grille ---
-      function getCellFromEvent(event) {
-        const rect = canvas.getBoundingClientRect();
-        const point = event.touches ? event.touches[0] : event;
-        const x = Math.floor((point.clientX - rect.left) / state.cellSize);
-        const y = Math.floor((point.clientY - rect.top) / state.cellSize);
-        if (x < 0 || x >= state.cols || y < 0 || y >= state.rows) {
-          return null;
-        }
-        return { x, y };
-      }
-
-      function paintCell(event) {
-        const cell = getCellFromEvent(event);
-        if (!cell) return;
-        const { x, y } = cell;
-        const nextValue = state.drawMode ?? (state.grid[y][x] ? 0 : 1);
-        state.grid[y][x] = nextValue;
-        drawGrid();
-        updateCounters();
-      }
-
-      function beginDraw(event) {
-        const cell = getCellFromEvent(event);
-        if (!cell) return;
-        event.preventDefault();
-        state.drawMode = state.grid[cell.y][cell.x] ? 0 : 1;
-        paintCell(event);
-      }
-
-      function endDraw() {
-        state.drawMode = null;
-      }
-
-      // --- Actions des boutons ---
-      startButton.addEventListener("click", () => setRunning(true));
-      pauseButton.addEventListener("click", () => setRunning(false));
-
-      clearButton.addEventListener("click", () => {
-        state.grid = createEmptyGrid(state.cols, state.rows);
-        state.nextGrid = createEmptyGrid(state.cols, state.rows);
-        state.generation = 0;
-        setRunning(false);
-        drawGrid();
-        updateCounters();
-      });
-
-      randomButton.addEventListener("click", () => {
-        state.grid = state.grid.map((row) => row.map(() => (Math.random() > 0.68 ? 1 : 0)));
-        state.generation = 0;
-        drawGrid();
-        updateCounters();
-      });
-
-      speedControl.addEventListener("input", (event) => {
-        state.speed = Number(event.target.value);
-        speedValue.textContent = `${state.speed} ips`;
-      });
-
-      canvas.addEventListener("pointerdown", beginDraw);
-      canvas.addEventListener("pointermove", (event) => {
-        if (event.buttons === 1 || event.pointerType === "touch") {
-          paintCell(event);
-        }
-      });
-      canvas.addEventListener("pointerup", endDraw);
-      canvas.addEventListener("pointerleave", endDraw);
-      canvas.addEventListener("touchstart", beginDraw, { passive: false });
-      canvas.addEventListener("touchmove", (event) => {
-        event.preventDefault();
-        paintCell(event);
-      }, { passive: false });
-      canvas.addEventListener("touchend", endDraw);
-
-      window.addEventListener("resize", initializeGrid);
-
-      // --- Lancement initial ---
-      initializeGrid();
-      setRunning(false);
-      speedValue.textContent = `${state.speed} ips`;
-      state.animationFrame = requestAnimationFrame(animate);
+        assignWeather();
+        syncInputs();
+      })();
     </script>
   </body>
 </html>
