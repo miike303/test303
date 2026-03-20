@@ -1,1376 +1,205 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lemonade Stand</title>
-    <style>
-      :root {
-        color-scheme: light;
-        --bg: #fff9ee;
-        --bg-soft: #fff3cf;
-        --surface: rgba(255, 252, 243, 0.8);
-        --surface-strong: rgba(255, 255, 255, 0.92);
-        --line: rgba(158, 187, 133, 0.2);
-        --text: #5b4a36;
-        --muted: #8a7b65;
-        --lemon: #ffd85c;
-        --lemon-deep: #f0c633;
-        --mint: #8fd8bb;
-        --mint-deep: #58ba95;
-        --wood: #c9996d;
-        --wood-deep: #a67149;
-        --sky: #e8f8ff;
-        --danger: #f4987d;
-        --shadow: 0 20px 50px rgba(172, 144, 91, 0.12);
-        --shadow-soft: 0 10px 30px rgba(172, 144, 91, 0.08);
-        --radius-xl: 28px;
-        --radius-lg: 22px;
-        --radius-md: 16px;
-        --radius-sm: 12px;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        margin: 0;
-        min-height: 100%;
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        color: var(--text);
-        background:
-          radial-gradient(circle at top left, rgba(255, 216, 92, 0.38), transparent 26%),
-          radial-gradient(circle at top right, rgba(143, 216, 187, 0.3), transparent 20%),
-          linear-gradient(180deg, #fffdf7 0%, #fff8e7 42%, #f8f4e8 100%);
-      }
-
-      body::before,
-      body::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 0;
-      }
-
-      body::before {
-        background:
-          radial-gradient(circle at 10% 22%, rgba(255, 255, 255, 0.9) 0 2px, transparent 2px) 0 0 / 120px 120px,
-          radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.75) 0 3px, transparent 3px) 0 0 / 150px 150px;
-        opacity: 0.5;
-      }
-
-      body::after {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
-      }
-
-      button,
-      input {
-        font: inherit;
-      }
-
-      .app {
-        position: relative;
-        z-index: 1;
-        width: min(1180px, calc(100% - 24px));
-        margin: 22px auto;
-        display: grid;
-        gap: 18px;
-      }
-
-      .hero,
-      .shell,
-      .modal-card {
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-      }
-
-      .hero {
-        position: relative;
-        overflow: hidden;
-        padding: clamp(26px, 5vw, 50px);
-        border-radius: var(--radius-xl);
-        background:
-          linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 249, 230, 0.96)),
-          linear-gradient(180deg, rgba(143, 216, 187, 0.1), rgba(255, 216, 92, 0.12));
-        border: 1px solid rgba(255, 255, 255, 0.7);
-        box-shadow: var(--shadow);
-      }
-
-      .hero::before,
-      .hero::after {
-        content: "";
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(8px);
-      }
-
-      .hero::before {
-        width: 220px;
-        height: 220px;
-        right: -70px;
-        top: -70px;
-        background: radial-gradient(circle, rgba(255, 216, 92, 0.42), rgba(255, 216, 92, 0));
-      }
-
-      .hero::after {
-        width: 180px;
-        height: 180px;
-        left: -50px;
-        bottom: -60px;
-        background: radial-gradient(circle, rgba(143, 216, 187, 0.35), rgba(143, 216, 187, 0));
-      }
-
-      .hero-grid {
-        display: grid;
-        gap: 22px;
-        grid-template-columns: 1.15fr 0.85fr;
-        align-items: center;
-      }
-
-      .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 14px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.72);
-        color: var(--muted);
-        font-size: 0.88rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        box-shadow: var(--shadow-soft);
-      }
-
-      h1 {
-        margin: 18px 0 12px;
-        font-size: clamp(2.4rem, 6vw, 4.6rem);
-        line-height: 0.96;
-        letter-spacing: -0.04em;
-      }
-
-      .accent {
-        color: var(--wood-deep);
-      }
-
-      .lead {
-        margin: 0;
-        max-width: 62ch;
-        color: var(--muted);
-        font-size: 1.05rem;
-        line-height: 1.7;
-      }
-
-      .hero-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 26px;
-      }
-
-      .button {
-        appearance: none;
-        border: none;
-        border-radius: 16px;
-        padding: 15px 20px;
-        cursor: pointer;
-        font-weight: 800;
-        transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease, background 180ms ease;
-        box-shadow: 0 10px 24px rgba(184, 146, 75, 0.15);
-      }
-
-      .button:hover,
-      .button:focus-visible {
-        transform: translateY(-2px);
-        filter: saturate(1.05) brightness(1.02);
-        outline: none;
-      }
-
-      .button:active {
-        transform: translateY(1px) scale(0.995);
-      }
-
-      .button-primary {
-        background: linear-gradient(180deg, #ffe37b 0%, #ffd34d 100%);
-        color: #61471f;
-      }
-
-      .button-secondary {
-        background: linear-gradient(180deg, #9be0c2 0%, #79d4ae 100%);
-        color: #265943;
-      }
-
-      .button-ghost {
-        background: rgba(255, 255, 255, 0.76);
-        color: var(--text);
-      }
-
-      .illustration {
-        position: relative;
-        min-height: 280px;
-        display: grid;
-        place-items: center;
-      }
-
-      .stand-card {
-        width: min(100%, 360px);
-        padding: 22px;
-        border-radius: 30px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 228, 0.96));
-        box-shadow: var(--shadow);
-      }
-
-      .awning {
-        position: relative;
-        height: 84px;
-        margin-bottom: 10px;
-        border-radius: 24px 24px 18px 18px;
-        background: repeating-linear-gradient(
-          90deg,
-          #fffef7 0 34px,
-          #ffd85c 34px 68px
-        );
-        box-shadow: inset 0 -8px 18px rgba(182, 142, 72, 0.14);
-      }
-
-      .awning::after {
-        content: "Fresh Lemonade";
-        position: absolute;
-        left: 50%;
-        bottom: 10px;
-        transform: translateX(-50%);
-        padding: 8px 14px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.88);
-        font-size: 0.9rem;
-        font-weight: 800;
-        color: #7d633a;
-        box-shadow: var(--shadow-soft);
-      }
-
-      .counter {
-        position: relative;
-        padding: 18px;
-        border-radius: 20px;
-        background: linear-gradient(180deg, #d9ae82 0%, #ba8459 100%);
-        overflow: hidden;
-      }
-
-      .counter::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(90deg, rgba(255,255,255,0.12), transparent 25%, transparent 75%, rgba(255,255,255,0.1));
-      }
-
-      .cups {
-        display: flex;
-        justify-content: center;
-        gap: 16px;
-      }
-
-      .cup {
-        position: relative;
-        width: 62px;
-        height: 86px;
-        border-radius: 14px 14px 18px 18px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.7));
-        border: 2px solid rgba(255,255,255,0.7);
-        overflow: hidden;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
-      }
-
-      .cup::before {
-        content: "";
-        position: absolute;
-        inset: 18px 7px 6px;
-        border-radius: 10px 10px 12px 12px;
-        background: linear-gradient(180deg, rgba(255, 228, 130, 0.92), rgba(255, 211, 77, 0.95));
-      }
-
-      .cup::after {
-        content: "";
-        position: absolute;
-        width: 8px;
-        height: 42px;
-        top: -4px;
-        right: 12px;
-        border-radius: 999px;
-        background: linear-gradient(180deg, #76d4b5, #4db692);
-        transform: rotate(14deg);
-      }
-
-      .shell {
-        display: none;
-        gap: 18px;
-        grid-template-columns: minmax(280px, 350px) minmax(0, 1fr);
-      }
-
-      .shell.active,
-      .screen.active,
-      .modal.active {
-        display: grid;
-      }
-
-      .panel {
-        background: var(--surface);
-        border: 1px solid rgba(255, 255, 255, 0.7);
-        border-radius: var(--radius-xl);
-        box-shadow: var(--shadow-soft);
-        padding: 20px;
-      }
-
-      .panel h2,
-      .panel h3,
-      .panel h4,
-      .modal-card h3 {
-        margin: 0;
-      }
-
-      .panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-        gap: 12px;
-        margin-bottom: 16px;
-      }
-
-      .chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border-radius: 999px;
-        padding: 9px 12px;
-        background: rgba(255, 255, 255, 0.76);
-        color: var(--muted);
-        font-size: 0.88rem;
-        font-weight: 700;
-      }
-
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-      }
-
-      .stat-card {
-        padding: 14px;
-        border-radius: 18px;
-        background: var(--surface-strong);
-        border: 1px solid rgba(255, 255, 255, 0.78);
-      }
-
-      .stat-label {
-        display: block;
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin-bottom: 8px;
-      }
-
-      .stat-value {
-        font-size: clamp(1.1rem, 2vw, 1.65rem);
-        font-weight: 800;
-      }
-
-      .weather-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 14px;
-        border-radius: 16px;
-        background: linear-gradient(180deg, #eefbff, #dff6ff);
-        color: #47748b;
-        font-weight: 700;
-      }
-
-      .controls {
-        display: grid;
-        gap: 14px;
-      }
-
-      .control-card {
-        padding: 16px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(255, 255, 255, 0.75);
-      }
-
-      .control-top {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 10px;
-      }
-
-      .control-title {
-        font-weight: 800;
-      }
-
-      .control-copy {
-        margin: 4px 0 0;
-        font-size: 0.9rem;
-        color: var(--muted);
-      }
-
-      .control-value {
-        min-width: 80px;
-        text-align: right;
-        font-weight: 800;
-        color: var(--wood-deep);
-      }
-
-      input[type="range"] {
-        width: 100%;
-        appearance: none;
-        height: 10px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, rgba(143,216,187,0.35), rgba(255,216,92,0.55));
-        outline: none;
-      }
-
-      input[type="range"]::-webkit-slider-thumb {
-        appearance: none;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: linear-gradient(180deg, #ffffff, #fff7c9);
-        border: 3px solid var(--lemon-deep);
-        box-shadow: 0 6px 12px rgba(184, 146, 75, 0.2);
-      }
-
-      .quality-meter {
-        margin-top: 16px;
-        padding: 16px;
-        border-radius: 20px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(252, 247, 233, 0.96));
-        border: 1px solid rgba(255,255,255,0.78);
-      }
-
-      .meter-bar {
-        height: 12px;
-        width: 100%;
-        margin: 10px 0 8px;
-        border-radius: 999px;
-        background: rgba(143, 216, 187, 0.18);
-        overflow: hidden;
-      }
-
-      .meter-fill {
-        height: 100%;
-        width: 0;
-        border-radius: inherit;
-        background: linear-gradient(90deg, #89d6b7, #ffd85c);
-        transition: width 260ms ease;
-      }
-
-      .tips-list,
-      .summary-list,
-      .bullet-list {
-        display: grid;
-        gap: 10px;
-        padding: 0;
-        margin: 0;
-        list-style: none;
-      }
-
-      .tips-list li,
-      .summary-list li,
-      .bullet-list li {
-        padding: 12px 14px;
-        border-radius: 16px;
-        background: rgba(255,255,255,0.82);
-        color: var(--muted);
-      }
-
-      .dashboard {
-        display: grid;
-        gap: 18px;
-      }
-
-      .headline-card {
-        position: relative;
-        overflow: hidden;
-        min-height: 220px;
-        padding: 24px;
-        border-radius: var(--radius-xl);
-        background:
-          radial-gradient(circle at top right, rgba(255,255,255,0.42), transparent 28%),
-          linear-gradient(135deg, rgba(255, 235, 171, 0.85), rgba(143, 216, 187, 0.65));
-        box-shadow: var(--shadow-soft);
-      }
-
-      .headline-card::after {
-        content: "🍋";
-        position: absolute;
-        right: 20px;
-        bottom: 18px;
-        font-size: clamp(4rem, 10vw, 6.8rem);
-        opacity: 0.14;
-        transform: rotate(-10deg);
-      }
-
-      .headline-card p {
-        margin: 10px 0 0;
-        max-width: 52ch;
-        color: rgba(91, 74, 54, 0.82);
-        line-height: 1.65;
-      }
-
-      .message-ribbon {
-        margin-top: 18px;
-        display: inline-flex;
-        gap: 10px;
-        align-items: center;
-        padding: 12px 16px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.75);
-        font-weight: 700;
-      }
-
-      .cards-grid {
-        display: grid;
-        gap: 14px;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .info-card {
-        padding: 18px;
-        border-radius: 20px;
-        background: var(--surface);
-        box-shadow: var(--shadow-soft);
-        border: 1px solid rgba(255,255,255,0.72);
-      }
-
-      .info-card strong {
-        display: block;
-        margin-top: 6px;
-        font-size: 1.5rem;
-      }
-
-      .history-card {
-        padding: 20px;
-        border-radius: var(--radius-xl);
-        background: var(--surface);
-        box-shadow: var(--shadow-soft);
-        border: 1px solid rgba(255,255,255,0.72);
-      }
-
-      .history-items {
-        display: grid;
-        gap: 12px;
-        margin-top: 14px;
-      }
-
-      .history-item {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 14px;
-        align-items: center;
-        padding: 14px;
-        border-radius: 18px;
-        background: rgba(255,255,255,0.88);
-        border: 1px solid rgba(255,255,255,0.72);
-        animation: fadeInUp 320ms ease;
-      }
-
-      .history-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
-        display: grid;
-        place-items: center;
-        background: linear-gradient(180deg, #fff3b6, #ffe17d);
-        font-size: 1.2rem;
-      }
-
-      .history-profit {
-        font-weight: 800;
-      }
-
-      .positive { color: #2f8b68; }
-      .negative { color: #d06b4a; }
-
-      .footer-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-
-      .screen {
-        display: none;
-      }
-
-      .modal {
-        position: fixed;
-        inset: 0;
-        z-index: 4;
-        display: none;
-        place-items: center;
-        padding: 18px;
-        background: rgba(109, 91, 62, 0.18);
-      }
-
-      .modal-card {
-        width: min(620px, 100%);
-        padding: 24px;
-        border-radius: 28px;
-        background: rgba(255, 252, 243, 0.95);
-        box-shadow: 0 24px 60px rgba(120, 95, 63, 0.18);
-        border: 1px solid rgba(255,255,255,0.8);
-        animation: popIn 260ms ease;
-      }
-
-      .summary-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-        margin: 18px 0;
-      }
-
-      .summary-box {
-        padding: 14px;
-        border-radius: 18px;
-        background: rgba(255,255,255,0.9);
-      }
-
-      .muted {
-        color: var(--muted);
-      }
-
-      .tiny {
-        font-size: 0.9rem;
-      }
-
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @keyframes popIn {
-        from {
-          opacity: 0;
-          transform: translateY(12px) scale(0.98);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      @media (max-width: 960px) {
-        .hero-grid,
-        .shell,
-        .cards-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      @media (max-width: 720px) {
-        .app {
-          width: min(100% - 16px, 100%);
-          margin: 12px auto 18px;
-        }
-
-        .hero,
-        .panel,
-        .headline-card,
-        .history-card {
-          padding: 18px;
-          border-radius: 22px;
-        }
-
-        .stats-grid,
-        .summary-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .hero-actions,
-        .footer-actions {
-          flex-direction: column;
-        }
-
-        .button {
-          width: 100%;
-        }
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#070b17" />
+    <title>Simon Pulse</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main class="app">
-      <section class="hero screen active" id="homeScreen">
-        <div class="hero-grid">
+    <div class="app-shell">
+      <main class="app" aria-label="Simon Pulse memory game">
+        <header class="topbar card">
           <div>
-            <div class="eyebrow">🍹 Jeu casual d'été • Gestion simple et satisfaisante</div>
-            <h1>Lemonade <span class="accent">Stand</span></h1>
-            <p class="lead">
-              Ouvre ton petit kiosque, ajuste ta recette, observe la météo et fais prospérer
-              ton stand de limonade sur plusieurs journées. Trouve le bon équilibre entre prix,
-              fraîcheur et qualité pour maximiser tes profits.
-            </p>
-            <div class="hero-actions">
-              <button class="button button-primary" id="startGameButton">Commencer</button>
-              <button class="button button-ghost" id="previewTipsButton">Voir les conseils</button>
-            </div>
+            <p class="eyebrow">Mobile-first memory arcade</p>
+            <h1>Simon <span>Pulse</span></h1>
+            <p class="subtitle">Watch the glow, repeat the rhythm, and build your streak.</p>
           </div>
+          <button class="icon-button" id="howToPlayButton" aria-label="How to play">?</button>
+        </header>
 
-          <div class="illustration">
-            <div class="stand-card" aria-hidden="true">
-              <div class="awning"></div>
-              <div class="counter">
-                <div class="cups">
-                  <div class="cup"></div>
-                  <div class="cup"></div>
-                  <div class="cup"></div>
-                </div>
-              </div>
-              <ul class="tips-list" style="margin-top: 16px;">
-                <li>☀️ Les journées chaudes attirent plus de clients.</li>
-                <li>🍋 Une recette équilibrée améliore la qualité perçue.</li>
-                <li>💰 Un prix trop haut peut faire fuir la file d'attente.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="shell" id="gameShell">
-        <aside class="panel">
-          <div class="panel-header">
-            <div>
-              <h2>Préparation du kiosque</h2>
-              <p class="muted tiny">Ajuste ta recette avant de lancer la journée.</p>
-            </div>
-            <div class="chip">📅 <span id="dayLabel">Jour 1 / 7</span></div>
-          </div>
-
+        <section class="hud card" aria-label="Game stats and controls">
           <div class="stats-grid">
-            <article class="stat-card">
-              <span class="stat-label">Argent disponible</span>
-              <strong class="stat-value" id="cashValue">€ 18.00</strong>
+            <article class="stat-pill">
+              <span class="label">Score</span>
+              <strong id="scoreValue">0</strong>
             </article>
-            <article class="stat-card">
-              <span class="stat-label">Météo du jour</span>
-              <div class="weather-badge" id="weatherBadge">☀️ Ensoleillé</div>
+            <article class="stat-pill">
+              <span class="label">Best</span>
+              <strong id="bestScoreValue">0</strong>
             </article>
-            <article class="stat-card">
-              <span class="stat-label">Qualité estimée</span>
-              <strong class="stat-value" id="qualityValue">Délicate</strong>
+            <article class="stat-pill">
+              <span class="label">Round</span>
+              <strong id="roundValue">0</strong>
             </article>
-            <article class="stat-card">
-              <span class="stat-label">Prévision clients</span>
-              <strong class="stat-value" id="forecastValue">~ 22</strong>
-            </article>
-          </div>
-
-          <div class="controls" style="margin-top: 18px;">
-            <div class="control-card">
-              <div class="control-top">
-                <div>
-                  <div class="control-title">Prix du verre</div>
-                  <p class="control-copy">Trouve un prix attirant sans brader ton stand.</p>
-                </div>
-                <div class="control-value" id="priceDisplay">€ 1.50</div>
-              </div>
-              <input id="priceInput" type="range" min="50" max="400" step="10" value="150" />
-            </div>
-
-            <div class="control-card">
-              <div class="control-top">
-                <div>
-                  <div class="control-title">Citrons</div>
-                  <p class="control-copy">Plus de citron donne une saveur vive et premium.</p>
-                </div>
-                <div class="control-value" id="lemonsDisplay">4</div>
-              </div>
-              <input id="lemonsInput" type="range" min="1" max="8" step="1" value="4" />
-            </div>
-
-            <div class="control-card">
-              <div class="control-top">
-                <div>
-                  <div class="control-title">Sucre</div>
-                  <p class="control-copy">L'équilibre est plus important qu'une boisson trop sucrée.</p>
-                </div>
-                <div class="control-value" id="sugarDisplay">4</div>
-              </div>
-              <input id="sugarInput" type="range" min="1" max="8" step="1" value="4" />
-            </div>
-
-            <div class="control-card">
-              <div class="control-top">
-                <div>
-                  <div class="control-title">Glace</div>
-                  <p class="control-copy">Indispensable quand la chaleur grimpe fort.</p>
-                </div>
-                <div class="control-value" id="iceDisplay">4</div>
-              </div>
-              <input id="iceInput" type="range" min="0" max="8" step="1" value="4" />
-            </div>
-          </div>
-
-          <section class="quality-meter">
-            <div class="panel-header" style="margin-bottom: 0;">
-              <div>
-                <h3>Lecture rapide de ta recette</h3>
-                <p class="muted tiny">Une recette bien équilibrée attire naturellement plus de monde.</p>
-              </div>
-            </div>
-            <div class="meter-bar">
-              <div class="meter-fill" id="qualityFill"></div>
-            </div>
-            <div class="chip" id="qualityHint">🍋 Recette prometteuse</div>
-          </section>
-
-          <section class="panel" id="tipsSection" style="margin-top: 18px; padding: 16px;">
-            <div class="panel-header" style="margin-bottom: 12px;">
-              <div>
-                <h3>Conseils</h3>
-                <p class="muted tiny">Parfait pour débuter sans stress.</p>
-              </div>
-            </div>
-            <ul class="tips-list">
-              <li>Reste proche d'un prix moyen lors des journées nuageuses ou pluvieuses.</li>
-              <li>En canicule, une bonne dose de glace peut faire bondir la demande.</li>
-              <li>Si la qualité baisse, réduis les excès de sucre ou remonte légèrement le citron.</li>
-            </ul>
-          </section>
-        </aside>
-
-        <section class="dashboard">
-          <article class="headline-card">
-            <div class="eyebrow">🍋 Petit kiosque • Grande ambition</div>
-            <h2 id="headlineTitle" style="margin-top: 16px; font-size: clamp(1.8rem, 4vw, 3rem);">Une belle journée s'annonce</h2>
-            <p id="headlineText">
-              Ajuste ta recette avec soin puis lance la vente du jour. La météo, ton prix et la
-              fraîcheur perçue vont décider de la file d'attente devant ton stand.
-            </p>
-            <div class="message-ribbon" id="messageRibbon">✨ Les habitués reviennent pour une limonade bien fraîche.</div>
-          </article>
-
-          <div class="cards-grid">
-            <article class="info-card">
-              <span class="stat-label">Clients servis hier</span>
-              <strong id="lastCustomers">0</strong>
-              <span class="muted tiny">Le rythme de ton kiosque évolue chaque jour.</span>
-            </article>
-            <article class="info-card">
-              <span class="stat-label">Ventes d'hier</span>
-              <strong id="lastSales">€ 0.00</strong>
-              <span class="muted tiny">Un prix cohérent aide à convertir la foule.</span>
-            </article>
-            <article class="info-card">
-              <span class="stat-label">Profit d'hier</span>
-              <strong id="lastProfit">€ 0.00</strong>
-              <span class="muted tiny">Surveille ton bénéfice net et ajuste vite.</span>
+            <article class="stat-pill">
+              <span class="label">Speed</span>
+              <strong id="speedValue">Calm</strong>
             </article>
           </div>
 
-          <article class="history-card">
-            <div class="panel-header">
-              <div>
-                <h3>Journal du kiosque</h3>
-                <p class="muted tiny">Résumé des journées pour suivre ta progression.</p>
+          <div class="status-row">
+            <div>
+              <p class="status-label">Status</p>
+              <p id="statusMessage" class="status-message" aria-live="polite">Tap start to begin.</p>
+            </div>
+            <div class="progress-wrap" aria-label="Milestone progress">
+              <div class="progress-meta">
+                <span>Milestone</span>
+                <span id="milestoneLabel">0 / 5</span>
               </div>
-              <div class="footer-actions">
-                <button class="button button-primary" id="startDayButton">Commencer la journée</button>
-                <button class="button button-secondary" id="restartButton">Rejouer</button>
+              <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div id="milestoneBar"></div>
               </div>
             </div>
-            <div class="history-items" id="historyItems">
-              <div class="history-item">
-                <div class="history-icon">🌤️</div>
-                <div>
-                  <strong>Ton kiosque est prêt.</strong>
-                  <div class="muted tiny">Prépare la première recette et lance la journée.</div>
-                </div>
-                <div class="history-profit">—</div>
-              </div>
-            </div>
-          </article>
+          </div>
+
+          <div class="control-grid">
+            <button id="startButton" class="primary-button">Start Game</button>
+            <button id="restartButton" class="secondary-button">Restart</button>
+            <button id="pauseButton" class="glass-button">Pause</button>
+            <button id="leaderboardButton" class="glass-button">Leaderboard</button>
+          </div>
+
+          <div class="toggle-grid" role="group" aria-label="Gameplay options">
+            <label class="toggle-card">
+              <input type="checkbox" id="strictToggle" />
+              <span>Strict Mode</span>
+              <small>Faster, sharper feedback</small>
+            </label>
+            <label class="toggle-card">
+              <input type="checkbox" id="zenToggle" />
+              <span>Zen Practice</span>
+              <small>Retry the round after mistakes</small>
+            </label>
+            <label class="toggle-card">
+              <input type="checkbox" id="soundToggle" checked />
+              <span>Sound</span>
+              <small>Pleasant synth tones</small>
+            </label>
+            <label class="toggle-card">
+              <input type="checkbox" id="themeToggle" />
+              <span>Soft Luxury</span>
+              <small>Switch the visual theme</small>
+            </label>
+          </div>
+
+          <div class="micro-stats">
+            <span id="comboValue">Combo ×0</span>
+            <span id="modeValue">Mode: Classic</span>
+            <span id="perfectValue">Perfect run ready</span>
+            <span id="dailySeedValue">Daily seed: ----</span>
+          </div>
         </section>
-      </section>
-    </main>
 
-    <div class="modal" id="dayModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <section class="board-card card" aria-label="Simon board">
+          <div class="board-frame">
+            <div class="board" id="board">
+              <button class="pad pad-green" data-pad="0" aria-label="Green pad, keyboard Q">
+                <span class="symbol">Q</span>
+                <span class="pad-name">Green</span>
+              </button>
+              <button class="pad pad-red" data-pad="1" aria-label="Red pad, keyboard W">
+                <span class="symbol">W</span>
+                <span class="pad-name">Red</span>
+              </button>
+              <button class="pad pad-yellow" data-pad="2" aria-label="Yellow pad, keyboard A">
+                <span class="symbol">A</span>
+                <span class="pad-name">Yellow</span>
+              </button>
+              <button class="pad pad-blue" data-pad="3" aria-label="Blue pad, keyboard S">
+                <span class="symbol">S</span>
+                <span class="pad-name">Blue</span>
+              </button>
+              <div class="board-core" aria-hidden="true">
+                <span>Pulse</span>
+                <strong id="difficultyLabel">Classic</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="achievements card" aria-label="Achievements">
+          <div class="section-head">
+            <h2>Achievements</h2>
+            <span id="achievementCount">0 unlocked</span>
+          </div>
+          <div id="achievementList" class="achievement-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal hidden" id="leaderboardModal" aria-hidden="true">
       <div class="modal-card">
-        <div class="panel-header">
+        <div class="section-head">
           <div>
-            <h3 id="modalTitle">Résumé de fin de journée</h3>
-            <p class="muted tiny" id="modalSubtitle">Voici comment ton kiosque s'en est sorti.</p>
+            <h2>Top 10 Pulse Runs</h2>
+            <p>Stored locally on this device.</p>
           </div>
-          <div class="chip" id="modalDayChip">Jour 1</div>
+          <button class="icon-button close-modal" data-close="leaderboardModal" aria-label="Close leaderboard">×</button>
         </div>
-
-        <div class="summary-grid">
-          <div class="summary-box">
-            <span class="stat-label">Clients</span>
-            <strong class="stat-value" id="modalCustomers">0</strong>
-          </div>
-          <div class="summary-box">
-            <span class="stat-label">Ventes</span>
-            <strong class="stat-value" id="modalSales">€ 0.00</strong>
-          </div>
-          <div class="summary-box">
-            <span class="stat-label">Coût ingrédients</span>
-            <strong class="stat-value" id="modalCost">€ 0.00</strong>
-          </div>
-          <div class="summary-box">
-            <span class="stat-label">Profit</span>
-            <strong class="stat-value" id="modalProfit">€ 0.00</strong>
-          </div>
-        </div>
-
-        <ul class="summary-list" id="modalMessages"></ul>
-
-        <div class="footer-actions" style="margin-top: 20px;">
-          <button class="button button-primary" id="nextDayButton">Continuer</button>
-          <button class="button button-ghost" id="modalReplayButton">Rejouer</button>
+        <ol id="leaderboardList" class="leaderboard-list"></ol>
+        <div class="modal-actions">
+          <button id="clearLeaderboardButton" class="secondary-button danger">Clear leaderboard</button>
+          <button class="glass-button close-modal" data-close="leaderboardModal">Done</button>
         </div>
       </div>
     </div>
 
-    <script>
-      (() => {
-        const TOTAL_DAYS = 7;
-        const STARTING_CASH = 18;
+    <div class="modal hidden" id="summaryModal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="section-head">
+          <div>
+            <h2>Run Summary</h2>
+            <p id="summaryHeadline">One more round?</p>
+          </div>
+          <button class="icon-button close-modal" data-close="summaryModal" aria-label="Close summary">×</button>
+        </div>
+        <div class="summary-grid">
+          <article><span>Final score</span><strong id="summaryScore">0</strong></article>
+          <article><span>Best score</span><strong id="summaryBest">0</strong></article>
+          <article><span>Rounds</span><strong id="summaryRounds">0</strong></article>
+          <article><span>Mode</span><strong id="summaryMode">Classic</strong></article>
+        </div>
+        <div id="summaryBadges" class="summary-badges"></div>
+        <form id="nicknameForm" class="nickname-form hidden">
+          <label for="nicknameInput">Leaderboard nickname</label>
+          <div class="nickname-row">
+            <input id="nicknameInput" name="nickname" type="text" maxlength="16" placeholder="Player" autocomplete="nickname" />
+            <button class="primary-button" type="submit">Save</button>
+          </div>
+        </form>
+        <div class="modal-actions">
+          <button id="rematchButton" class="primary-button">Quick rematch</button>
+          <button class="glass-button close-modal" data-close="summaryModal">Close</button>
+        </div>
+      </div>
+    </div>
 
-        const weatherPool = [
-          {
-            key: "sunny",
-            label: "Ensoleillé",
-            icon: "☀️",
-            demand: 1.15,
-            priceTolerance: 1.02,
-            iceBonus: 0.05,
-            headline: "Le soleil attire la promenade",
-            copy: "Une journée lumineuse donne naturellement envie d'une boisson fraîche."
-          },
-          {
-            key: "cloudy",
-            label: "Nuageux",
-            icon: "⛅",
-            demand: 0.95,
-            priceTolerance: 0.98,
-            iceBonus: 0.02,
-            headline: "L'ambiance est douce mais plus calme",
-            copy: "Les clients viennent, mais ils comparent davantage les prix."
-          },
-          {
-            key: "heatwave",
-            label: "Canicule",
-            icon: "🔥",
-            demand: 1.38,
-            priceTolerance: 1.08,
-            iceBonus: 0.12,
-            headline: "La chaleur fait exploser les ventes",
-            copy: "Les passants cherchent une boisson glacée dès qu'ils aperçoivent ton kiosque."
-          },
-          {
-            key: "rain",
-            label: "Pluie",
-            icon: "🌧️",
-            demand: 0.62,
-            priceTolerance: 0.88,
-            iceBonus: -0.02,
-            headline: "La pluie ralentit le passage",
-            copy: "Les ventes seront plus modestes, mieux vaut rester séduisant sur le prix."
-          }
-        ];
+    <div class="modal hidden" id="tutorialModal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="section-head">
+          <div>
+            <h2>How to play</h2>
+            <p>Designed for thumbs, keyboard, and quick rematches.</p>
+          </div>
+          <button class="icon-button close-modal" data-close="tutorialModal" aria-label="Close tutorial">×</button>
+        </div>
+        <ul class="tutorial-list">
+          <li>Watch the sequence and wait for <strong>Your turn</strong>.</li>
+          <li>Tap pads or use <strong>Q/W/A/S</strong> to match the pattern.</li>
+          <li>Every completed round adds a new step and speeds up slightly.</li>
+          <li><strong>Strict</strong> is faster. <strong>Zen</strong> lets you retry the current round.</li>
+          <li>Milestones at rounds 5, 10, 15, and 20 award bonuses and celebrations.</li>
+        </ul>
+        <div class="modal-actions">
+          <button id="startFromTutorialButton" class="primary-button">Start now</button>
+          <button class="glass-button close-modal" data-close="tutorialModal">Got it</button>
+        </div>
+      </div>
+    </div>
 
-        const state = {
-          day: 1,
-          cash: STARTING_CASH,
-          recipe: {
-            price: 1.5,
-            lemons: 4,
-            sugar: 4,
-            ice: 4
-          },
-          history: [],
-          weather: null,
-          lastResult: null,
-          gameOver: false
-        };
-
-        const elements = {
-          homeScreen: document.getElementById("homeScreen"),
-          gameShell: document.getElementById("gameShell"),
-          startGameButton: document.getElementById("startGameButton"),
-          previewTipsButton: document.getElementById("previewTipsButton"),
-          startDayButton: document.getElementById("startDayButton"),
-          restartButton: document.getElementById("restartButton"),
-          modalReplayButton: document.getElementById("modalReplayButton"),
-          nextDayButton: document.getElementById("nextDayButton"),
-          dayModal: document.getElementById("dayModal"),
-          dayLabel: document.getElementById("dayLabel"),
-          cashValue: document.getElementById("cashValue"),
-          weatherBadge: document.getElementById("weatherBadge"),
-          qualityValue: document.getElementById("qualityValue"),
-          forecastValue: document.getElementById("forecastValue"),
-          priceInput: document.getElementById("priceInput"),
-          lemonsInput: document.getElementById("lemonsInput"),
-          sugarInput: document.getElementById("sugarInput"),
-          iceInput: document.getElementById("iceInput"),
-          priceDisplay: document.getElementById("priceDisplay"),
-          lemonsDisplay: document.getElementById("lemonsDisplay"),
-          sugarDisplay: document.getElementById("sugarDisplay"),
-          iceDisplay: document.getElementById("iceDisplay"),
-          qualityFill: document.getElementById("qualityFill"),
-          qualityHint: document.getElementById("qualityHint"),
-          headlineTitle: document.getElementById("headlineTitle"),
-          headlineText: document.getElementById("headlineText"),
-          messageRibbon: document.getElementById("messageRibbon"),
-          lastCustomers: document.getElementById("lastCustomers"),
-          lastSales: document.getElementById("lastSales"),
-          lastProfit: document.getElementById("lastProfit"),
-          historyItems: document.getElementById("historyItems"),
-          modalTitle: document.getElementById("modalTitle"),
-          modalSubtitle: document.getElementById("modalSubtitle"),
-          modalDayChip: document.getElementById("modalDayChip"),
-          modalCustomers: document.getElementById("modalCustomers"),
-          modalSales: document.getElementById("modalSales"),
-          modalCost: document.getElementById("modalCost"),
-          modalProfit: document.getElementById("modalProfit"),
-          modalMessages: document.getElementById("modalMessages")
-        };
-
-        function formatCurrency(value) {
-          return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value);
-        }
-
-        function clamp(value, min, max) {
-          return Math.min(max, Math.max(min, value));
-        }
-
-        function pickWeather(day) {
-          const seed = Math.random() + day * 0.37;
-          const index = Math.floor((seed * 10) % weatherPool.length);
-          return weatherPool[index];
-        }
-
-        function getRecipeMetrics(recipe = state.recipe, weather = state.weather) {
-          const lemonBalance = 1 - Math.min(Math.abs(recipe.lemons - 4) / 4, 1);
-          const sugarBalance = 1 - Math.min(Math.abs(recipe.sugar - 4) / 4, 1);
-          const balanceGap = 1 - Math.min(Math.abs(recipe.lemons - recipe.sugar) / 6, 1);
-          const icePreference = weather && weather.key === "heatwave" ? 5 : weather && weather.key === "rain" ? 2 : 4;
-          const iceScore = 1 - Math.min(Math.abs(recipe.ice - icePreference) / 6, 1);
-          const qualityScore = clamp((lemonBalance * 0.32) + (sugarBalance * 0.28) + (balanceGap * 0.22) + (iceScore * 0.18), 0, 1);
-
-          let qualityLabel = "Correcte";
-          let hint = "🙂 Une recette honnête, mais elle peut encore progresser.";
-
-          if (qualityScore >= 0.88) {
-            qualityLabel = "Exquise";
-            hint = "😍 Les clients adorent ta recette.";
-          } else if (qualityScore >= 0.72) {
-            qualityLabel = "Très fraîche";
-            hint = "🍋 Recette prometteuse et très agréable à boire.";
-          } else if (qualityScore >= 0.52) {
-            qualityLabel = "Équilibrée";
-            hint = "✨ Ta limonade a une bonne base pour convaincre.";
-          } else if (qualityScore <= 0.28) {
-            qualityLabel = "Décevante";
-            hint = "🧪 La recette semble trop déséquilibrée pour séduire.";
-          }
-
-          return { qualityScore, qualityLabel, hint };
-        }
-
-        function estimateDemand() {
-          const weather = state.weather;
-          const { qualityScore } = getRecipeMetrics();
-          const priceSweetSpot = weather.key === "heatwave" ? 1.9 : weather.key === "rain" ? 1.25 : 1.55;
-          const pricePenalty = Math.abs(state.recipe.price - priceSweetSpot) / 2.4;
-          const priceFactor = clamp((1.05 - pricePenalty) * weather.priceTolerance, 0.45, 1.18);
-          const qualityFactor = 0.72 + (qualityScore * 0.6);
-          const baseCustomers = 26 + (state.day * 1.4);
-          const forecast = Math.round(baseCustomers * weather.demand * priceFactor * qualityFactor);
-          return clamp(forecast, 6, 80);
-        }
-
-        function buildMessages(result) {
-          const messages = [];
-          const { weather, qualityScore } = result;
-
-          if (weather.key === "heatwave") {
-            messages.push("🔥 La chaleur fait exploser les ventes aujourd'hui.");
-          }
-          if (weather.key === "rain") {
-            messages.push("🌧️ La pluie a ralenti le passage devant le kiosque.");
-          }
-          if (qualityScore >= 0.82) {
-            messages.push("🍋 Les clients adorent ta recette.");
-          } else if (qualityScore <= 0.35) {
-            messages.push("🧪 La recette semble avoir déçu une partie des passants.");
-          }
-          if (state.recipe.price >= 2.7 && result.customers < result.potentialCustomers * 0.75) {
-            messages.push("💸 Le prix est trop élevé pour une partie de la clientèle.");
-          }
-          if (state.recipe.price <= 1.1 && result.sales > 0) {
-            messages.push("🎯 Le prix doux a aidé à remplir la file d'attente.");
-          }
-          if (state.recipe.ice >= 6 && (weather.key === "sunny" || weather.key === "heatwave")) {
-            messages.push("🧊 La sensation glacée a rendu la limonade irrésistible.");
-          }
-          if (!messages.length) {
-            messages.push("✨ Journée stable : ton kiosque progresse avec régularité.");
-          }
-          return messages;
-        }
-
-        function playDay() {
-          const weather = state.weather;
-          const metrics = getRecipeMetrics();
-          const potentialCustomers = estimateDemand();
-          const variation = 0.85 + Math.random() * 0.3;
-          const customers = Math.max(0, Math.round(potentialCustomers * variation));
-          const ingredientCost = (state.recipe.lemons * 0.35) + (state.recipe.sugar * 0.18) + (state.recipe.ice * 0.12) + 0.6;
-          const sales = customers * state.recipe.price;
-          const profit = sales - ingredientCost;
-
-          state.cash = Math.max(0, state.cash + profit);
-
-          const result = {
-            day: state.day,
-            weather,
-            customers,
-            potentialCustomers,
-            sales,
-            ingredientCost,
-            profit,
-            qualityScore: metrics.qualityScore,
-            qualityLabel: metrics.qualityLabel,
-            messages: buildMessages({
-              weather,
-              customers,
-              potentialCustomers,
-              sales,
-              qualityScore: metrics.qualityScore
-            })
-          };
-
-          state.lastResult = result;
-          state.history.unshift(result);
-          renderHistory();
-          renderSummary(result);
-          updateLastDayCards(result);
-          openModal();
-        }
-
-        function renderHistory() {
-          if (!state.history.length) {
-            elements.historyItems.innerHTML = "";
-            return;
-          }
-
-          elements.historyItems.innerHTML = state.history
-            .map((item) => {
-              const profitClass = item.profit >= 0 ? "positive" : "negative";
-              return `
-                <article class="history-item">
-                  <div class="history-icon">${item.weather.icon}</div>
-                  <div>
-                    <strong>Jour ${item.day} • ${item.weather.label}</strong>
-                    <div class="muted tiny">${item.customers} clients • ${item.qualityLabel} • ${formatCurrency(item.sales)} de ventes</div>
-                  </div>
-                  <div class="history-profit ${profitClass}">${item.profit >= 0 ? "+" : ""}${formatCurrency(item.profit)}</div>
-                </article>
-              `;
-            })
-            .join("");
-        }
-
-        function renderSummary(result) {
-          elements.modalTitle.textContent = result.day >= TOTAL_DAYS ? "Fin de partie" : "Résumé de fin de journée";
-          elements.modalSubtitle.textContent = result.day >= TOTAL_DAYS
-            ? `Après ${TOTAL_DAYS} jours, voici le bilan de ton kiosque.`
-            : "Voici comment ton kiosque s'en est sorti.";
-          elements.modalDayChip.textContent = `Jour ${result.day}`;
-          elements.modalCustomers.textContent = result.customers;
-          elements.modalSales.textContent = formatCurrency(result.sales);
-          elements.modalCost.textContent = formatCurrency(result.ingredientCost);
-          elements.modalProfit.textContent = `${result.profit >= 0 ? "+" : ""}${formatCurrency(result.profit)}`;
-          elements.modalProfit.className = `stat-value ${result.profit >= 0 ? "positive" : "negative"}`;
-          elements.modalMessages.innerHTML = result.messages.map((message) => `<li>${message}</li>`).join("");
-          elements.nextDayButton.textContent = result.day >= TOTAL_DAYS ? "Voir le score final" : "Continuer";
-        }
-
-        function openModal() {
-          elements.dayModal.classList.add("active");
-        }
-
-        function closeModal() {
-          elements.dayModal.classList.remove("active");
-        }
-
-        function updateLastDayCards(result) {
-          elements.lastCustomers.textContent = result.customers;
-          elements.lastSales.textContent = formatCurrency(result.sales);
-          elements.lastProfit.textContent = `${result.profit >= 0 ? "+" : ""}${formatCurrency(result.profit)}`;
-          elements.lastProfit.className = result.profit >= 0 ? "positive" : "negative";
-        }
-
-        function updateForecast() {
-          const metrics = getRecipeMetrics();
-          const forecast = estimateDemand();
-          elements.qualityValue.textContent = metrics.qualityLabel;
-          elements.forecastValue.textContent = `~ ${forecast}`;
-          elements.qualityFill.style.width = `${Math.round(metrics.qualityScore * 100)}%`;
-          elements.qualityHint.textContent = metrics.hint;
-
-          const weather = state.weather;
-          elements.headlineTitle.textContent = weather.headline;
-          elements.headlineText.textContent = weather.copy;
-
-          if (metrics.qualityScore >= 0.82) {
-            elements.messageRibbon.textContent = "🍹 Ton mélange semble premium et très rafraîchissant.";
-          } else if (state.recipe.price > 2.6) {
-            elements.messageRibbon.textContent = "💸 Attention : ton tarif risque de freiner une partie des clients.";
-          } else if (weather.key === "heatwave") {
-            elements.messageRibbon.textContent = "🔥 La chaleur peut transformer ton stand en aimant à clients.";
-          } else {
-            elements.messageRibbon.textContent = "✨ Ajuste les curseurs pour viser une journée rentable et harmonieuse.";
-          }
-        }
-
-        function syncInputs() {
-          elements.priceDisplay.textContent = formatCurrency(state.recipe.price);
-          elements.lemonsDisplay.textContent = state.recipe.lemons;
-          elements.sugarDisplay.textContent = state.recipe.sugar;
-          elements.iceDisplay.textContent = state.recipe.ice;
-          elements.cashValue.textContent = formatCurrency(state.cash);
-          elements.dayLabel.textContent = `Jour ${state.day} / ${TOTAL_DAYS}`;
-          elements.weatherBadge.textContent = `${state.weather.icon} ${state.weather.label}`;
-          updateForecast();
-        }
-
-        function assignWeather() {
-          state.weather = pickWeather(state.day);
-        }
-
-        function showGame() {
-          elements.homeScreen.classList.remove("active");
-          elements.gameShell.classList.add("active");
-        }
-
-        function startGame() {
-          resetGame();
-          showGame();
-        }
-
-        function resetGame() {
-          state.day = 1;
-          state.cash = STARTING_CASH;
-          state.history = [];
-          state.lastResult = null;
-          state.gameOver = false;
-          state.recipe = { price: 1.5, lemons: 4, sugar: 4, ice: 4 };
-          elements.priceInput.value = 150;
-          elements.lemonsInput.value = 4;
-          elements.sugarInput.value = 4;
-          elements.iceInput.value = 4;
-          elements.lastCustomers.textContent = "0";
-          elements.lastSales.textContent = formatCurrency(0);
-          elements.lastProfit.textContent = formatCurrency(0);
-          elements.lastProfit.className = "";
-          assignWeather();
-          renderHistory();
-          syncInputs();
-          closeModal();
-          elements.startDayButton.disabled = false;
-          elements.startDayButton.textContent = "Commencer la journée";
-        }
-
-        function nextDay() {
-          closeModal();
-
-          if (state.day >= TOTAL_DAYS) {
-            const totalProfit = state.cash - STARTING_CASH;
-            const scoreText = totalProfit >= 30
-              ? "🌟 Incroyable ! Ton kiosque est la star de l'été."
-              : totalProfit >= 18
-              ? "👏 Très belle performance : ton stand devient une adresse favorite."
-              : totalProfit >= 8
-              ? "😊 Bon travail ! Ton kiosque est rentable et prometteur."
-              : "🍋 Début modeste : une meilleure recette ou un prix plus fin pourrait aider.";
-
-            renderSummary({
-              day: TOTAL_DAYS,
-              customers: state.history.reduce((sum, entry) => sum + entry.customers, 0),
-              sales: state.history.reduce((sum, entry) => sum + entry.sales, 0),
-              ingredientCost: state.history.reduce((sum, entry) => sum + entry.ingredientCost, 0),
-              profit: totalProfit,
-              messages: [
-                `🏁 Score final : ${formatCurrency(state.cash)} en caisse après ${TOTAL_DAYS} jours.`,
-                scoreText,
-                `📈 Meilleure journée : ${state.history.reduce((best, entry) => entry.profit > best.profit ? entry : best, state.history[0]).weather.icon} Jour ${state.history.reduce((best, entry) => entry.profit > best.profit ? entry : best, state.history[0]).day}.`
-              ]
-            });
-            openModal();
-            elements.nextDayButton.textContent = "Rejouer une partie";
-            state.gameOver = true;
-            elements.startDayButton.disabled = true;
-            elements.startDayButton.textContent = "Partie terminée";
-            return;
-          }
-
-          state.day += 1;
-          assignWeather();
-          syncInputs();
-        }
-
-        function handleNextAction() {
-          if (state.gameOver) {
-            startGame();
-            return;
-          }
-          nextDay();
-        }
-
-        function bindRange(input, key, formatter = (value) => value) {
-          input.addEventListener("input", (event) => {
-            const rawValue = Number(event.target.value);
-            state.recipe[key] = key === "price" ? rawValue / 100 : rawValue;
-            syncInputs();
-            formatter(rawValue);
-          });
-        }
-
-        elements.startGameButton.addEventListener("click", startGame);
-        elements.previewTipsButton.addEventListener("click", () => {
-          showGame();
-          resetGame();
-          document.getElementById("tipsSection").scrollIntoView({ behavior: "smooth", block: "nearest" });
-        });
-        elements.startDayButton.addEventListener("click", playDay);
-        elements.restartButton.addEventListener("click", startGame);
-        elements.modalReplayButton.addEventListener("click", startGame);
-        elements.nextDayButton.addEventListener("click", handleNextAction);
-        elements.dayModal.addEventListener("click", (event) => {
-          if (event.target === elements.dayModal) {
-            closeModal();
-          }
-        });
-
-        bindRange(elements.priceInput, "price");
-        bindRange(elements.lemonsInput, "lemons");
-        bindRange(elements.sugarInput, "sugar");
-        bindRange(elements.iceInput, "ice");
-
-        assignWeather();
-        syncInputs();
-      })();
-    </script>
+    <script src="script.js"></script>
   </body>
 </html>
