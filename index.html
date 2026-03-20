@@ -2,200 +2,167 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-    <meta name="theme-color" content="#070b17" />
-    <title>Simon Pulse</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#080b14" />
+    <title>Simon test 2</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <main class="app" aria-label="Simon Pulse memory game">
-        <header class="topbar card">
+    <main class="app-shell">
+      <section class="hero-panel panel">
+        <p class="eyebrow">Premium memory arcade</p>
+        <div class="title-row">
           <div>
-            <p class="eyebrow">Mobile-first memory arcade</p>
-            <h1>Simon <span>Pulse</span></h1>
-            <p class="subtitle">Watch the glow, repeat the rhythm, and build your streak.</p>
+            <h1>Simon test 2</h1>
+            <p class="subtitle">A mobile-first Simon game built for quick, addictive portrait play.</p>
           </div>
-          <button class="icon-button" id="howToPlayButton" aria-label="How to play">?</button>
-        </header>
+          <button id="helpButton" class="icon-button" type="button" aria-label="Open help">?</button>
+        </div>
+      </section>
 
-        <section class="hud card" aria-label="Game stats and controls">
-          <div class="stats-grid">
-            <article class="stat-pill">
-              <span class="label">Score</span>
-              <strong id="scoreValue">0</strong>
-            </article>
-            <article class="stat-pill">
-              <span class="label">Best</span>
-              <strong id="bestScoreValue">0</strong>
-            </article>
-            <article class="stat-pill">
-              <span class="label">Round</span>
-              <strong id="roundValue">0</strong>
-            </article>
-            <article class="stat-pill">
-              <span class="label">Speed</span>
-              <strong id="speedValue">Calm</strong>
-            </article>
+      <section class="hud panel" aria-label="Game information and controls">
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span>Score</span>
+            <strong id="scoreValue">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Best</span>
+            <strong id="bestValue">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Round</span>
+            <strong id="roundValue">0</strong>
+          </article>
+        </div>
+
+        <div class="status-card">
+          <span class="status-label">Status</span>
+          <p id="statusText">Tap start to begin.</p>
+          <div class="micro-row">
+            <span id="modePill" class="pill">Classic Mode</span>
+            <span id="comboPill" class="pill">Combo ×0</span>
           </div>
+        </div>
 
-          <div class="status-row">
-            <div>
-              <p class="status-label">Status</p>
-              <p id="statusMessage" class="status-message" aria-live="polite">Tap start to begin.</p>
-            </div>
-            <div class="progress-wrap" aria-label="Milestone progress">
-              <div class="progress-meta">
-                <span>Milestone</span>
-                <span id="milestoneLabel">0 / 5</span>
-              </div>
-              <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                <div id="milestoneBar"></div>
-              </div>
-            </div>
-          </div>
+        <div class="controls-grid">
+          <button id="startButton" class="primary-button" type="button">Start Game</button>
+          <button id="restartButton" class="secondary-button" type="button">Restart</button>
+          <button id="leaderboardButton" class="secondary-button" type="button">Leaderboard</button>
+          <button id="soundButton" class="secondary-button" type="button" aria-pressed="true">Sound: On</button>
+        </div>
 
-          <div class="control-grid">
-            <button id="startButton" class="primary-button">Start Game</button>
-            <button id="restartButton" class="secondary-button">Restart</button>
-            <button id="pauseButton" class="glass-button">Pause</button>
-            <button id="leaderboardButton" class="glass-button">Leaderboard</button>
-          </div>
+        <div class="toggle-grid" role="group" aria-label="Game mode toggles">
+          <label class="toggle-card">
+            <input id="strictToggle" type="checkbox" />
+            <span>Strict Mode</span>
+            <small>Faster speed curve and one mistake ends the run.</small>
+          </label>
+          <label class="toggle-card">
+            <input id="zenToggle" type="checkbox" />
+            <span>Zen Practice</span>
+            <small>Mistakes replay the current round so you can try again.</small>
+          </label>
+        </div>
+      </section>
 
-          <div class="toggle-grid" role="group" aria-label="Gameplay options">
-            <label class="toggle-card">
-              <input type="checkbox" id="strictToggle" />
-              <span>Strict Mode</span>
-              <small>Faster, sharper feedback</small>
-            </label>
-            <label class="toggle-card">
-              <input type="checkbox" id="zenToggle" />
-              <span>Zen Practice</span>
-              <small>Retry the round after mistakes</small>
-            </label>
-            <label class="toggle-card">
-              <input type="checkbox" id="soundToggle" checked />
-              <span>Sound</span>
-              <small>Pleasant synth tones</small>
-            </label>
-            <label class="toggle-card">
-              <input type="checkbox" id="themeToggle" />
-              <span>Soft Luxury</span>
-              <small>Switch the visual theme</small>
-            </label>
-          </div>
+      <section class="board-panel panel" aria-label="Simon board">
+        <div class="board" id="board">
+          <button class="pad pad-green" data-pad="0" aria-label="Green pad"></button>
+          <button class="pad pad-red" data-pad="1" aria-label="Red pad"></button>
+          <button class="pad pad-yellow" data-pad="2" aria-label="Yellow pad"></button>
+          <button class="pad pad-blue" data-pad="3" aria-label="Blue pad"></button>
+        </div>
+      </section>
 
-          <div class="micro-stats">
-            <span id="comboValue">Combo ×0</span>
-            <span id="modeValue">Mode: Classic</span>
-            <span id="perfectValue">Perfect run ready</span>
-            <span id="dailySeedValue">Daily seed: ----</span>
-          </div>
-        </section>
-
-        <section class="board-card card" aria-label="Simon board">
-          <div class="board-frame">
-            <div class="board" id="board">
-              <button class="pad pad-green" data-pad="0" aria-label="Green pad, keyboard Q">
-                <span class="symbol">Q</span>
-                <span class="pad-name">Green</span>
-              </button>
-              <button class="pad pad-red" data-pad="1" aria-label="Red pad, keyboard W">
-                <span class="symbol">W</span>
-                <span class="pad-name">Red</span>
-              </button>
-              <button class="pad pad-yellow" data-pad="2" aria-label="Yellow pad, keyboard A">
-                <span class="symbol">A</span>
-                <span class="pad-name">Yellow</span>
-              </button>
-              <button class="pad pad-blue" data-pad="3" aria-label="Blue pad, keyboard S">
-                <span class="symbol">S</span>
-                <span class="pad-name">Blue</span>
-              </button>
-              <div class="board-core" aria-hidden="true">
-                <span>Pulse</span>
-                <strong id="difficultyLabel">Classic</strong>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="achievements card" aria-label="Achievements">
+      <section class="details-grid">
+        <section class="panel achievements-panel" aria-label="Achievements">
           <div class="section-head">
             <h2>Achievements</h2>
             <span id="achievementCount">0 unlocked</span>
           </div>
           <div id="achievementList" class="achievement-list"></div>
         </section>
-      </main>
-    </div>
 
-    <div class="modal hidden" id="leaderboardModal" aria-hidden="true">
-      <div class="modal-card">
-        <div class="section-head">
-          <div>
-            <h2>Top 10 Pulse Runs</h2>
-            <p>Stored locally on this device.</p>
+        <section class="panel milestones-panel" aria-label="Milestones and run notes">
+          <div class="section-head">
+            <h2>Milestones</h2>
+            <span id="speedText">Tempo: Calm</span>
           </div>
-          <button class="icon-button close-modal" data-close="leaderboardModal" aria-label="Close leaderboard">×</button>
+          <div class="milestone-bar" aria-hidden="true">
+            <div id="milestoneFill"></div>
+          </div>
+          <p id="milestoneText" class="milestone-text">Next celebration at round 5.</p>
+          <div id="summaryTags" class="summary-tags"></div>
+        </section>
+      </section>
+    </main>
+
+    <div id="leaderboardModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card panel">
+        <div class="section-head modal-head">
+          <div>
+            <h2>Top 10 Leaderboard</h2>
+            <p>Saved locally on this device.</p>
+          </div>
+          <button class="icon-button modal-close" type="button" data-close="leaderboardModal" aria-label="Close leaderboard">×</button>
         </div>
         <ol id="leaderboardList" class="leaderboard-list"></ol>
         <div class="modal-actions">
-          <button id="clearLeaderboardButton" class="secondary-button danger">Clear leaderboard</button>
-          <button class="glass-button close-modal" data-close="leaderboardModal">Done</button>
+          <button id="resetLeaderboardButton" class="secondary-button danger" type="button">Reset leaderboard</button>
+          <button class="secondary-button modal-close" type="button" data-close="leaderboardModal">Done</button>
         </div>
       </div>
     </div>
 
-    <div class="modal hidden" id="summaryModal" aria-hidden="true">
-      <div class="modal-card">
-        <div class="section-head">
+    <div id="summaryModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card panel">
+        <div class="section-head modal-head">
           <div>
             <h2>Run Summary</h2>
-            <p id="summaryHeadline">One more round?</p>
+            <p id="summaryHeadline">Ready for another run?</p>
           </div>
-          <button class="icon-button close-modal" data-close="summaryModal" aria-label="Close summary">×</button>
+          <button class="icon-button modal-close" type="button" data-close="summaryModal" aria-label="Close summary">×</button>
         </div>
         <div class="summary-grid">
-          <article><span>Final score</span><strong id="summaryScore">0</strong></article>
-          <article><span>Best score</span><strong id="summaryBest">0</strong></article>
-          <article><span>Rounds</span><strong id="summaryRounds">0</strong></article>
+          <article><span>Score</span><strong id="summaryScore">0</strong></article>
+          <article><span>Best</span><strong id="summaryBest">0</strong></article>
+          <article><span>Round</span><strong id="summaryRound">0</strong></article>
           <article><span>Mode</span><strong id="summaryMode">Classic</strong></article>
         </div>
-        <div id="summaryBadges" class="summary-badges"></div>
+        <div id="summaryBadges" class="summary-tags"></div>
         <form id="nicknameForm" class="nickname-form hidden">
           <label for="nicknameInput">Leaderboard nickname</label>
           <div class="nickname-row">
-            <input id="nicknameInput" name="nickname" type="text" maxlength="16" placeholder="Player" autocomplete="nickname" />
+            <input id="nicknameInput" type="text" maxlength="16" placeholder="Player" autocomplete="nickname" />
             <button class="primary-button" type="submit">Save</button>
           </div>
         </form>
         <div class="modal-actions">
-          <button id="rematchButton" class="primary-button">Quick rematch</button>
-          <button class="glass-button close-modal" data-close="summaryModal">Close</button>
+          <button id="playAgainButton" class="primary-button" type="button">Play Again</button>
+          <button class="secondary-button modal-close" type="button" data-close="summaryModal">Close</button>
         </div>
       </div>
     </div>
 
-    <div class="modal hidden" id="tutorialModal" aria-hidden="true">
-      <div class="modal-card">
-        <div class="section-head">
+    <div id="helpModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card panel">
+        <div class="section-head modal-head">
           <div>
-            <h2>How to play</h2>
-            <p>Designed for thumbs, keyboard, and quick rematches.</p>
+            <h2>How it works</h2>
+            <p>Simple to start, difficult to master.</p>
           </div>
-          <button class="icon-button close-modal" data-close="tutorialModal" aria-label="Close tutorial">×</button>
+          <button class="icon-button modal-close" type="button" data-close="helpModal" aria-label="Close help">×</button>
         </div>
-        <ul class="tutorial-list">
-          <li>Watch the sequence and wait for <strong>Your turn</strong>.</li>
-          <li>Tap pads or use <strong>Q/W/A/S</strong> to match the pattern.</li>
-          <li>Every completed round adds a new step and speeds up slightly.</li>
-          <li><strong>Strict</strong> is faster. <strong>Zen</strong> lets you retry the current round.</li>
-          <li>Milestones at rounds 5, 10, 15, and 20 award bonuses and celebrations.</li>
+        <ul class="help-list">
+          <li>Press <strong>Start Game</strong> to hear and watch the sequence.</li>
+          <li>Repeat it by tapping the four pads. Keyboard support also works with Q, W, A, and S.</li>
+          <li>Each cleared round adds one new step and the pace gradually increases.</li>
+          <li><strong>Strict Mode</strong> accelerates harder. <strong>Zen Practice</strong> lets you retry the round after a mistake.</li>
+          <li>Rounds 5, 10, 15, and 20 trigger milestone celebrations and special feedback.</li>
         </ul>
         <div class="modal-actions">
-          <button id="startFromTutorialButton" class="primary-button">Start now</button>
-          <button class="glass-button close-modal" data-close="tutorialModal">Got it</button>
+          <button class="primary-button modal-close" type="button" data-close="helpModal">Got it</button>
         </div>
       </div>
     </div>
