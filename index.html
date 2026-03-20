@@ -3,11 +3,767 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mon premier projet Codex</title>
+    <title>Jeu de la vie</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg-dark: #1d120d;
+        --bg-panel: rgba(41, 24, 16, 0.88);
+        --brass: #c89b3c;
+        --antique-gold: #e4c27a;
+        --copper: #b96c3c;
+        --copper-bright: #d88e54;
+        --iron: #5a514a;
+        --iron-dark: #2f2724;
+        --paper: #f1e2bb;
+        --grid-bg: rgba(22, 16, 13, 0.94);
+        --cell-dead: #241915;
+        --cell-alive: #77d5b6;
+        --cell-glow: rgba(119, 213, 182, 0.52);
+        --shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--paper);
+        background:
+          radial-gradient(circle at 15% 20%, rgba(216, 142, 84, 0.18), transparent 26%),
+          radial-gradient(circle at 85% 18%, rgba(200, 155, 60, 0.2), transparent 22%),
+          radial-gradient(circle at 50% 75%, rgba(185, 108, 60, 0.12), transparent 28%),
+          linear-gradient(135deg, #0e0907, #2a1a12 35%, #120c09 100%);
+        overflow-x: hidden;
+      }
+
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      body::before {
+        background:
+          radial-gradient(circle at 12% 14%, rgba(228, 194, 122, 0.16) 0 2px, transparent 3px) 0 0 / 120px 120px,
+          radial-gradient(circle at 88% 78%, rgba(228, 194, 122, 0.14) 0 2px, transparent 3px) 0 0 / 140px 140px,
+          linear-gradient(90deg, transparent 0 4%, rgba(90, 81, 74, 0.18) 4% 5%, transparent 5% 95%, rgba(90, 81, 74, 0.18) 95% 96%, transparent 96%),
+          linear-gradient(transparent 0 8%, rgba(90, 81, 74, 0.18) 8% 9%, transparent 9% 91%, rgba(90, 81, 74, 0.18) 91% 92%, transparent 92%);
+        opacity: 0.7;
+      }
+
+      body::after {
+        background:
+          radial-gradient(circle at 8% 80%, rgba(0, 0, 0, 0.3), transparent 20%),
+          radial-gradient(circle at 92% 22%, rgba(0, 0, 0, 0.25), transparent 18%),
+          linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+        mix-blend-mode: screen;
+        opacity: 0.6;
+      }
+
+      .page {
+        position: relative;
+        width: min(1100px, calc(100% - 24px));
+        margin: 20px auto;
+        padding: 24px;
+        border-radius: 28px;
+        background:
+          linear-gradient(145deg, rgba(60, 36, 24, 0.95), rgba(30, 18, 13, 0.95)),
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 2px, transparent 2px 10px);
+        border: 1px solid rgba(228, 194, 122, 0.28);
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .page::before {
+        content: "";
+        position: absolute;
+        inset: 14px;
+        border-radius: 20px;
+        border: 1px solid rgba(228, 194, 122, 0.16);
+        pointer-events: none;
+      }
+
+      .rivets,
+      .rivets::before,
+      .rivets::after {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #f0d79a, #7a5424 58%, #332012 100%);
+        box-shadow: inset -2px -3px 4px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(40, 22, 13, 0.8);
+      }
+
+      .rivets {
+        top: 12px;
+        left: 12px;
+      }
+
+      .rivets::before {
+        top: 0;
+        left: calc(100vw - min(1100px, calc(100vw - 24px)) - 36px);
+      }
+
+      .rivets::after {
+        top: calc(100% - 42px);
+        left: 0;
+      }
+
+      .header {
+        position: relative;
+        text-align: center;
+        padding: 12px 12px 20px;
+        margin-bottom: 18px;
+      }
+
+      .header::before,
+      .header::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        width: clamp(64px, 14vw, 150px);
+        height: 12px;
+        transform: translateY(-50%);
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(200, 155, 60, 0.8), rgba(0, 0, 0, 0));
+        opacity: 0.7;
+      }
+
+      .header::before { left: 0; }
+      .header::after { right: 0; }
+
+      h1 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(2.2rem, 5vw, 4rem);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--antique-gold);
+        text-shadow: 0 0 16px rgba(200, 155, 60, 0.25), 0 2px 0 #5a3d18;
+      }
+
+      .subtitle {
+        margin-top: 8px;
+        font-size: 0.95rem;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: #d4b98a;
+      }
+
+      .layout {
+        display: grid;
+        gap: 22px;
+        grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+        align-items: start;
+      }
+
+      .panel,
+      .board-shell {
+        position: relative;
+        background: var(--bg-panel);
+        border-radius: 24px;
+        border: 1px solid rgba(228, 194, 122, 0.18);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -12px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .panel::before,
+      .board-shell::before {
+        content: "";
+        position: absolute;
+        inset: 10px;
+        border-radius: 16px;
+        border: 1px solid rgba(228, 194, 122, 0.1);
+        pointer-events: none;
+      }
+
+      .panel-title {
+        margin: 0 0 16px;
+        font-family: Georgia, serif;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 1rem;
+        color: var(--antique-gold);
+      }
+
+      .stats {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-bottom: 18px;
+      }
+
+      .gauge {
+        padding: 12px;
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 50% 20%, rgba(228, 194, 122, 0.22), transparent 56%),
+          linear-gradient(180deg, rgba(85, 58, 39, 0.95), rgba(40, 26, 18, 0.92));
+        border: 1px solid rgba(228, 194, 122, 0.14);
+        text-align: center;
+      }
+
+      .gauge-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: #d6c09a;
+      }
+
+      .gauge-value {
+        margin-top: 6px;
+        font-size: clamp(1.3rem, 3vw, 1.9rem);
+        font-weight: 700;
+        color: #fbe8bb;
+      }
+
+      .controls {
+        display: grid;
+        gap: 12px;
+      }
+
+      .button-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      button {
+        appearance: none;
+        border: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        border-radius: 14px;
+        color: #1f120d;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background:
+          linear-gradient(180deg, #f2d58e 0%, #c99442 52%, #7e4a1f 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.42),
+          inset 0 -3px 6px rgba(65, 31, 7, 0.38),
+          0 8px 14px rgba(0, 0, 0, 0.28);
+        transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+      }
+
+      button:hover,
+      button:focus-visible {
+        transform: translateY(-1px);
+        filter: brightness(1.06);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.42),
+          inset 0 -3px 6px rgba(65, 31, 7, 0.38),
+          0 10px 18px rgba(0, 0, 0, 0.34);
+      }
+
+      button:active {
+        transform: translateY(2px);
+        box-shadow:
+          inset 0 3px 6px rgba(65, 31, 7, 0.42),
+          0 4px 8px rgba(0, 0, 0, 0.25);
+      }
+
+      .danger {
+        background: linear-gradient(180deg, #dfad77 0%, #b06237 54%, #6f331a 100%);
+        color: #fff1d9;
+      }
+
+      .secondary {
+        background: linear-gradient(180deg, #d8c7a0 0%, #957858 54%, #503a2c 100%);
+        color: #fdf0d8;
+      }
+
+      .slider-wrap {
+        margin-top: 8px;
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(25, 18, 14, 0.68);
+        border: 1px solid rgba(228, 194, 122, 0.12);
+      }
+
+      .slider-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+        color: #e8d0a0;
+        font-size: 0.92rem;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--copper-bright);
+      }
+
+      .legend {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(24, 17, 13, 0.75);
+        color: #d9c39e;
+        font-size: 0.93rem;
+        line-height: 1.5;
+      }
+
+      .board-shell {
+        padding: 18px;
+      }
+
+      .board-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 2px 14px;
+        color: #e8d2aa;
+        font-size: 0.95rem;
+      }
+
+      .status-light {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .status-light::before {
+        content: "";
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #fef2a8, #bc742b 65%, #48260f 100%);
+        box-shadow: 0 0 14px rgba(228, 194, 122, 0.45);
+      }
+
+      .board {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        width: 100%;
+        border-radius: 18px;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, rgba(12, 9, 8, 0.82), rgba(27, 20, 17, 0.96)),
+          var(--grid-bg);
+        border: 1px solid rgba(228, 194, 122, 0.18);
+        box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        touch-action: none;
+      }
+
+      .board-note {
+        margin: 12px 4px 0;
+        color: #cdb58b;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .panel {
+          order: 2;
+        }
+
+        .board-shell {
+          order: 1;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .page {
+          width: min(100% - 12px, 1000px);
+          margin: 6px auto;
+          padding: 14px;
+          border-radius: 22px;
+        }
+
+        .button-row,
+        .stats {
+          grid-template-columns: 1fr;
+        }
+
+        .board-topbar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .subtitle {
+          letter-spacing: 0.16em;
+        }
+      }
+    </style>
   </head>
   <body>
-    <h1>Mon premier projet Codex</h1>
-    <p>Bienvenue sur cette page très simple créée avec Codex.</p>
-    <button type="button">Bonjour</button>
+    <main class="page">
+      <div class="rivets" aria-hidden="true"></div>
+
+      <header class="header">
+        <h1>Jeu de la vie</h1>
+        <div class="subtitle">Simulation cellulaire steampunk</div>
+      </header>
+
+      <section class="layout">
+        <aside class="panel">
+          <h2 class="panel-title">Panneau de commande</h2>
+
+          <div class="stats">
+            <div class="gauge">
+              <div class="gauge-label">Génération</div>
+              <div class="gauge-value" id="generationDisplay">0</div>
+            </div>
+            <div class="gauge">
+              <div class="gauge-label">Cellules vivantes</div>
+              <div class="gauge-value" id="aliveDisplay">0</div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <div class="button-row">
+              <button id="startButton" type="button">Démarrer</button>
+              <button id="pauseButton" class="secondary" type="button">Pause</button>
+            </div>
+            <div class="button-row">
+              <button id="randomButton" type="button">Aléatoire</button>
+              <button id="clearButton" class="danger" type="button">Effacer</button>
+            </div>
+          </div>
+
+          <div class="slider-wrap">
+            <div class="slider-header">
+              <label for="speedControl">Vitesse de la machine</label>
+              <strong id="speedValue">10 ips</strong>
+            </div>
+            <input id="speedControl" type="range" min="2" max="30" value="10" />
+          </div>
+
+          <div class="legend">
+            Touchez ou cliquez la grille pour allumer ou éteindre une cellule. La machine applique les règles classiques de Conway&nbsp;: survie avec 2 ou 3 voisines, naissance avec 3, extinction sinon.
+          </div>
+        </aside>
+
+        <section class="board-shell">
+          <div class="board-topbar">
+            <div class="status-light">Mécanisme analytique</div>
+            <div id="statusText">État : en pause</div>
+          </div>
+          <div class="board">
+            <canvas id="lifeCanvas" aria-label="Grille du Jeu de la vie"></canvas>
+          </div>
+          <p class="board-note">Astuce&nbsp;: modifiez la vitesse, dessinez un motif, puis lancez l'automate.</p>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      // --- Configuration générale du jeu ---
+      const canvas = document.getElementById("lifeCanvas");
+      const context = canvas.getContext("2d");
+      const generationDisplay = document.getElementById("generationDisplay");
+      const aliveDisplay = document.getElementById("aliveDisplay");
+      const statusText = document.getElementById("statusText");
+      const speedControl = document.getElementById("speedControl");
+      const speedValue = document.getElementById("speedValue");
+      const startButton = document.getElementById("startButton");
+      const pauseButton = document.getElementById("pauseButton");
+      const clearButton = document.getElementById("clearButton");
+      const randomButton = document.getElementById("randomButton");
+
+      const state = {
+        cols: 0,
+        rows: 0,
+        cellSize: 0,
+        grid: [],
+        nextGrid: [],
+        generation: 0,
+        running: false,
+        speed: Number(speedControl.value),
+        lastStepTime: 0,
+        animationFrame: 0,
+        drawMode: null,
+      };
+
+      // --- Initialisation de la grille en fonction de l'espace disponible ---
+      function initializeGrid() {
+        const boardRect = canvas.parentElement.getBoundingClientRect();
+        const size = Math.max(280, Math.floor(Math.min(boardRect.width, window.innerHeight * 0.65)));
+        const ratio = window.devicePixelRatio || 1;
+
+        canvas.width = size * ratio;
+        canvas.height = size * ratio;
+        canvas.style.width = `${size}px`;
+        canvas.style.height = `${size}px`;
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+        const targetCells = window.innerWidth < 560 ? 24 : 36;
+        const cellSize = Math.max(10, Math.floor(size / targetCells));
+        const cols = Math.floor(size / cellSize);
+        const rows = Math.floor(size / cellSize);
+
+        const previous = state.grid;
+        state.cols = cols;
+        state.rows = rows;
+        state.cellSize = cellSize;
+        state.grid = createEmptyGrid(cols, rows);
+        state.nextGrid = createEmptyGrid(cols, rows);
+
+        if (previous.length) {
+          for (let y = 0; y < Math.min(previous.length, rows); y += 1) {
+            for (let x = 0; x < Math.min(previous[0].length, cols); x += 1) {
+              state.grid[y][x] = previous[y][x];
+            }
+          }
+        }
+
+        drawGrid();
+        updateCounters();
+      }
+
+      function createEmptyGrid(cols, rows) {
+        return Array.from({ length: rows }, () => Array(cols).fill(0));
+      }
+
+      // --- Rendu visuel de la grille ---
+      function drawGrid() {
+        const width = state.cols * state.cellSize;
+        const height = state.rows * state.cellSize;
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        const background = context.createLinearGradient(0, 0, 0, height);
+        background.addColorStop(0, "#1a120f");
+        background.addColorStop(1, "#0f0b09");
+        context.fillStyle = background;
+        context.fillRect(0, 0, width, height);
+
+        for (let y = 0; y < state.rows; y += 1) {
+          for (let x = 0; x < state.cols; x += 1) {
+            const px = x * state.cellSize;
+            const py = y * state.cellSize;
+
+            if (state.grid[y][x]) {
+              const aliveGradient = context.createRadialGradient(
+                px + state.cellSize * 0.5,
+                py + state.cellSize * 0.45,
+                state.cellSize * 0.12,
+                px + state.cellSize * 0.5,
+                py + state.cellSize * 0.5,
+                state.cellSize * 0.72
+              );
+              aliveGradient.addColorStop(0, "#cffff3");
+              aliveGradient.addColorStop(0.2, "#92f1d0");
+              aliveGradient.addColorStop(0.75, "#309a7c");
+              aliveGradient.addColorStop(1, "#17493c");
+              context.fillStyle = aliveGradient;
+              context.shadowColor = "rgba(119, 213, 182, 0.45)";
+              context.shadowBlur = state.cellSize * 0.32;
+              roundRect(context, px + 1, py + 1, state.cellSize - 2, state.cellSize - 2, 3);
+              context.fill();
+              context.shadowBlur = 0;
+            } else {
+              context.fillStyle = "rgba(47, 30, 23, 0.56)";
+              roundRect(context, px + 1, py + 1, state.cellSize - 2, state.cellSize - 2, 3);
+              context.fill();
+            }
+          }
+        }
+
+        context.strokeStyle = "rgba(228, 194, 122, 0.14)";
+        context.lineWidth = 1;
+        for (let x = 0; x <= state.cols; x += 1) {
+          const px = x * state.cellSize + 0.5;
+          context.beginPath();
+          context.moveTo(px, 0);
+          context.lineTo(px, height);
+          context.stroke();
+        }
+        for (let y = 0; y <= state.rows; y += 1) {
+          const py = y * state.cellSize + 0.5;
+          context.beginPath();
+          context.moveTo(0, py);
+          context.lineTo(width, py);
+          context.stroke();
+        }
+      }
+
+      function roundRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + width, y, x + width, y + height, radius);
+        ctx.arcTo(x + width, y + height, x, y + height, radius);
+        ctx.arcTo(x, y + height, x, y, radius);
+        ctx.arcTo(x, y, x + width, y, radius);
+        ctx.closePath();
+      }
+
+      // --- Application des règles de Conway ---
+      function stepSimulation() {
+        let aliveCount = 0;
+
+        for (let y = 0; y < state.rows; y += 1) {
+          for (let x = 0; x < state.cols; x += 1) {
+            const neighbors = countNeighbors(x, y);
+            const current = state.grid[y][x];
+            let next = 0;
+
+            if (current === 1 && (neighbors === 2 || neighbors === 3)) {
+              next = 1;
+            } else if (current === 0 && neighbors === 3) {
+              next = 1;
+            }
+
+            state.nextGrid[y][x] = next;
+            aliveCount += next;
+          }
+        }
+
+        [state.grid, state.nextGrid] = [state.nextGrid, state.grid];
+        state.generation += 1;
+        generationDisplay.textContent = String(state.generation);
+        aliveDisplay.textContent = String(aliveCount);
+        drawGrid();
+      }
+
+      function countNeighbors(cellX, cellY) {
+        let total = 0;
+        for (let y = -1; y <= 1; y += 1) {
+          for (let x = -1; x <= 1; x += 1) {
+            if (x === 0 && y === 0) continue;
+            const nx = cellX + x;
+            const ny = cellY + y;
+            if (nx >= 0 && nx < state.cols && ny >= 0 && ny < state.rows) {
+              total += state.grid[ny][nx];
+            }
+          }
+        }
+        return total;
+      }
+
+      // --- Animation fluide pilotée par requestAnimationFrame ---
+      function animate(timestamp) {
+        if (state.running) {
+          const interval = 1000 / state.speed;
+          if (!state.lastStepTime || timestamp - state.lastStepTime >= interval) {
+            state.lastStepTime = timestamp;
+            stepSimulation();
+          }
+        }
+        state.animationFrame = requestAnimationFrame(animate);
+      }
+
+      function setRunning(running) {
+        state.running = running;
+        statusText.textContent = running ? "État : en marche" : "État : en pause";
+        startButton.disabled = running;
+        pauseButton.disabled = !running;
+      }
+
+      function updateCounters() {
+        const alive = state.grid.flat().reduce((sum, value) => sum + value, 0);
+        generationDisplay.textContent = String(state.generation);
+        aliveDisplay.textContent = String(alive);
+      }
+
+      // --- Interaction utilisateur avec la grille ---
+      function getCellFromEvent(event) {
+        const rect = canvas.getBoundingClientRect();
+        const point = event.touches ? event.touches[0] : event;
+        const x = Math.floor((point.clientX - rect.left) / state.cellSize);
+        const y = Math.floor((point.clientY - rect.top) / state.cellSize);
+        if (x < 0 || x >= state.cols || y < 0 || y >= state.rows) {
+          return null;
+        }
+        return { x, y };
+      }
+
+      function paintCell(event) {
+        const cell = getCellFromEvent(event);
+        if (!cell) return;
+        const { x, y } = cell;
+        const nextValue = state.drawMode ?? (state.grid[y][x] ? 0 : 1);
+        state.grid[y][x] = nextValue;
+        drawGrid();
+        updateCounters();
+      }
+
+      function beginDraw(event) {
+        const cell = getCellFromEvent(event);
+        if (!cell) return;
+        event.preventDefault();
+        state.drawMode = state.grid[cell.y][cell.x] ? 0 : 1;
+        paintCell(event);
+      }
+
+      function endDraw() {
+        state.drawMode = null;
+      }
+
+      // --- Actions des boutons ---
+      startButton.addEventListener("click", () => setRunning(true));
+      pauseButton.addEventListener("click", () => setRunning(false));
+
+      clearButton.addEventListener("click", () => {
+        state.grid = createEmptyGrid(state.cols, state.rows);
+        state.nextGrid = createEmptyGrid(state.cols, state.rows);
+        state.generation = 0;
+        setRunning(false);
+        drawGrid();
+        updateCounters();
+      });
+
+      randomButton.addEventListener("click", () => {
+        state.grid = state.grid.map((row) => row.map(() => (Math.random() > 0.68 ? 1 : 0)));
+        state.generation = 0;
+        drawGrid();
+        updateCounters();
+      });
+
+      speedControl.addEventListener("input", (event) => {
+        state.speed = Number(event.target.value);
+        speedValue.textContent = `${state.speed} ips`;
+      });
+
+      canvas.addEventListener("pointerdown", beginDraw);
+      canvas.addEventListener("pointermove", (event) => {
+        if (event.buttons === 1 || event.pointerType === "touch") {
+          paintCell(event);
+        }
+      });
+      canvas.addEventListener("pointerup", endDraw);
+      canvas.addEventListener("pointerleave", endDraw);
+      canvas.addEventListener("touchstart", beginDraw, { passive: false });
+      canvas.addEventListener("touchmove", (event) => {
+        event.preventDefault();
+        paintCell(event);
+      }, { passive: false });
+      canvas.addEventListener("touchend", endDraw);
+
+      window.addEventListener("resize", initializeGrid);
+
+      // --- Lancement initial ---
+      initializeGrid();
+      setRunning(false);
+      speedValue.textContent = `${state.speed} ips`;
+      state.animationFrame = requestAnimationFrame(animate);
+    </script>
   </body>
 </html>
