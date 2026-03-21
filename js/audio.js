@@ -1,46 +1,43 @@
 export class AudioSystem {
   constructor() {
-    this.context = null;
-    this.enabled = true;
+    this.ctx = null;
+    this.muted = false;
   }
 
-  setMuted(muted) {
-    this.enabled = !muted;
-  }
+  setMuted(muted) { this.muted = muted; }
 
   unlock() {
-    if (this.context) return;
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
-    this.context = new Ctx();
+    if (this.ctx) return;
+    const Context = window.AudioContext || window.webkitAudioContext;
+    if (!Context) return;
+    this.ctx = new Context();
   }
 
-  beep({ type = 'sine', frequency = 440, duration = 0.08, gain = 0.04, ramp = 0.008, slideTo = null }) {
-    if (!this.enabled) return;
-    if (!this.context) this.unlock();
-    if (!this.context) return;
-
-    const now = this.context.currentTime;
-    const osc = this.context.createOscillator();
-    const vol = this.context.createGain();
+  tone({ type = 'sine', frequency = 440, duration = 0.08, gain = 0.03, slide = null }) {
+    if (this.muted) return;
+    if (!this.ctx) this.unlock();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const amp = this.ctx.createGain();
     osc.type = type;
     osc.frequency.setValueAtTime(frequency, now);
-    if (slideTo) osc.frequency.linearRampToValueAtTime(slideTo, now + duration);
-    vol.gain.setValueAtTime(0.0001, now);
-    vol.gain.exponentialRampToValueAtTime(gain, now + ramp);
-    vol.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-    osc.connect(vol);
-    vol.connect(this.context.destination);
+    if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(1, slide), now + duration);
+    amp.gain.setValueAtTime(0.0001, now);
+    amp.gain.exponentialRampToValueAtTime(gain, now + 0.01);
+    amp.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(amp);
+    amp.connect(this.ctx.destination);
     osc.start(now);
     osc.stop(now + duration + 0.02);
   }
 
-  ui() { this.beep({ type: 'triangle', frequency: 540, duration: 0.05, gain: 0.03, slideTo: 620 }); }
-  hit(power = 1) { this.beep({ type: 'triangle', frequency: 240 + power * 120, duration: 0.06, gain: 0.045, slideTo: 120 }); }
-  wall(speed = 1) { this.beep({ type: 'square', frequency: 180 + speed * 60, duration: 0.04, gain: 0.02, slideTo: 150 }); }
-  splash() { this.beep({ type: 'sine', frequency: 280, duration: 0.12, gain: 0.03, slideTo: 180 }); }
-  success() {
-    this.beep({ type: 'triangle', frequency: 560, duration: 0.12, gain: 0.04, slideTo: 840 });
-    this.beep({ type: 'sine', frequency: 780, duration: 0.2, gain: 0.03, slideTo: 620 });
-  }
+  jump() { this.tone({ type: 'triangle', frequency: 520, duration: 0.07, gain: 0.04, slide: 760 }); }
+  wall() { this.tone({ type: 'square', frequency: 280, duration: 0.05, gain: 0.025, slide: 180 }); }
+  coin() { this.tone({ type: 'sine', frequency: 800, duration: 0.08, gain: 0.03, slide: 1080 }); }
+  shield() { this.tone({ type: 'triangle', frequency: 320, duration: 0.16, gain: 0.03, slide: 620 }); }
+  combo() { this.tone({ type: 'triangle', frequency: 640, duration: 0.05, gain: 0.024, slide: 900 }); }
+  powerup() { this.tone({ type: 'sawtooth', frequency: 420, duration: 0.12, gain: 0.03, slide: 720 }); }
+  death() { this.tone({ type: 'sawtooth', frequency: 260, duration: 0.28, gain: 0.04, slide: 70 }); }
+  click() { this.tone({ type: 'triangle', frequency: 600, duration: 0.05, gain: 0.02, slide: 780 }); }
 }

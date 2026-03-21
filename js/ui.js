@@ -1,108 +1,142 @@
+import { COSMETICS } from './config.js';
+
 export class UI {
   constructor(game) {
     this.game = game;
-    this.elements = {
+    this.el = {
+      title: document.getElementById('titleScreen'),
       hud: document.getElementById('hud'),
-      aimPanel: document.getElementById('aimPanel'),
-      powerFill: document.getElementById('powerFill'),
-      aimHint: document.getElementById('aimHint'),
-      courseGrid: document.getElementById('courseGrid'),
-      toast: document.getElementById('toast'),
-      screens: {
-        mainMenu: document.getElementById('mainMenu'),
-        courseSelect: document.getElementById('courseSelectScreen'),
-        pause: document.getElementById('pauseScreen'),
-        holeComplete: document.getElementById('holeCompleteScreen'),
-        campaignComplete: document.getElementById('campaignCompleteScreen'),
-      },
+      pause: document.getElementById('pauseScreen'),
+      gameOver: document.getElementById('gameOverScreen'),
+      tutorial: document.getElementById('tutorialOverlay'),
+      rotate: document.getElementById('rotateOverlay'),
+      runSummary: document.getElementById('runSummary'),
+      powerupTimers: document.getElementById('powerupTimers'),
+      bestScore: document.getElementById('bestScoreValue'),
+      totalCoins: document.getElementById('totalCoinsValue'),
+      bestHeight: document.getElementById('bestHeightValue'),
+      hudScore: document.getElementById('hudScore'),
+      hudCoins: document.getElementById('hudCoins'),
+      hudCombo: document.getElementById('hudCombo'),
+      comboFill: document.getElementById('comboFill'),
+      hudHeight: document.getElementById('hudHeight'),
+      hudBest: document.getElementById('hudBest'),
+      hudBiome: document.getElementById('hudBiome'),
+      hudSpeed: document.getElementById('hudSpeed'),
+      shopCoins: document.getElementById('shopCoinsValue'),
+      selectedSkin: document.getElementById('selectedSkinValue'),
+      selectedTrail: document.getElementById('selectedTrailValue'),
+      skinGrid: document.getElementById('skinGrid'),
+      trailGrid: document.getElementById('trailGrid'),
+      auraGrid: document.getElementById('auraGrid'),
+      missionsList: document.getElementById('missionsList'),
+      audioToggle: document.getElementById('audioToggle'),
+      effectsToggle: document.getElementById('effectsToggle'),
+      vibrationToggle: document.getElementById('vibrationToggle'),
+      totalCoinsLabel: document.getElementById('totalCoinsValue'),
     };
-
     this.bind();
   }
 
   bind() {
-    document.querySelectorAll('[data-action]').forEach((button) => {
-      button.addEventListener('click', () => this.game.handleAction(button.dataset.action));
-    });
+    document.getElementById('playButton').addEventListener('click', () => this.game.startRun());
+    document.getElementById('restartButton').addEventListener('click', () => this.game.startRun());
+    document.getElementById('menuButton').addEventListener('click', () => this.game.showTitle());
     document.getElementById('pauseButton').addEventListener('click', () => this.game.togglePause());
-    document.getElementById('muteButton').addEventListener('click', () => this.game.toggleMute());
-    document.getElementById('menuMuteButton').addEventListener('click', () => this.game.toggleMute());
-    document.getElementById('nextHoleButton').addEventListener('click', () => this.game.nextHole());
+    document.getElementById('resumeButton').addEventListener('click', () => this.game.togglePause(false));
+    document.getElementById('restartPauseButton').addEventListener('click', () => this.game.startRun());
+    document.getElementById('quitButton').addEventListener('click', () => this.game.showTitle());
+    document.getElementById('tutorialStartButton').addEventListener('click', () => this.game.startRun(true));
+    document.getElementById('tutorialSkipButton').addEventListener('click', () => this.game.skipTutorial());
+    document.getElementById('resetProgressButton').addEventListener('click', () => this.game.resetProgress());
+    document.getElementById('audioToggle').addEventListener('click', () => this.game.toggleSetting('audioMuted'));
+    document.getElementById('effectsToggle').addEventListener('click', () => this.game.toggleSetting('reduceEffects'));
+    document.getElementById('vibrationToggle').addEventListener('click', () => this.game.toggleSetting('vibration'));
+
+    document.querySelectorAll('[data-open]').forEach((button) => button.addEventListener('click', () => this.openModal(button.dataset.open)));
+    document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => this.closeModals()));
   }
 
-  showScreen(name) {
-    Object.entries(this.elements.screens).forEach(([key, node]) => {
-      node.classList.toggle('active', key === name);
-    });
+  showRotate(visible) { this.el.rotate.classList.toggle('hidden', !visible); }
+  showTitle() { this.el.title.classList.remove('hidden'); this.el.title.classList.add('active'); }
+  hideTitle() { this.el.title.classList.add('hidden'); this.el.title.classList.remove('active'); }
+  showHUD(visible) { this.el.hud.classList.toggle('hidden', !visible); }
+  showPause(visible) { this.el.pause.classList.toggle('hidden', !visible); }
+  showGameOver(visible) { this.el.gameOver.classList.toggle('hidden', !visible); }
+  showTutorial(visible) { this.el.tutorial.classList.toggle('hidden', !visible); }
+
+  openModal(id) { document.getElementById(id).classList.remove('hidden'); this.game.audio.click(); this.renderStatic(); }
+  closeModals() { document.querySelectorAll('.modal-screen').forEach((node) => node.classList.add('hidden')); this.game.audio.click(); }
+
+  renderStatic() {
+    const save = this.game.save;
+    this.el.bestScore.textContent = Math.floor(save.bestScore).toLocaleString();
+    this.el.totalCoins.textContent = save.totalCoins.toLocaleString();
+    this.el.bestHeight.textContent = `${Math.floor(save.bestHeight)}m`;
+    this.el.shopCoins.textContent = save.totalCoins.toLocaleString();
+    this.el.selectedSkin.textContent = COSMETICS.skins.find((s) => s.id === save.selected.skin)?.name || 'Default';
+    this.el.selectedTrail.textContent = COSMETICS.trails.find((s) => s.id === save.selected.trail)?.name || 'Pulse';
+    this.renderShop();
+    this.renderMissions();
+    this.el.audioToggle.textContent = `Audio: ${save.settings.audioMuted ? 'Off' : 'On'}`;
+    this.el.effectsToggle.textContent = `Reduced Effects: ${save.settings.reduceEffects ? 'On' : 'Off'}`;
+    this.el.vibrationToggle.textContent = `Vibration Placeholder: ${save.settings.vibration ? 'On' : 'Off'}`;
   }
 
-  showHUD(visible) {
-    this.elements.hud.classList.toggle('hidden', !visible);
-    this.elements.aimPanel.classList.toggle('hidden', !visible);
+  renderHUD() {
+    const g = this.game;
+    this.el.hudScore.textContent = Math.floor(g.score).toLocaleString();
+    this.el.hudCoins.textContent = g.runCoins.toString();
+    this.el.hudCombo.textContent = `x${g.combo.toFixed(1)}`;
+    this.el.comboFill.style.width = `${Math.min(100, g.comboCharge * 100)}%`;
+    this.el.hudHeight.textContent = `${Math.floor(g.distance)}m`;
+    this.el.hudBest.textContent = Math.floor(g.save.bestScore).toLocaleString();
+    this.el.hudBiome.textContent = g.biome.name;
+    this.el.hudSpeed.textContent = `${g.speedFactor.toFixed(1)}x`;
+    this.el.powerupTimers.innerHTML = Object.entries(g.activePowerups)
+      .filter(([, value]) => value > 0)
+      .map(([key, value]) => `<div class="power-chip">${g.powerDefs[key].label} ${(value).toFixed(1)}s</div>`)
+      .join('');
   }
 
-  updateHUD(game) {
-    const { currentHoleIndex, level, strokes, progress, aimPreview } = game;
-    document.getElementById('hudHole').textContent = `${currentHoleIndex + 1}`;
-    document.getElementById('hudPar').textContent = level ? `${level.par}` : '—';
-    document.getElementById('hudStrokes').textContent = `${strokes}`;
-    document.getElementById('hudBest').textContent = level ? progress.bestStrokes[level.id] ?? '—' : '—';
-    document.getElementById('muteButton').textContent = progress.mute ? '🔈' : '🔊';
-    document.getElementById('menuMuteButton').textContent = progress.mute ? 'Audio Off' : 'Audio On';
-    this.elements.powerFill.style.width = `${Math.round((aimPreview?.power || 0) * 100)}%`;
-    this.elements.aimHint.textContent = level?.hint || 'Line up your shot.';
-    document.getElementById('campaignSummary').textContent = `${progress.unlockedHoles}/${game.levels.length} holes unlocked • best scores saved locally`;
-  }
-
-  renderCourseGrid(game) {
-    const root = this.elements.courseGrid;
-    root.innerHTML = '';
-    game.levels.forEach((level, index) => {
-      const unlocked = index < game.progress.unlockedHoles || game.mode === 'practice';
-      const best = game.progress.bestStrokes[level.id];
-      const medal = game.progress.medals[level.id] || '—';
-      const button = document.createElement('button');
-      button.className = `course-card ${unlocked ? '' : 'locked'}`;
-      button.disabled = !unlocked;
-      button.innerHTML = `
-        <div class="course-card__top"><strong>Hole ${level.id}</strong><span>Par ${level.par}</span></div>
-        <p>${level.name}</p>
-        <small>Best: ${best ?? '—'} • Medal: ${medal}</small>
-      `;
-      if (unlocked) button.addEventListener('click', () => game.startHole(index, 'select'));
-      root.appendChild(button);
-    });
-  }
-
-  showToast(message) {
-    const { toast } = this.elements;
-    toast.textContent = message;
-    toast.classList.remove('hidden');
-    toast.classList.add('show');
-    clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => toast.classList.add('hidden'), 220);
-    }, 1800);
-  }
-
-  fillHoleComplete({ title, summary, strokes, score, medal, hasNext }) {
-    document.getElementById('resultTitle').textContent = title;
-    document.getElementById('resultSummary').textContent = summary;
-    document.getElementById('resultStrokes').textContent = strokes;
-    document.getElementById('resultScore').textContent = score > 0 ? `+${score}` : `${score}`;
-    document.getElementById('resultMedal').textContent = medal;
-    document.getElementById('nextHoleButton').textContent = hasNext ? 'Next Hole' : 'Finish Campaign';
-  }
-
-  fillCampaignComplete(game, totalScore, medalCounts) {
-    document.getElementById('campaignResultCopy').textContent = `You completed all 12 holes in ${game.campaignStrokes} strokes, ${totalScore > 0 ? `${totalScore} over par` : `${Math.abs(totalScore)} under par`}.`;
-    const stats = document.getElementById('campaignStats');
-    stats.innerHTML = `
-      <div class="result-stat"><span>Total Strokes</span><strong>${game.campaignStrokes}</strong></div>
-      <div class="result-stat"><span>Gold</span><strong>${medalCounts.Gold || 0}</strong></div>
-      <div class="result-stat"><span>Silver</span><strong>${medalCounts.Silver || 0}</strong></div>
-      <div class="result-stat"><span>Bronze</span><strong>${medalCounts.Bronze || 0}</strong></div>
+  renderGameOver(run) {
+    this.el.runSummary.innerHTML = `
+      <article class="summary-item"><span>Score</span><strong>${Math.floor(run.score).toLocaleString()}</strong></article>
+      <article class="summary-item"><span>Height</span><strong>${Math.floor(run.height)}m</strong></article>
+      <article class="summary-item"><span>Coins</span><strong>${run.coins}</strong></article>
+      <article class="summary-item"><span>Near Misses</span><strong>${run.nearMisses}</strong></article>
+      <article class="summary-item"><span>Best Combo</span><strong>x${run.combo.toFixed(1)}</strong></article>
+      <article class="summary-item"><span>Biome</span><strong>${run.biome}</strong></article>
     `;
+  }
+
+  renderShop() {
+    const build = (group, root, selectedKey) => {
+      root.innerHTML = COSMETICS[group].map((item) => {
+        const unlocked = this.game.save.unlocks[group][item.id];
+        const selected = this.game.save.selected[selectedKey] === item.id;
+        return `
+          <button class="shop-card ${selected ? 'selected' : ''} ${unlocked ? '' : 'locked'}" data-group="${group}" data-id="${item.id}">
+            <strong>${item.name}</strong>
+            <p>${unlocked ? (selected ? 'Equipped' : 'Tap to equip') : `${item.cost} coins`}</p>
+          </button>`;
+      }).join('');
+      root.querySelectorAll('.shop-card').forEach((button) => button.addEventListener('click', () => this.game.handleShop(button.dataset.group, button.dataset.id)));
+    };
+    build('skins', this.el.skinGrid, 'skin');
+    build('trails', this.el.trailGrid, 'trail');
+    build('auras', this.el.auraGrid, 'aura');
+  }
+
+  renderMissions() {
+    this.el.missionsList.innerHTML = this.game.missions.list.map((mission) => `
+      <article class="mission-card ${mission.completed ? 'done' : ''}">
+        <strong>${mission.text}</strong>
+        <p>Reward: ${mission.reward} coins</p>
+        <div class="mission-meta"><span>${mission.progress}/${mission.goal}</span>${mission.completed && !mission.claimed ? `<button class="secondary-button claim-button" data-claim="${mission.id}">Claim</button>` : `<span>${mission.claimed ? 'Claimed' : 'In Progress'}</span>`}</div>
+        <div class="progress-track"><div style="width:${(mission.progress / mission.goal) * 100}%"></div></div>
+      </article>
+    `).join('');
+    this.el.missionsList.querySelectorAll('[data-claim]').forEach((button) => button.addEventListener('click', () => this.game.claimMission(button.dataset.claim)));
   }
 }

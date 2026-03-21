@@ -1,4 +1,5 @@
-import { BALL_RADIUS, clamp, moveObstacle, rotateArms, shapeContains } from './physics.js';
+import { BIOMES, GAME_HEIGHT, GAME_WIDTH, SHAFT_WIDTH, WALL_PADDING } from './config.js';
+import { circleRectCollision, circleSegmentCollision, lerp } from './physics.js';
 
 export class Renderer {
   constructor(canvas, effects) {
@@ -8,341 +9,217 @@ export class Renderer {
     this.width = 0;
     this.height = 0;
     this.scale = 1;
-    this.camera = { x: 0, y: 0, zoom: 1 };
-    this.targetCamera = { x: 0, y: 0, zoom: 1 };
     this.resize();
   }
 
   resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
+    this.width = this.canvas.clientWidth || window.innerWidth;
+    this.height = this.canvas.clientHeight || window.innerHeight;
     this.canvas.width = Math.round(this.width * dpr);
     this.canvas.height = Math.round(this.height * dpr);
-    this.canvas.style.width = `${this.width}px`;
-    this.canvas.style.height = `${this.height}px`;
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.scale = Math.min(this.width / GAME_WIDTH, this.height / GAME_HEIGHT);
   }
 
-  setCamera(level, ball, dt) {
-    const padding = 90;
-    const zoom = Math.min((this.width - padding) / level.size.width, (this.height - padding) / level.size.height);
-    this.targetCamera.zoom = clamp(zoom, 0.55, 1.15);
-    this.targetCamera.x = ball.x;
-    this.targetCamera.y = ball.y;
-    const ease = 1 - Math.exp(-dt * 3.2);
-    this.camera.x += (this.targetCamera.x - this.camera.x) * ease;
-    this.camera.y += (this.targetCamera.y - this.camera.y) * ease;
-    this.camera.zoom += (this.targetCamera.zoom - this.camera.zoom) * ease;
+  toScreen(x, y, cameraY) {
+    const playX = (this.width - SHAFT_WIDTH * this.scale) / 2 + x * this.scale;
+    const playY = (y - cameraY) * this.scale;
+    return { x: playX, y: playY };
   }
 
-  worldToScreen(x, y) {
-    const zoom = this.camera.zoom;
-    return {
-      x: (x - this.camera.x) * zoom + this.width / 2,
-      y: (y - this.camera.y) * zoom + this.height / 2,
-    };
-  }
-
-  screenToWorld(x, y) {
-    const zoom = this.camera.zoom;
-    return {
-      x: (x - this.width / 2) / zoom + this.camera.x,
-      y: (y - this.height / 2) / zoom + this.camera.y,
-    };
-  }
-
-  render(game, dt) {
-    const { ctx } = this;
-    const { level, ball } = game;
-    if (!level) return;
-
-    this.setCamera(level, ball, dt);
-    const shake = this.effects.getShakeOffset();
+  render(game) {
+    const ctx = this.ctx;
+    const shake = this.effects.screenShake();
     ctx.save();
     ctx.clearRect(0, 0, this.width, this.height);
     ctx.translate(shake.x, shake.y);
 
-    this.drawBackground(ctx, game.time);
-    ctx.save();
-    ctx.translate(this.width / 2, this.height / 2);
-    ctx.scale(this.camera.zoom, this.camera.zoom);
-    ctx.translate(-this.camera.x, -this.camera.y);
-
-    this.drawCourse(ctx, level, game.time);
-    this.drawAimGuide(ctx, game);
-    this.drawBall(ctx, ball);
-    this.drawEffects(ctx);
-    ctx.restore();
-    ctx.restore();
-  }
-
-  drawBackground(ctx, time) {
-    const gradient = ctx.createLinearGradient(0, 0, 0, this.height);
-    gradient.addColorStop(0, '#11251a');
-    gradient.addColorStop(1, '#061009');
-    ctx.fillStyle = gradient;
+    const biome = game.biome;
+    const grad = ctx.createLinearGradient(0, 0, 0, this.height);
+    grad.addColorStop(0, biome.bg[0]);
+    grad.addColorStop(1, biome.bg[1]);
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    for (let i = 0; i < 8; i += 1) {
-      const x = ((i * 170 + time * 8) % (this.width + 220)) - 110;
-      const y = 70 + i * 85;
-      ctx.fillStyle = 'rgba(255,255,255,0.025)';
+    this.drawParallax(ctx, game);
+    this.drawShaft(ctx, game);
+    this.drawEntities(ctx, game);
+    this.drawEffects(ctx, game.cameraY);
+    if (game.state.event?.key === 'blackout') this.drawBlackout(ctx, game);
+    ctx.restore();
+  }
+
+  drawParallax(ctx, game) {
+    for (let i = 0; i < 20; i += 1) {
+      const y = ((i * 110 + game.distance * 0.4) % (this.height + 160)) - 80;
+      const x = (i % 2 ? 0.18 : 0.82) * this.width + Math.sin(i + game.time) * 16;
+      ctx.fillStyle = i % 3 === 0 ? 'rgba(255,255,255,.045)' : 'rgba(108, 231, 255, .05)';
       ctx.beginPath();
-      ctx.arc(x, y, 38 + (i % 3) * 18, 0, Math.PI * 2);
+      ctx.arc(x, y, 18 + (i % 4) * 8, 0, Math.PI * 2);
       ctx.fill();
     }
   }
 
-  drawCourse(ctx, level, time) {
-    const bounds = { x: 30, y: 30, width: level.size.width - 60, height: level.size.height - 60 };
-    ctx.fillStyle = '#183322';
-    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-    ctx.lineWidth = 24;
-    this.pathRoundedRect(ctx, bounds.x, bounds.y, bounds.width, bounds.height, 58);
-    ctx.fill();
-    ctx.stroke();
+  drawShaft(ctx, game) {
+    const shaftLeft = (this.width - SHAFT_WIDTH * this.scale) / 2;
+    const shaftRight = shaftLeft + SHAFT_WIDTH * this.scale;
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    ctx.fillRect(shaftLeft, 0, SHAFT_WIDTH * this.scale, this.height);
 
-    this.drawZones(ctx, level.fairway, '#4e9d5a', '#8ed48d');
-    this.drawZones(ctx, level.rough, '#2b5e36', '#2a5232');
-    this.drawZones(ctx, level.sand, '#dbc684', '#f8e8b8');
-    this.drawZones(ctx, level.water, '#1c6fa3', '#69b7e6');
-    this.drawZones(ctx, level.sticky, '#375438', '#456c46');
+    const wallGlow = ctx.createLinearGradient(shaftLeft, 0, shaftRight, 0);
+    wallGlow.addColorStop(0, `${game.biome.colors[0]}55`);
+    wallGlow.addColorStop(0.5, 'rgba(255,255,255,0.02)');
+    wallGlow.addColorStop(1, `${game.biome.colors[1]}55`);
+    ctx.fillStyle = wallGlow;
+    ctx.fillRect(shaftLeft, 0, SHAFT_WIDTH * this.scale, this.height);
 
-    for (const pad of level.boostPads || []) {
-      const pulse = 0.12 + Math.sin(time * 4 + pad.x * 0.01) * 0.08;
-      const gradient = ctx.createRadialGradient(pad.x, pad.y, 8, pad.x, pad.y, pad.radius + 12);
-      gradient.addColorStop(0, 'rgba(255,255,255,0.8)');
-      gradient.addColorStop(0.4, 'rgba(149, 255, 181, 0.85)');
-      gradient.addColorStop(1, 'rgba(87, 209, 124, 0)');
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(pad.x, pad.y, pad.radius + pulse * 16, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.lineCap = 'round';
-    for (const wall of level.walls || []) {
-      ctx.strokeStyle = '#e5f2de';
-      ctx.lineWidth = 16;
-      ctx.beginPath();
-      ctx.moveTo(wall.a.x, wall.a.y);
-      ctx.lineTo(wall.b.x, wall.b.y);
-      ctx.stroke();
-      ctx.strokeStyle = 'rgba(75, 49, 17, 0.72)';
-      ctx.lineWidth = 9;
-      ctx.stroke();
-    }
-
-    for (const mover of level.movers || []) {
-      const rect = moveObstacle(mover, time);
-      this.drawBlocker(ctx, rect.x, rect.y, rect.width, rect.height, '#a5b8bf');
-    }
-
-    for (const rotator of level.rotators || []) {
-      const angle = rotateArms(rotator, time);
-      ctx.save();
-      ctx.translate(rotator.x, rotator.y);
-      ctx.rotate(angle);
-      this.drawBlocker(ctx, -rotator.armLength, -rotator.thickness / 2, rotator.armLength * 2, rotator.thickness, '#cfd7de');
-      ctx.rotate(Math.PI / 2);
-      this.drawBlocker(ctx, -rotator.armLength, -rotator.thickness / 2, rotator.armLength * 2, rotator.thickness, '#cfd7de');
-      ctx.restore();
-    }
-
-    for (const portal of level.portals || []) {
-      this.drawPortal(ctx, portal.a.x, portal.a.y, portal.a.radius, '#a8a6ff');
-      this.drawPortal(ctx, portal.b.x, portal.b.y, portal.b.radius, '#ffafde');
-    }
-
-    this.drawCup(ctx, level.hole, time);
-    this.drawDecorations(ctx, level);
+    [WALL_PADDING * this.scale, (SHAFT_WIDTH - WALL_PADDING) * this.scale].forEach((offset) => {
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillRect(shaftLeft + offset - 4, 0, 8, this.height);
+    });
   }
 
-  drawZones(ctx, zones, fill, highlight) {
-    for (const zone of zones || []) {
-      ctx.save();
-      ctx.fillStyle = fill;
-      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-      ctx.lineWidth = 2;
-      this.pathShape(ctx, zone);
-      ctx.fill();
-      ctx.stroke();
-      ctx.globalAlpha = 0.15;
-      ctx.fillStyle = highlight;
-      for (let x = 0; x < 6; x += 1) {
-        ctx.beginPath();
-        const ox = (zone.x || zone.points?.[0]?.x || 0) + x * 28;
-        const oy = (zone.y || zone.points?.[0]?.y || 0) + x * 10;
-        ctx.arc(ox, oy, 18, 0, Math.PI * 2);
-        ctx.fill();
+  drawEntities(ctx, game) {
+    const cameraY = game.cameraY;
+    for (const coin of game.coins) {
+      const { x, y } = this.toScreen(coin.x, coin.y + Math.sin(game.time * 6 + coin.bob) * 4, cameraY);
+      if (y < -40 || y > this.height + 40) continue;
+      ctx.fillStyle = '#ffd36e';
+      ctx.shadowColor = '#ffd36e';
+      ctx.shadowBlur = 18;
+      ctx.beginPath(); ctx.arc(x, y, coin.radius * this.scale, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    for (const power of game.powerups) {
+      const { x, y } = this.toScreen(power.x, power.y + Math.sin(game.time * 4 + power.bob) * 6, cameraY);
+      if (y < -40 || y > this.height + 40) continue;
+      ctx.strokeStyle = game.powerDefs[power.kind].color;
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(x, y, power.radius * this.scale, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = `${game.powerDefs[power.kind].color}55`;
+      ctx.beginPath(); ctx.arc(x, y, power.radius * this.scale * 0.62, 0, Math.PI * 2); ctx.fill();
+    }
+
+    for (const obstacle of game.obstacles) this.drawObstacle(ctx, obstacle, game);
+
+    const p = game.player;
+    const s = this.toScreen(p.x, p.y, cameraY);
+    const skin = game.selectedSkin;
+    const aura = game.selectedAura;
+    ctx.save();
+    ctx.shadowColor = aura.color;
+    ctx.shadowBlur = 25;
+    ctx.strokeStyle = aura.color;
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath(); ctx.arc(s.x, s.y, (p.radius + 9 + Math.sin(game.time * 8) * 2) * this.scale, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = skin.color;
+    ctx.beginPath(); ctx.arc(s.x, s.y, p.radius * this.scale, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(s.x - 3 * this.scale, s.y - 4 * this.scale, 3.2 * this.scale, 0, Math.PI * 2); ctx.fill();
+    if (game.activePowerups.shield) {
+      ctx.strokeStyle = '#b8ff8b'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(s.x, s.y, (p.radius + 7) * this.scale, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  drawObstacle(ctx, obstacle, game) {
+    const t = obstacle.spawnedAt == null ? 0 : game.time - obstacle.spawnedAt;
+    const danger = t >= obstacle.activeAfter;
+    const alpha = Math.min(1, t / Math.max(0.1, obstacle.telegraph));
+    const color = danger ? game.biome.hazard : 'rgba(255,255,255,0.35)';
+    const pulse = 0.6 + Math.sin(game.time * 10 + obstacle.y * 0.01) * 0.2;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.fillStyle = danger ? color : 'rgba(255,255,255,0.12)';
+    ctx.shadowColor = color;
+    ctx.shadowBlur = danger ? 18 : 8;
+
+    const y = this.toScreen(0, obstacle.y, game.cameraY).y;
+    if (y < -120 || y > this.height + 120) { ctx.restore(); return; }
+    const shaftLeft = (this.width - SHAFT_WIDTH * this.scale) / 2;
+
+    if (obstacle.type === 'spike') {
+      const x = shaftLeft + obstacle.x * this.scale;
+      const w = obstacle.width * this.scale;
+      const h = obstacle.height * this.scale;
+      ctx.beginPath();
+      if (obstacle.side === 'left') {
+        ctx.moveTo(x, y); ctx.lineTo(x + w, y - h / 2); ctx.lineTo(x + w, y + h / 2);
+      } else {
+        ctx.moveTo(x + w, y); ctx.lineTo(x, y - h / 2); ctx.lineTo(x, y + h / 2);
       }
-      ctx.restore();
-    }
-  }
-
-  pathShape(ctx, shape) {
-    if (shape.type === 'roundedRect') return this.pathRoundedRect(ctx, shape.x, shape.y, shape.width, shape.height, shape.radius);
-    if (shape.type === 'ellipse') {
+      ctx.closePath(); ctx.fill();
+    } else if (obstacle.type === 'movingSpike') {
+      const x = shaftLeft + (obstacle.x + Math.sin(game.time * obstacle.speed) * obstacle.range) * this.scale;
+      ctx.fillRect(x, y - obstacle.height * this.scale / 2, obstacle.width * this.scale, obstacle.height * this.scale);
+    } else if (obstacle.type === 'laser') {
+      const on = ((game.time - obstacle.spawnedAt) % obstacle.pulse) > obstacle.pulse * 0.3;
+      if (danger && on) ctx.globalAlpha = 1;
+      ctx.lineWidth = (danger && on ? 6 : 2) * this.scale;
+      const left = shaftLeft + obstacle.x1 * this.scale;
+      const right = shaftLeft + obstacle.x2 * this.scale;
+      ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
+    } else if (obstacle.type === 'rotatingBar') {
+      const center = this.toScreen(obstacle.x, obstacle.y, game.cameraY);
+      const angle = obstacle.angle + game.time * obstacle.speed;
+      const len = obstacle.length * this.scale;
+      ctx.lineWidth = 10 * this.scale;
       ctx.beginPath();
-      ctx.ellipse(shape.x, shape.y, shape.rx, shape.ry, 0, 0, Math.PI * 2);
-      return;
+      ctx.moveTo(center.x - Math.cos(angle) * len, center.y - Math.sin(angle) * len);
+      ctx.lineTo(center.x + Math.cos(angle) * len, center.y + Math.sin(angle) * len);
+      ctx.stroke();
+    } else if (obstacle.type === 'gate') {
+      const gapStart = obstacle.gapCenter - obstacle.gapSize / 2;
+      const gapEnd = obstacle.gapCenter + obstacle.gapSize / 2;
+      ctx.fillRect(shaftLeft + WALL_PADDING * this.scale, y - 8, (gapStart - WALL_PADDING) * this.scale, 16);
+      ctx.fillRect(shaftLeft + gapEnd * this.scale, y - 8, (SHAFT_WIDTH - WALL_PADDING - gapEnd) * this.scale, 16);
+    } else if (obstacle.type === 'fakeZone' || obstacle.type === 'collapseGrip') {
+      const x = obstacle.side === 'left' ? shaftLeft + (WALL_PADDING - 10) * this.scale : shaftLeft + (SHAFT_WIDTH - WALL_PADDING - 16) * this.scale;
+      ctx.fillRect(x, y - obstacle.height * this.scale / 2, 26 * this.scale, obstacle.height * this.scale);
+    } else if (obstacle.type === 'drone') {
+      const targetX = lerp(obstacle.x, game.player.x, 0.03 * obstacle.speed);
+      obstacle.x = targetX;
+      const pos = this.toScreen(obstacle.x, obstacle.y, game.cameraY);
+      ctx.beginPath(); ctx.arc(pos.x, pos.y, obstacle.radius * this.scale, 0, Math.PI * 2); ctx.fill();
     }
-    if (shape.type === 'polygon') {
-      ctx.beginPath();
-      shape.points.forEach((point, index) => {
-        if (index === 0) ctx.moveTo(point.x, point.y);
-        else ctx.lineTo(point.x, point.y);
-      });
-      ctx.closePath();
+    if (!danger) {
+      ctx.globalAlpha = pulse * 0.8;
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+      ctx.strokeRect(shaftLeft + 40 * this.scale, y - 20, (SHAFT_WIDTH - 80) * this.scale, 40);
     }
-  }
-
-  pathRoundedRect(ctx, x, y, width, height, radius) {
-    const r = Math.min(radius, width / 2, height / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + width, y, x + width, y + height, r);
-    ctx.arcTo(x + width, y + height, x, y + height, r);
-    ctx.arcTo(x, y + height, x, y, r);
-    ctx.arcTo(x, y, x + width, y, r);
-    ctx.closePath();
-  }
-
-  drawBlocker(ctx, x, y, width, height, color) {
-    ctx.save();
-    ctx.fillStyle = color;
-    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-    ctx.shadowBlur = 16;
-    this.pathRoundedRect(ctx, x - width / 2, y - height / 2, width, height, Math.min(width, height) / 2.4);
-    ctx.fill();
     ctx.restore();
   }
 
-  drawPortal(ctx, x, y, radius, color) {
-    ctx.save();
-    const gradient = ctx.createRadialGradient(x, y, 4, x, y, radius + 14);
-    gradient.addColorStop(0, 'rgba(255,255,255,0.95)');
-    gradient.addColorStop(0.28, color);
-    gradient.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(x, y, radius + 12, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  drawCup(ctx, hole, time) {
-    ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.beginPath();
-    ctx.arc(hole.x, hole.y, 18, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#08120b';
-    ctx.beginPath();
-    ctx.arc(hole.x, hole.y, 14, 0, Math.PI * 2);
-    ctx.fill();
-
-    const flagWave = Math.sin(time * 4.5) * 7;
-    ctx.strokeStyle = '#f3f7f4';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(hole.x, hole.y - 12);
-    ctx.lineTo(hole.x, hole.y - 62);
-    ctx.stroke();
-
-    ctx.fillStyle = '#ff7f7f';
-    ctx.beginPath();
-    ctx.moveTo(hole.x, hole.y - 60);
-    ctx.quadraticCurveTo(hole.x + 24, hole.y - 56 + flagWave * 0.08, hole.x + 32, hole.y - 42);
-    ctx.lineTo(hole.x, hole.y - 34);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
-  drawBall(ctx, ball) {
-    ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.22)';
-    ctx.beginPath();
-    ctx.ellipse(ball.x + 3, ball.y + 6, BALL_RADIUS * 0.9, BALL_RADIUS * 0.65, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    const gradient = ctx.createRadialGradient(ball.x - 4, ball.y - 5, 2, ball.x, ball.y, BALL_RADIUS + 1);
-    gradient.addColorStop(0, '#ffffff');
-    gradient.addColorStop(0.65, '#f5f5f5');
-    gradient.addColorStop(1, '#d5dde2');
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  drawAimGuide(ctx, game) {
-    if (!game.aimPreview) return;
-    const { ball } = game;
-    const vector = game.aimPreview;
-    const strength = vector.power;
-    const length = 120 * strength;
-    const angle = vector.angle;
-    const points = game.predictShotPath();
-
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([8, 10]);
-    ctx.beginPath();
-    ctx.moveTo(ball.x, ball.y);
-    for (const point of points) ctx.lineTo(point.x, point.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    ctx.translate(ball.x, ball.y);
-    ctx.rotate(angle);
-    ctx.fillStyle = 'rgba(152, 239, 151, 0.95)';
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(length, -10 - strength * 6);
-    ctx.lineTo(length + 22, 0);
-    ctx.lineTo(length, 10 + strength * 6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
-  drawEffects(ctx) {
-    for (const particle of this.effects.particles) {
-      const alpha = particle.life / particle.maxLife;
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = particle.color;
-      ctx.beginPath();
-      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-      ctx.fill();
+  drawEffects(ctx, cameraY) {
+    for (const p of this.effects.particles) {
+      const s = this.toScreen(p.x, p.y, cameraY);
+      ctx.globalAlpha = p.life / p.maxLife;
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(s.x, s.y, p.size * this.scale, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    for (const text of this.effects.floatingTexts) {
+      const s = this.toScreen(text.x, text.y, cameraY);
+      ctx.globalAlpha = text.life / text.maxLife;
+      ctx.fillStyle = text.color;
+      ctx.font = '700 16px Inter, system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(text.label, s.x, s.y);
     }
     ctx.globalAlpha = 1;
   }
 
-  drawDecorations(ctx, level) {
-    for (const deco of level.decorations || []) {
-      if (deco.type === 'flower') {
-        ctx.fillStyle = '#f7b3db';
-        for (let i = 0; i < 5; i += 1) {
-          ctx.beginPath();
-          ctx.arc(deco.x + Math.cos((Math.PI * 2 * i) / 5) * 6, deco.y + Math.sin((Math.PI * 2 * i) / 5) * 6, 4, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = '#ffe68e';
-        ctx.beginPath();
-        ctx.arc(deco.x, deco.y, 3, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        ctx.fillStyle = 'rgba(255,255,255,0.28)';
-        ctx.beginPath();
-        ctx.arc(deco.x, deco.y, 4, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
+  drawBlackout(ctx, game) {
+    const p = this.toScreen(game.player.x, game.player.y, game.cameraY);
+    const mask = ctx.createRadialGradient(p.x, p.y, 30, p.x, p.y, 170);
+    mask.addColorStop(0, 'rgba(0,0,0,0)');
+    mask.addColorStop(1, 'rgba(0,0,0,0.92)');
+    ctx.fillStyle = mask;
+    ctx.fillRect(0, 0, this.width, this.height);
   }
 }

@@ -1,38 +1,25 @@
 export class EffectsSystem {
   constructor() {
     this.particles = [];
-    this.shakes = [];
+    this.floatingTexts = [];
+    this.shake = 0;
   }
 
-  burst(x, y, options = {}) {
-    const count = options.count || 14;
-    const speed = options.speed || 120;
-    const palette = options.palette || ['#f7fffb', '#a8f1a0', '#ffe18f'];
+  burst(x, y, color, count = 10, spread = Math.PI * 2, speed = 180) {
     for (let i = 0; i < count; i += 1) {
-      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
-      const velocity = speed * (0.3 + Math.random() * 0.9);
-      this.particles.push({
-        x,
-        y,
-        vx: Math.cos(angle) * velocity,
-        vy: Math.sin(angle) * velocity,
-        life: 0.25 + Math.random() * 0.6,
-        maxLife: 0.25 + Math.random() * 0.6,
-        size: 2 + Math.random() * 4,
-        color: palette[(Math.random() * palette.length) | 0],
-      });
+      const angle = (spread === Math.PI * 2 ? Math.random() * spread : -spread / 2 + Math.random() * spread) - Math.PI / 2;
+      this.particles.push({ x, y, vx: Math.cos(angle) * speed * (0.35 + Math.random()), vy: Math.sin(angle) * speed * (0.35 + Math.random()), life: 0.25 + Math.random() * 0.4, maxLife: 0.65, size: 2 + Math.random() * 5, color });
     }
   }
 
-  trail(x, y) {
-    this.particles.push({ x, y, vx: 0, vy: 0, life: 0.22, maxLife: 0.22, size: 1.8 + Math.random() * 1.8, color: 'rgba(255,255,255,0.35)' });
-  }
+  trail(x, y, color) { this.particles.push({ x, y, vx: 0, vy: 18, life: 0.22, maxLife: 0.22, size: 2 + Math.random() * 3, color }); }
 
-  shake(amount, duration = 0.12) {
-    this.shakes.push({ amount, duration, elapsed: 0 });
-  }
+  text(x, y, label, color = '#fff') { this.floatingTexts.push({ x, y, label, color, life: 0.9, maxLife: 0.9 }); }
+
+  addShake(amount) { this.shake = Math.min(24, this.shake + amount); }
 
   update(dt) {
+    this.shake *= Math.max(0, 1 - dt * 8);
     this.particles = this.particles.filter((p) => {
       p.life -= dt;
       p.x += p.vx * dt;
@@ -41,19 +28,14 @@ export class EffectsSystem {
       p.vy *= 0.95;
       return p.life > 0;
     });
-
-    this.shakes = this.shakes.filter((shake) => {
-      shake.elapsed += dt;
-      return shake.elapsed < shake.duration;
+    this.floatingTexts = this.floatingTexts.filter((t) => {
+      t.life -= dt;
+      t.y -= 36 * dt;
+      return t.life > 0;
     });
   }
 
-  getShakeOffset() {
-    if (!this.shakes.length) return { x: 0, y: 0 };
-    const total = this.shakes.reduce((sum, shake) => sum + shake.amount * (1 - shake.elapsed / shake.duration), 0);
-    return {
-      x: (Math.random() - 0.5) * total,
-      y: (Math.random() - 0.5) * total,
-    };
+  screenShake() {
+    return { x: (Math.random() - 0.5) * this.shake, y: (Math.random() - 0.5) * this.shake };
   }
 }

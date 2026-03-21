@@ -1,423 +1,349 @@
-import { LEVELS, TOTAL_PAR } from './levels.js';
+import { BIOMES, COSMETICS, GAME_HEIGHT, GAME_WIDTH, POWERUPS, SHAFT_WIDTH } from './config.js';
 import { AudioSystem } from './audio.js';
 import { EffectsSystem } from './effects.js';
-import { Renderer } from './renderer.js';
+import { Generator } from './generator.js';
 import { InputSystem } from './input.js';
-import { loadProgress, resetProgress, saveProgress } from './storage.js';
-import {
-  BALL_RADIUS,
-  STOP_SPEED,
-  applyBounce,
-  clamp,
-  distance,
-  getMedal,
-  getScoreLabel,
-  getSurfaceFriction,
-  inHazard,
-  moveObstacle,
-  portalTransfer,
-  rectCollision,
-  rotateArms,
-  segmentCollision,
-} from './physics.js';
+import { MissionsSystem } from './missions.js';
+import { Player } from './player.js';
+import { circleRectCollision, circleSegmentCollision, clamp, distance } from './physics.js';
+import { Renderer } from './renderer.js';
+import { ShopSystem } from './shop.js';
+import { defaultSave, loadSave, persistSave, resetSave } from './storage.js';
 import { UI } from './ui.js';
-
-const MAX_POWER = 780;
-const BASE_FRICTION = 0.985;
-const WALL_DAMPING = 0.84;
-const HOLE_CAPTURE_SPEED = 120;
 
 export class Game {
   constructor(canvas) {
     this.canvas = canvas;
-    this.levels = LEVELS;
-    this.progress = loadProgress();
+    this.save = loadSave();
     this.audio = new AudioSystem();
-    this.audio.setMuted(this.progress.mute);
+    this.audio.setMuted(this.save.settings.audioMuted);
     this.effects = new EffectsSystem();
     this.renderer = new Renderer(canvas, this.effects);
+    this.generator = new Generator();
+    this.player = new Player();
+    this.input = new InputSystem(this);
     this.ui = new UI(this);
-    this.input = new InputSystem(canvas, this);
-
-    this.state = 'menu';
-    this.mode = 'campaign';
-    this.currentHoleIndex = 0;
-    this.level = null;
-    this.ball = { x: 0, y: 0, vx: 0, vy: 0 };
-    this.lastSafeSpot = { x: 0, y: 0 };
-    this.strokes = 0;
-    this.campaignStrokes = 0;
-    this.campaignCompletedStrokes = 0;
-    this.time = 0;
-    this.aimPreview = null;
-    this.portalCooldown = 0;
-    this.pendingComplete = 0;
-    this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.missions = new MissionsSystem(this.save);
+    this.shop = new ShopSystem(this.save);
+    this.powerDefs = POWERUPS;
+    this.state = { screen: 'title', paused: false, event: null };
+    this.lastRun = null;
+    this.resetRun();
   }
 
   init() {
-    this.ui.showScreen('mainMenu');
-    this.ui.showHUD(false);
-    this.ui.updateHUD(this);
-    this.ui.renderCourseGrid(this);
-    window.addEventListener('resize', () => this.renderer.resize());
+    this.ui.renderStatic();
+    if (!this.save.settings.tutorialSeen) this.ui.showTutorial(true);
+    this.handleResize();
+    window.addEventListener('resize', () => this.handleResize());
+    window.addEventListener('orientationchange', () => this.handleResize());
   }
 
-  handleAction(action) {
-    this.audio.ui();
-    if (action === 'play-campaign') return this.startCampaign();
-    if (action === 'quick-play') return this.startHole(0, 'quick');
-    if (action === 'practice') return this.startHole(this.currentHoleIndex, 'practice');
-    if (action === 'course-select') return this.openCourseSelect();
-    if (action === 'back-to-menu') return this.openMenu();
-    if (action === 'resume') return this.resume();
-    if (action === 'restart-hole') return this.restartHole();
-    if (action === 'replay-hole') return this.restartHole();
-    if (action === 'replay-campaign') return this.startCampaign(true);
-    if (action === 'reset-progress') return this.confirmReset();
+  handleResize() {
+    this.renderer.resize();
+    this.ui.showRotate(window.innerWidth > window.innerHeight);
   }
 
-  openMenu() {
-    this.state = 'menu';
-    this.ui.showScreen('mainMenu');
-    this.ui.showHUD(false);
-    this.ui.updateHUD(this);
+  get biome() { return this.generator.biomeFor(this.distance); }
+  get selectedSkin() { return COSMETICS.skins.find((item) => item.id === this.save.selected.skin) || COSMETICS.skins[0]; }
+  get selectedTrail() { return COSMETICS.trails.find((item) => item.id === this.save.selected.trail) || COSMETICS.trails[0]; }
+  get selectedAura() { return COSMETICS.auras.find((item) => item.id === this.save.selected.aura) || COSMETICS.auras[0]; }
+  get speedFactor() { return this.cameraSpeed / 210; }
+
+  resetRun() {
+    this.player.reset();
+    this.time = 0;
+    this.distance = 0;
+    this.cameraY = 0;
+    this.cameraSpeed = 210;
+    this.score = 0;
+    this.combo = 1;
+    this.comboCharge = 0;
+    this.bestComboRun = 1;
+    this.runCoins = 0;
+    this.obstacles = [];
+    this.coins = [];
+    this.powerups = [];
+    this.activePowerups = Object.fromEntries(Object.keys(POWERUPS).map((key) => [key, 0]));
+    this.nearMisses = 0;
+    this.powerupsUsed = 0;
+    this.generator.reset();
+    this.state.paused = false;
+    this.state.event = null;
+    this.generator.generateUntil(this.distance, this);
   }
 
-  openCourseSelect() {
-    this.state = 'course-select';
-    this.ui.renderCourseGrid(this);
-    this.ui.showScreen('courseSelect');
-    this.ui.showHUD(false);
-  }
-
-  startCampaign(resetRun = false) {
-    this.mode = 'campaign';
-    if (resetRun || this.state === 'menu' || this.state === 'course-select') {
-      this.campaignStrokes = 0;
-      this.campaignCompletedStrokes = 0;
-    }
-    this.startHole(0, 'campaign');
-  }
-
-  startHole(index, sourceMode = 'campaign') {
-    this.mode = sourceMode;
-    this.currentHoleIndex = clamp(index, 0, this.levels.length - 1);
-    this.level = structuredClone(this.levels[this.currentHoleIndex]);
-    this.ball.x = this.level.tee.x;
-    this.ball.y = this.level.tee.y;
-    this.ball.vx = 0;
-    this.ball.vy = 0;
-    this.lastSafeSpot = { x: this.ball.x, y: this.ball.y };
-    this.strokes = 0;
-    this.state = 'playing';
-    this.pendingComplete = 0;
-    this.aimPreview = null;
-    this.ui.showScreen('');
+  startRun(fromTutorial = false) {
+    this.save.settings.tutorialSeen = true;
+    this.resetRun();
+    this.state.screen = 'game';
+    this.ui.hideTitle();
+    this.ui.showTutorial(false);
+    this.ui.showPause(false);
+    this.ui.showGameOver(false);
+    this.ui.closeModals();
     this.ui.showHUD(true);
-    this.ui.updateHUD(this);
-    this.progress.lastMode = sourceMode;
-    saveProgress(this.progress);
+    if (fromTutorial) this.effects.text(SHAFT_WIDTH / 2, this.player.y - 80, 'Tap rhythmically to climb', '#6be7ff');
+    this.audio.click();
+    persistSave(this.save);
   }
 
-  canAim() {
-    return this.state === 'playing' && this.level && this.speed() < STOP_SPEED;
+  showTitle() {
+    this.state.screen = 'title';
+    this.ui.closeModals();
+    this.ui.showHUD(false);
+    this.ui.showPause(false);
+    this.ui.showGameOver(false);
+    this.ui.showTitle();
+    this.ui.renderStatic();
   }
 
-  setAimPreview(vector) {
-    if (!this.canAim()) return;
-    this.aimPreview = vector;
-    this.ui.updateHUD(this);
+  skipTutorial() {
+    this.save.settings.tutorialSeen = true;
+    persistSave(this.save);
+    this.ui.showTutorial(false);
   }
 
-  clearAimPreview() {
-    this.aimPreview = null;
-    this.ui.updateHUD(this);
+  togglePause(force) {
+    if (this.state.screen !== 'game') return;
+    this.state.paused = typeof force === 'boolean' ? !force ? false : true : !this.state.paused;
+    this.ui.showPause(this.state.paused);
+    this.audio.click();
   }
 
-  takeShot(vector) {
-    const power = vector.power;
-    this.ball.vx = Math.cos(vector.angle) * power * MAX_POWER;
-    this.ball.vy = Math.sin(vector.angle) * power * MAX_POWER;
-    this.strokes += 1;
-    if (this.mode === 'campaign') this.campaignStrokes = this.campaignCompletedStrokes + this.strokes;
-    this.audio.hit(power);
-    this.effects.burst(this.ball.x, this.ball.y, { count: 16, speed: 100 + power * 120 });
-    this.ui.updateHUD(this);
+  toggleSetting(key) {
+    this.save.settings[key] = !this.save.settings[key];
+    this.audio.setMuted(this.save.settings.audioMuted);
+    persistSave(this.save);
+    this.ui.renderStatic();
   }
 
-  togglePause() {
-    if (this.state === 'playing') {
-      this.state = 'paused';
-      this.ui.showScreen('pause');
-      this.ui.showHUD(false);
-    } else if (this.state === 'paused') {
-      this.resume();
+  resetProgress() {
+    this.save = resetSave();
+    this.audio.setMuted(this.save.settings.audioMuted);
+    this.missions = new MissionsSystem(this.save);
+    this.shop = new ShopSystem(this.save);
+    this.ui.renderStatic();
+    this.showTitle();
+  }
+
+  handleShop(group, id) {
+    this.audio.click();
+    if (!this.save.unlocks[group][id]) this.shop.purchase(group, id);
+    this.shop.select(group, id);
+    persistSave(this.save);
+    this.ui.renderStatic();
+  }
+
+  claimMission(id) {
+    const reward = this.missions.claim(id);
+    if (reward) this.effects.text(SHAFT_WIDTH / 2, this.player.y - 120, `+${reward} mission`, '#a7ff7d');
+    persistSave(this.save);
+    this.ui.renderStatic();
+  }
+
+  handleJumpInput() {
+    if (this.state.screen === 'title') return this.startRun();
+    if (this.state.screen !== 'game' || this.state.paused) return;
+    if (this.player.canJump()) {
+      this.player.triggerJump(this.activePowerups.slow > 0 ? 0.84 : 1);
+      this.comboCharge = Math.min(1, this.comboCharge + 0.18 + (this.activePowerups.combo > 0 ? 0.08 : 0));
+      this.audio.jump();
+      this.effects.burst(this.player.x, this.player.y, this.selectedTrail.color, this.save.settings.reduceEffects ? 4 : 10, Math.PI, 120);
     }
-  }
-
-  resume() {
-    if (!this.level) return;
-    this.state = 'playing';
-    this.ui.showScreen('');
-    this.ui.showHUD(true);
-  }
-
-  restartHole() {
-    if (!this.level) return;
-    this.startHole(this.currentHoleIndex, this.mode);
-  }
-
-  toggleMute() {
-    this.progress.mute = !this.progress.mute;
-    this.audio.setMuted(this.progress.mute);
-    saveProgress(this.progress);
-    this.ui.updateHUD(this);
-  }
-
-  confirmReset() {
-    if (window.confirm('Reset all Pocket Golf Deluxe progress? This cannot be undone.')) {
-      this.progress = resetProgress();
-      this.audio.setMuted(this.progress.mute);
-      this.ui.renderCourseGrid(this);
-      this.ui.updateHUD(this);
-      this.ui.showToast('Progress reset. Fresh fairways await.');
-    }
-  }
-
-  speed() {
-    return Math.hypot(this.ball.vx, this.ball.vy);
-  }
-
-  predictShotPath() {
-    if (!this.aimPreview) return [];
-    const points = [];
-    const sim = { x: this.ball.x, y: this.ball.y, vx: Math.cos(this.aimPreview.angle) * this.aimPreview.power * 420, vy: Math.sin(this.aimPreview.angle) * this.aimPreview.power * 420 };
-    for (let i = 0; i < 38; i += 1) {
-      sim.x += sim.vx * 0.03;
-      sim.y += sim.vy * 0.03;
-      sim.vx *= 0.98;
-      sim.vy *= 0.98;
-      for (const wall of this.level.walls || []) {
-        const hit = segmentCollision(sim, wall);
-        if (hit) applyBounce(sim, hit.normal, 0.78);
-      }
-      points.push({ x: sim.x, y: sim.y });
-      if (points.length > 1 && i % 14 === 0 && points.length > 28) break;
-    }
-    return points;
   }
 
   update(dt) {
+    if (this.state.screen !== 'game' || this.state.paused) return;
     this.time += dt;
+    if (this.state.event) {
+      this.state.event.elapsed += dt;
+      if (this.state.event.elapsed >= this.state.event.duration) this.state.event = null;
+    } else if (Math.random() < dt * 0.09) {
+      this.state.event = this.generator.maybeEvent(this.distance);
+      if (this.state.event) this.effects.text(SHAFT_WIDTH / 2, this.player.y - 150, this.state.event.label, '#ffd36e');
+    }
+
+    this.cameraSpeed += dt * 3.2;
+    if (this.state.event?.key === 'overdrive') this.cameraSpeed += dt * 24;
+    const gravityScale = this.state.event?.key === 'slowGravity' ? 0.68 : 1;
+    this.player.update(dt, this.cameraSpeed * (this.activePowerups.slow > 0 ? 0.65 : 1), gravityScale, this.activePowerups.grip > 0);
+
+    this.cameraY = Math.min(this.cameraY, this.player.y - GAME_HEIGHT * 0.66);
+    this.distance = Math.max(this.distance, -this.cameraY);
+    this.generator.generateUntil(this.distance, this);
+
+    for (const key of Object.keys(this.activePowerups)) this.activePowerups[key] = Math.max(0, this.activePowerups[key] - dt);
+    this.score += dt * 18 * this.combo * (this.activePowerups.multiplier > 0 ? 2 : 1);
+    this.score += (this.distance / 1200) * dt * 8;
+
+    this.collectCoins(dt);
+    this.collectPowerups();
+    this.updateObstacles(dt);
+    this.cleanupWorld();
+    this.effects.trail(this.player.x, this.player.y + 18, this.selectedTrail.color);
     this.effects.update(dt);
-    if (this.portalCooldown > 0) this.portalCooldown -= dt;
-    if (this.pendingComplete > 0) {
-      this.pendingComplete -= dt;
-      if (this.pendingComplete <= 0) this.finishHole();
-    }
-    if (this.state !== 'playing' || !this.level) return;
 
-    this.stepBall(dt);
-    this.ui.updateHUD(this);
+    if (this.player.y > this.cameraY + GAME_HEIGHT + 80) this.endRun('Fell behind the climb');
+    this.ui.renderHUD();
   }
 
-  stepBall(dt) {
-    if (this.speed() > 40) this.effects.trail(this.ball.x, this.ball.y);
-    this.ball.x += this.ball.vx * dt;
-    this.ball.y += this.ball.vy * dt;
-
-    const friction = getSurfaceFriction(this.level, this.ball);
-    const frictionDecay = Math.pow(BASE_FRICTION, dt * 60 * friction);
-    this.ball.vx *= frictionDecay;
-    this.ball.vy *= frictionDecay;
-
-    this.resolveBounds();
-    this.resolveWalls();
-    this.resolveDynamicObstacles();
-    this.resolveBoosts();
-    this.resolvePortals();
-    this.resolveHazards();
-    this.resolveHole();
-
-    if (this.speed() < STOP_SPEED) {
-      this.ball.vx = 0;
-      this.ball.vy = 0;
-      if (!inHazard(this.level, this.ball, 'water')) this.lastSafeSpot = { x: this.ball.x, y: this.ball.y };
-    }
-  }
-
-  resolveBounds() {
-    const minX = 42;
-    const minY = 42;
-    const maxX = this.level.size.width - 42;
-    const maxY = this.level.size.height - 42;
-    if (this.ball.x < minX || this.ball.x > maxX) {
-      this.ball.x = clamp(this.ball.x, minX, maxX);
-      const hit = Math.abs(this.ball.vx);
-      this.ball.vx *= -WALL_DAMPING;
-      if (hit > 40) this.onImpact(hit / 220);
-    }
-    if (this.ball.y < minY || this.ball.y > maxY) {
-      this.ball.y = clamp(this.ball.y, minY, maxY);
-      const hit = Math.abs(this.ball.vy);
-      this.ball.vy *= -WALL_DAMPING;
-      if (hit > 40) this.onImpact(hit / 220);
-    }
-  }
-
-  resolveWalls() {
-    for (const wall of this.level.walls || []) {
-      const collision = segmentCollision(this.ball, wall);
-      if (!collision) continue;
-      this.ball.x += collision.normal.x * collision.penetration;
-      this.ball.y += collision.normal.y * collision.penetration;
-      const impact = applyBounce(this.ball, collision.normal, WALL_DAMPING);
-      if (impact > 20) this.onImpact(impact / 260);
-    }
-  }
-
-  resolveDynamicObstacles() {
-    for (const mover of this.level.movers || []) {
-      const rect = moveObstacle(mover, this.time);
-      const collision = rectCollision(this.ball, { x: rect.x - rect.width / 2, y: rect.y - rect.height / 2, width: rect.width, height: rect.height });
-      if (!collision) continue;
-      this.ball.x += collision.normal.x * collision.penetration;
-      this.ball.y += collision.normal.y * collision.penetration;
-      const impact = applyBounce(this.ball, collision.normal, 0.88);
-      if (impact > 10) this.onImpact(impact / 220);
-    }
-
-    for (const rotator of this.level.rotators || []) {
-      const angle = rotateArms(rotator, this.time);
-      const arms = [angle, angle + Math.PI / 2];
-      for (const armAngle of arms) {
-        const segment = {
-          a: { x: rotator.x - Math.cos(armAngle) * rotator.armLength, y: rotator.y - Math.sin(armAngle) * rotator.armLength },
-          b: { x: rotator.x + Math.cos(armAngle) * rotator.armLength, y: rotator.y + Math.sin(armAngle) * rotator.armLength },
-        };
-        const collision = segmentCollision(this.ball, segment);
-        if (!collision) continue;
-        this.ball.x += collision.normal.x * collision.penetration;
-        this.ball.y += collision.normal.y * collision.penetration;
-        const impact = applyBounce(this.ball, collision.normal, 0.9);
-        if (impact > 8) this.onImpact(impact / 220);
+  collectCoins(dt) {
+    const magnet = this.activePowerups.magnet > 0 ? 88 : 24;
+    this.coins = this.coins.filter((coin) => {
+      const d = distance(this.player, coin);
+      if (d < magnet) {
+        coin.x += (this.player.x - coin.x) * Math.min(1, dt * 8);
+        coin.y += (this.player.y - coin.y) * Math.min(1, dt * 8);
       }
-    }
-  }
-
-  resolveBoosts() {
-    for (const pad of this.level.boostPads || []) {
-      if (distance(this.ball, pad) < pad.radius + BALL_RADIUS) {
-        this.ball.vx += Math.cos(pad.angle) * pad.force * 0.02;
-        this.ball.vy += Math.sin(pad.angle) * pad.force * 0.02;
+      if (d < this.player.radius + coin.radius + 3) {
+        this.runCoins += 1;
+        this.score += 16 * this.combo;
+        this.audio.coin();
+        this.effects.burst(coin.x, coin.y, '#ffd36e', this.save.settings.reduceEffects ? 4 : 8, Math.PI * 2, 100);
+        return false;
       }
-    }
-  }
-
-  resolvePortals() {
-    if (this.portalCooldown > 0) return;
-    for (const portal of this.level.portals || []) {
-      const destination = portalTransfer(this.ball, portal);
-      if (destination) {
-        this.ball.x = destination.x;
-        this.ball.y = destination.y;
-        this.portalCooldown = 0.6;
-        this.effects.burst(this.ball.x, this.ball.y, { count: 22, palette: ['#ffffff', '#d3b7ff', '#ffb5dd'], speed: 140 });
-        break;
-      }
-    }
-  }
-
-  resolveHazards() {
-    if (inHazard(this.level, this.ball, 'water')) {
-      this.ball.x = this.lastSafeSpot.x;
-      this.ball.y = this.lastSafeSpot.y;
-      this.ball.vx = 0;
-      this.ball.vy = 0;
-      this.strokes += 1;
-      if (this.mode === 'campaign') this.campaignStrokes = this.campaignCompletedStrokes + this.strokes;
-      this.audio.splash();
-      this.effects.burst(this.ball.x, this.ball.y, { count: 18, palette: ['#8dd2ff', '#d8f8ff'], speed: 90 });
-      this.ui.showToast('Splash! +1 stroke penalty.');
-    }
-  }
-
-  resolveHole() {
-    const hole = this.level.hole;
-    const dist = distance(this.ball, hole);
-    if (dist < 18 && this.speed() < HOLE_CAPTURE_SPEED && this.pendingComplete <= 0) {
-      this.ball.vx *= 0.8;
-      this.ball.vy *= 0.8;
-      this.ball.x += (hole.x - this.ball.x) * 0.16;
-      this.ball.y += (hole.y - this.ball.y) * 0.16;
-      if (dist < 6 && this.speed() < 28) {
-        this.pendingComplete = this.reducedMotion ? 0.2 : 0.7;
-        this.state = 'transition';
-        this.audio.success();
-        this.effects.burst(hole.x, hole.y, { count: 36, palette: ['#ffffff', '#9cf8a2', '#ffe183', '#ff9cc7'], speed: 190 });
-      }
-    }
-  }
-
-  onImpact(intensity) {
-    this.audio.wall(intensity);
-    this.effects.shake(clamp(intensity * 10, 1.6, 6));
-    this.effects.burst(this.ball.x, this.ball.y, { count: 6, speed: 70 });
-  }
-
-  finishHole() {
-    const diff = this.strokes - this.level.par;
-    const title = this.strokes === 1 ? 'Hole in One!' : getScoreLabel(diff);
-    const medal = getMedal(this.level.par, this.strokes);
-
-    this.progress.unlockedHoles = Math.max(this.progress.unlockedHoles, Math.min(this.levels.length, this.currentHoleIndex + 2));
-    const previousBest = this.progress.bestStrokes[this.level.id];
-    if (!previousBest || this.strokes < previousBest) this.progress.bestStrokes[this.level.id] = this.strokes;
-    this.progress.medals[this.level.id] = medal;
-    this.progress.completed[this.level.id] = true;
-    saveProgress(this.progress);
-    this.ui.renderCourseGrid(this);
-
-    const hasNext = this.currentHoleIndex < this.levels.length - 1;
-    if (this.mode === 'campaign') {
-      this.campaignCompletedStrokes += this.strokes;
-      this.campaignStrokes = this.campaignCompletedStrokes;
-    }
-    this.ui.fillHoleComplete({
-      title,
-      summary: `You finished ${this.level.name} in ${this.strokes} stroke${this.strokes === 1 ? '' : 's'}.`,
-      strokes: this.strokes,
-      score: diff,
-      medal,
-      hasNext,
+      return true;
     });
-
-    if (this.mode === 'campaign' && !hasNext) {
-      const medalCounts = Object.values(this.progress.medals).reduce((acc, medalName) => {
-        acc[medalName] = (acc[medalName] || 0) + 1;
-        return acc;
-      }, {});
-      this.ui.fillCampaignComplete(this, this.campaignStrokes - TOTAL_PAR, medalCounts);
-      this.state = 'campaign-complete';
-      this.ui.showHUD(false);
-      this.ui.showScreen('campaignComplete');
-      return;
-    }
-
-    this.state = 'hole-complete';
-    this.ui.showHUD(false);
-    this.ui.showScreen('holeComplete');
   }
 
-  nextHole() {
-    if (this.state === 'hole-complete' || this.state === 'campaign-complete' || this.state === 'playing') {
-      const nextIndex = this.currentHoleIndex + 1;
-      if (nextIndex >= this.levels.length) {
-        this.openMenu();
-        return;
+  collectPowerups() {
+    this.powerups = this.powerups.filter((power) => {
+      if (distance(this.player, power) < this.player.radius + power.radius + 4) {
+        this.activePowerups[power.kind] = Math.max(this.activePowerups[power.kind], POWERUPS[power.kind].duration);
+        if (power.kind === 'shield') this.player.shield = 1;
+        if (power.kind === 'phase') this.player.phaseCharges = 1;
+        this.powerupsUsed += 1;
+        this.audio.powerup();
+        this.effects.text(power.x, power.y - 26, POWERUPS[power.kind].label, POWERUPS[power.kind].color);
+        return false;
       }
-      this.startHole(nextIndex, this.mode === 'select' ? 'select' : this.mode);
+      return true;
+    });
+  }
+
+  updateObstacles(dt) {
+    const p = { x: this.player.x, y: this.player.y, radius: this.player.radius };
+    const now = this.time;
+    for (const obstacle of this.obstacles) {
+      if (obstacle.spawnedAt == null) obstacle.spawnedAt = now;
+      const active = now - obstacle.spawnedAt >= obstacle.activeAfter;
+      let hit = false;
+      let near = false;
+      if (obstacle.type === 'spike') {
+        const rect = { x: obstacle.x, y: obstacle.y - obstacle.height / 2, width: obstacle.width, height: obstacle.height };
+        hit = active && circleRectCollision(p, rect);
+        near = !hit && distance(this.player, { x: rect.x + rect.width / 2, y: obstacle.y }) < 42;
+      }
+      if (obstacle.type === 'movingSpike') {
+        const rect = { x: obstacle.x + Math.sin(now * obstacle.speed) * obstacle.range, y: obstacle.y - obstacle.height / 2, width: obstacle.width, height: obstacle.height };
+        hit = active && circleRectCollision(p, rect);
+        near = !hit && distance(this.player, { x: rect.x + rect.width / 2, y: obstacle.y }) < 44;
+      }
+      if (obstacle.type === 'laser') {
+        const pulseOn = ((now - obstacle.spawnedAt) % obstacle.pulse) > obstacle.pulse * 0.3;
+        hit = active && pulseOn && Math.abs(this.player.y - obstacle.y) < this.player.radius + 4;
+        near = !hit && Math.abs(this.player.y - obstacle.y) < 26;
+      }
+      if (obstacle.type === 'rotatingBar') {
+        const angle = obstacle.angle + now * obstacle.speed;
+        const segment = { x1: obstacle.x - Math.cos(angle) * obstacle.length, y1: obstacle.y - Math.sin(angle) * obstacle.length, x2: obstacle.x + Math.cos(angle) * obstacle.length, y2: obstacle.y + Math.sin(angle) * obstacle.length, thickness: 10 };
+        hit = active && circleSegmentCollision(p, segment);
+        near = !hit && Math.min(distance(this.player, { x: segment.x1, y: segment.y1 }), distance(this.player, { x: segment.x2, y: segment.y2 })) < 38;
+      }
+      if (obstacle.type === 'gate') {
+        const inBand = Math.abs(this.player.y - obstacle.y) < this.player.radius + 6;
+        const safe = this.player.x > obstacle.gapCenter - obstacle.gapSize / 2 && this.player.x < obstacle.gapCenter + obstacle.gapSize / 2;
+        hit = active && inBand && !safe;
+        near = !hit && inBand && Math.abs(this.player.x - obstacle.gapCenter) > obstacle.gapSize / 2 - 18;
+      }
+      if (obstacle.type === 'fakeZone') {
+        const wallSide = this.player.x < SHAFT_WIDTH / 2 ? 'left' : 'right';
+        hit = active && obstacle.side === wallSide && Math.abs(this.player.y - obstacle.y) < obstacle.height / 2 && !this.player.jump;
+      }
+      if (obstacle.type === 'collapseGrip') {
+        const wallSide = this.player.x < SHAFT_WIDTH / 2 ? 'left' : 'right';
+        if (active && obstacle.side === wallSide && Math.abs(this.player.y - obstacle.y) < obstacle.height / 2 && !this.player.jump) {
+          this.player.coyote = 0.03;
+          this.effects.text(this.player.x, this.player.y - 30, 'Collapse!', '#ffb16d');
+        }
+      }
+      if (obstacle.type === 'drone') {
+        obstacle.y += dt * (this.state.event?.key === 'chase' ? 80 : 24);
+        hit = active && distance(this.player, obstacle) < this.player.radius + obstacle.radius;
+        near = !hit && distance(this.player, obstacle) < 38;
+      }
+
+      if (near && !obstacle.nearTriggered) {
+        obstacle.nearTriggered = true;
+        this.nearMisses += 1;
+        this.combo = Math.min(15, this.combo + 0.45);
+        this.comboCharge = Math.min(1, this.comboCharge + 0.2);
+        this.score += 28 * this.combo;
+        this.audio.combo();
+        this.effects.text(this.player.x, this.player.y - 24, 'Near Miss', '#ffd36e');
+      }
+
+      if (hit) {
+        if (this.player.phaseCharges > 0) {
+          this.player.phaseCharges = 0;
+          this.activePowerups.phase = 0;
+          this.player.hitCooldown = 0.25;
+          this.effects.text(this.player.x, this.player.y - 30, 'Phase', '#ff8bd0');
+        } else if (this.player.shield > 0 || this.activePowerups.shield > 0) {
+          this.player.shield = 0;
+          this.activePowerups.shield = 0;
+          this.effects.addShake(12);
+          this.audio.shield();
+          this.effects.text(this.player.x, this.player.y - 28, 'Shield Break', '#b8ff8b');
+          this.player.hitCooldown = 0.4;
+          obstacle.hitConsumed = true;
+        } else if (this.player.hitCooldown <= 0) {
+          this.endRun('Hit a hazard');
+          return;
+        }
+      }
     }
+
+    this.comboCharge = Math.max(0, this.comboCharge - dt * (this.activePowerups.combo > 0 ? 0.04 : 0.07));
+    if (this.comboCharge <= 0 && this.combo > 1) this.combo = Math.max(1, this.combo - dt * 1.4);
+    this.bestComboRun = Math.max(this.bestComboRun, this.combo);
+  }
+
+  cleanupWorld() {
+    const lower = this.cameraY - 220;
+    const upper = this.cameraY + GAME_HEIGHT + 220;
+    this.obstacles = this.obstacles.filter((item) => item.y > lower - 360 && item.y < upper + 480);
+    this.coins = this.coins.filter((item) => item.y > lower - 180 && item.y < upper + 300);
+    this.powerups = this.powerups.filter((item) => item.y > lower - 180 && item.y < upper + 320);
+  }
+
+  endRun(reason) {
+    this.state.screen = 'gameover';
+    this.ui.showHUD(false);
+    this.ui.showPause(false);
+    this.ui.showGameOver(true);
+    this.ui.closeModals();
+    this.audio.death();
+    this.effects.addShake(18);
+
+    const biomeIndex = BIOMES.findIndex((item) => item.name === this.biome.name);
+    const coinsEarned = this.runCoins + Math.floor(this.score / 250);
+    this.save.totalCoins += coinsEarned;
+    this.save.totalRuns += 1;
+    this.save.totalDistance += this.distance;
+    this.save.stats.nearMisses += this.nearMisses;
+    this.save.stats.powerupsUsed += this.powerupsUsed;
+    this.save.stats.totalTime += this.time;
+    this.save.bestScore = Math.max(this.save.bestScore, this.score);
+    this.save.bestHeight = Math.max(this.save.bestHeight, this.distance);
+
+    const run = { score: this.score, height: this.distance, coins: coinsEarned, nearMisses: this.nearMisses, combo: this.bestComboRun, biome: this.biome.name, time: this.time, powerupsUsed: this.powerupsUsed, biomeIndex };
+    this.missions.updateFromRun(run);
+    persistSave(this.save);
+    this.lastRun = run;
+    this.ui.renderGameOver(run);
+    this.ui.renderStatic();
+    document.getElementById('gameOverTitle').textContent = reason;
   }
 }
