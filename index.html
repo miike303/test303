@@ -2,155 +2,179 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#080b16" />
-    <title>Simon Test 2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#090c14" />
+    <title>Tunnel Swarm</title>
     <meta
       name="description"
-      content="Simon Test 2 is a premium mobile-first Simon memory game with polished visuals, local leaderboards, and multiple play modes."
+      content="Tunnel Swarm is a premium browser survival roguelite set inside a dark industrial reactor tunnel."
     />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main class="app">
-      <header class="topbar panel">
-        <div>
-          <p class="eyebrow">Mobile Memory Arcade</p>
-          <h1>Simon Test 2</h1>
-        </div>
-        <button class="icon-button" id="helpButton" type="button" aria-label="How to play">
-          ?
-        </button>
-      </header>
+    <div class="app-shell">
+      <canvas id="gameCanvas" aria-label="Tunnel Swarm game canvas"></canvas>
 
-      <section class="hero panel" aria-label="Game status and score">
-        <div class="hero__stats">
-          <article class="stat-card">
-            <span>Score</span>
-            <strong id="scoreValue">0</strong>
-          </article>
-          <article class="stat-card">
-            <span>Best</span>
-            <strong id="bestScoreValue">0</strong>
-          </article>
-          <article class="stat-card">
-            <span>Round</span>
-            <strong id="roundValue">0</strong>
-          </article>
-        </div>
-        <p class="status" id="statusText" aria-live="polite">Pick a mode, then tap Start.</p>
-        <div class="combo-row">
-          <span class="combo-pill" id="comboText">Combo calm</span>
-          <span class="combo-pill combo-pill--accent" id="modeLabel">Classic Mode</span>
-        </div>
-      </section>
+      <div class="backdrop-grid"></div>
+      <div class="vignette"></div>
 
-      <section class="board-wrap panel" aria-label="Simon board">
-        <div class="simon-board" id="simonBoard">
-          <button class="pad pad--green" id="pad-green" data-pad="0" aria-label="Green pad"></button>
-          <button class="pad pad--red" id="pad-red" data-pad="1" aria-label="Red pad"></button>
-          <button class="pad pad--yellow" id="pad-yellow" data-pad="2" aria-label="Yellow pad"></button>
-          <button class="pad pad--blue" id="pad-blue" data-pad="3" aria-label="Blue pad"></button>
-        </div>
-      </section>
-
-      <section class="controls panel" aria-label="Game controls">
-        <div class="button-grid">
-          <button class="primary-button" id="startButton" type="button">Start</button>
-          <button class="secondary-button" id="restartButton" type="button">Restart</button>
-          <button class="toggle-button" id="soundToggle" type="button" aria-pressed="true">Sound On</button>
-          <button class="toggle-button" id="leaderboardButton" type="button">Leaderboard</button>
-        </div>
-
-        <div class="toggle-stack" role="group" aria-label="Game mode options">
-          <label class="toggle-card">
-            <input type="radio" name="mode" value="classic" checked />
-            <span>Classic Mode</span>
-            <small>Balanced tempo. One mistake ends the run.</small>
-          </label>
-          <label class="toggle-card">
-            <input type="radio" name="mode" value="strict" />
-            <span>Strict Mode</span>
-            <small>Sharper speed ramp for expert memory runs.</small>
-          </label>
-          <label class="toggle-card">
-            <input type="radio" name="mode" value="zen" />
-            <span>Zen Practice</span>
-            <small>Retry the current round after a mistake.</small>
-          </label>
-        </div>
-      </section>
-    </main>
-
-    <section class="modal" id="summaryModal" hidden>
-      <div class="modal__backdrop" data-close="summary"></div>
-      <div class="modal__panel panel" role="dialog" aria-modal="true" aria-labelledby="summaryTitle">
-        <p class="eyebrow">Run Summary</p>
-        <h2 id="summaryTitle">Great reflexes.</h2>
-        <p id="summaryMessage">You reached round 0 with a score of 0.</p>
-        <div class="summary-grid">
-          <article class="stat-card"><span>Mode</span><strong id="summaryMode">Classic</strong></article>
-          <article class="stat-card"><span>Round</span><strong id="summaryRound">0</strong></article>
-          <article class="stat-card"><span>Score</span><strong id="summaryScore">0</strong></article>
-        </div>
-        <div class="achievement-list" id="summaryAchievements"></div>
-        <div class="modal__actions">
-          <button class="primary-button" id="playAgainButton" type="button">Play Again</button>
-          <button class="secondary-button" id="closeSummaryButton" type="button">Close</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="modal" id="leaderboardModal" hidden>
-      <div class="modal__backdrop" data-close="leaderboard"></div>
-      <div class="modal__panel panel" role="dialog" aria-modal="true" aria-labelledby="leaderboardTitle">
-        <div class="modal__header">
-          <div>
-            <p class="eyebrow">Local Records</p>
-            <h2 id="leaderboardTitle">Leaderboard</h2>
+      <section class="screen active" id="titleScreen">
+        <div class="panel hero-panel">
+          <p class="eyebrow">Industrial Survival Roguelite</p>
+          <h1>Tunnel Swarm</h1>
+          <p class="lede">
+            Survive endless reactor tunnel assaults, evolve absurdly powerful builds, defeat machine horrors,
+            and cash out with persistent upgrades.
+          </p>
+          <div class="cta-row">
+            <button class="primary-button" id="playButton">Start Run</button>
+            <button class="secondary-button" id="metaButton">Unlock Bay</button>
+            <button class="secondary-button" id="helpButton">How To Play</button>
           </div>
-          <button class="icon-button" id="closeLeaderboardButton" type="button" aria-label="Close leaderboard">×</button>
-        </div>
-
-        <form class="nickname-form" id="nicknameForm" hidden>
-          <label for="nicknameInput">New top 10! Enter your nickname.</label>
-          <div class="nickname-form__row">
-            <input id="nicknameInput" name="nickname" type="text" maxlength="14" placeholder="Player" autocomplete="nickname" />
-            <button class="primary-button" type="submit">Save</button>
+          <div class="hero-stats">
+            <article><span>Best Time</span><strong id="bestTimeStat">00:00</strong></article>
+            <article><span>Best Score</span><strong id="bestScoreStat">0</strong></article>
+            <article><span>Alloy</span><strong id="currencyStat">0</strong></article>
           </div>
-        </form>
-
-        <div class="leaderboard-meta">
-          <article class="stat-card"><span>Best Score</span><strong id="leaderboardBest">0</strong></article>
-          <article class="stat-card"><span>Achievements</span><strong id="achievementCount">0</strong></article>
         </div>
+      </section>
 
-        <ol class="leaderboard-list" id="leaderboardList"></ol>
-        <div class="modal__actions">
-          <button class="secondary-button" id="resetLeaderboardButton" type="button">Reset Leaderboard</button>
+      <section class="screen" id="metaScreen">
+        <div class="panel modal-panel large-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Persistent Upgrades</p>
+              <h2>Unlock Bay</h2>
+            </div>
+            <button class="icon-button" data-close="metaScreen">×</button>
+          </div>
+          <p class="lede compact">
+            Spend recovered alloy to improve future runs. Upgrades save automatically to localStorage.
+          </p>
+          <div class="meta-topline">
+            <div class="chip">Alloy: <strong id="metaCurrency">0</strong></div>
+            <div class="chip">Skins: <strong id="skinStatus">Default</strong></div>
+          </div>
+          <div class="meta-grid" id="metaGrid"></div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="modal" id="helpModal" hidden>
-      <div class="modal__backdrop" data-close="help"></div>
-      <div class="modal__panel panel" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
-        <p class="eyebrow">How to Play</p>
-        <h2 id="helpTitle">Repeat the light sequence.</h2>
-        <ul class="help-list">
-          <li>Tap Start and watch the pads light up one by one.</li>
-          <li>Repeat the exact sequence to advance.</li>
-          <li>Classic and Strict end the run after one mistake.</li>
-          <li>Zen Practice lets you retry the same round.</li>
-        </ul>
-        <div class="modal__actions">
-          <button class="primary-button" id="closeHelpButton" type="button">Got it</button>
+      <section class="screen" id="helpScreen">
+        <div class="panel modal-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Controls & Tips</p>
+              <h2>Survive The Swarm</h2>
+            </div>
+            <button class="icon-button" data-close="helpScreen">×</button>
+          </div>
+          <div class="help-grid">
+            <article>
+              <h3>Desktop</h3>
+              <ul>
+                <li>Move with <strong>WASD</strong> or <strong>Arrow Keys</strong>.</li>
+                <li><strong>Space</strong> dashes. <strong>P</strong> pauses.</li>
+                <li>Weapons auto-fire at nearby threats.</li>
+              </ul>
+            </article>
+            <article>
+              <h3>Mobile</h3>
+              <ul>
+                <li>Drag the virtual stick on the lower-left.</li>
+                <li>Tap the <strong>Dash</strong> button for burst evasion.</li>
+                <li>Menus use large touch-friendly controls.</li>
+              </ul>
+            </article>
+            <article>
+              <h3>Run Flow</h3>
+              <ul>
+                <li>Gather XP cells to level up and choose 1 of 3 upgrades.</li>
+                <li>Difficulty surges over time with elites, mini-bosses, hazards, and bosses.</li>
+                <li>Earn alloy after every run and buy permanent upgrades.</li>
+              </ul>
+            </article>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section class="hud hidden" id="hud">
+        <div class="hud-top">
+          <div class="panel hud-card hp-card">
+            <div class="bar-label"><span>Integrity</span><strong id="hpText">0 / 0</strong></div>
+            <div class="bar"><div id="hpFill"></div></div>
+          </div>
+          <div class="panel hud-card xp-card">
+            <div class="bar-label"><span>XP</span><strong id="xpText">Lv 1</strong></div>
+            <div class="bar"><div id="xpFill"></div></div>
+          </div>
+          <div class="panel hud-stats">
+            <div><span>Time</span><strong id="timerText">00:00</strong></div>
+            <div><span>Kills</span><strong id="killsText">0</strong></div>
+            <div><span>Score</span><strong id="scoreText">0</strong></div>
+            <div><span>Intensity</span><strong id="waveText">Calm</strong></div>
+          </div>
+        </div>
+        <div class="hud-bottom">
+          <div class="panel arsenal-panel">
+            <div class="panel-title-row"><span>Weapons</span><strong id="weaponCountText">1 online</strong></div>
+            <div class="weapon-list" id="weaponList"></div>
+          </div>
+          <div class="panel passive-panel">
+            <div class="panel-title-row"><span>Upgrades</span><strong id="passiveCountText">0 active</strong></div>
+            <div class="passive-list" id="passiveList"></div>
+          </div>
+          <div class="panel controls-panel">
+            <button class="secondary-button small-button" id="pauseButton">Pause</button>
+            <button class="secondary-button small-button" id="muteButton">Audio</button>
+            <button class="primary-button small-button" id="dashButton">Dash</button>
+            <div class="cooldown-pill" id="dashCooldownText">Dash Ready</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen overlay-screen" id="levelUpScreen">
+        <div class="panel modal-panel levelup-panel">
+          <p class="eyebrow">Power Surge</p>
+          <h2>Choose An Upgrade</h2>
+          <p class="lede compact">The tunnel briefly stabilizes. Pick one enhancement for this run.</p>
+          <div class="upgrade-grid" id="upgradeChoices"></div>
+        </div>
+      </section>
+
+      <section class="screen overlay-screen" id="pauseScreen">
+        <div class="panel modal-panel">
+          <p class="eyebrow">Systems Paused</p>
+          <h2>Run Suspended</h2>
+          <div class="cta-row stretch">
+            <button class="primary-button" id="resumeButton">Resume</button>
+            <button class="secondary-button" id="quitButton">Quit Run</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen overlay-screen" id="gameOverScreen">
+        <div class="panel modal-panel large-panel">
+          <p class="eyebrow">Run Complete</p>
+          <h2 id="gameOverTitle">Tunnel Lost</h2>
+          <div class="summary-grid" id="summaryGrid"></div>
+          <div class="cta-row stretch">
+            <button class="primary-button" id="restartButton">Run Again</button>
+            <button class="secondary-button" id="postRunMetaButton">Spend Alloy</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="touch-ui hidden" id="touchUi">
+        <div class="joystick" id="joystickZone">
+          <div class="joystick-base"></div>
+          <div class="joystick-stick" id="joystickStick"></div>
+        </div>
+        <div class="touch-buttons">
+          <button class="touch-button" id="touchPause">Ⅱ</button>
+          <button class="touch-button primary-touch" id="touchDash">Dash</button>
+        </div>
+      </section>
+    </div>
 
     <script src="script.js"></script>
   </body>
