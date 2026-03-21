@@ -1,80 +1,64 @@
-# Micro-organismes tactiles
+# Pocket Golf Deluxe
 
-Une expérience visuelle plein écran en HTML/CSS/JavaScript pur : des centaines de micro-points organiques restent dispersés dans un espace sombre, puis se rapprochent lentement du doigt ou de la souris maintenue, avec une transition colorée progressive à proximité du contact.
+Pocket Golf Deluxe is a polished, production-style 2D mini-golf browser game built with vanilla HTML, CSS, and JavaScript. It runs by opening `index.html`, uses an HTML5 canvas renderer for gameplay, and is designed to feel smooth, premium, and touch-first on iPhone, iPad, and desktop browsers.
 
-## Lancer le projet en local
+## How to run locally
 
-Aucune installation n'est nécessaire.
+No build step or dependency installation is required.
 
-- Ouvrez directement `index.html` dans un navigateur moderne.
-- Ou servez le dossier avec un mini serveur statique, par exemple :
+### Option 1: open directly
+- Open `index.html` in any modern browser.
 
+### Option 2: run a static server
 ```bash
 python3 -m http.server 8000
 ```
+Then open `http://localhost:8000`.
 
-Puis ouvrez `http://localhost:8000`.
+## Publish on GitHub Pages
 
-## Publication sur GitHub Pages
+1. Push the project to the root of a GitHub repository.
+2. Open **Settings → Pages**.
+3. Under **Build and deployment**, choose **Deploy from a branch**.
+4. Select your default branch and the **/ (root)** folder.
+5. Save. GitHub Pages will publish the game automatically.
 
-1. Créez un dépôt GitHub et poussez ces fichiers à la racine.
-2. Dans **Settings > Pages**, choisissez :
-   - **Source** : `Deploy from a branch`
-   - **Branch** : `main` (ou votre branche par défaut)
-   - **Folder** : `/ (root)`
-3. Enregistrez. GitHub Pages publiera automatiquement le site.
-4. Partagez ensuite l’URL GitHub Pages générée.
+## Controls
 
-## Structure des fichiers
+### Desktop
+- Click and drag from the ball to aim and set power.
+- Release to shoot.
+- `Esc` pauses or resumes.
+- `R` restarts the current hole.
+- `N` advances after a hole is complete.
 
-- `index.html` : structure minimale de la page, canvas plein écran et fallback.
-- `style.css` : styles plein écran, fond sombre, indication discrète, optimisation tactile.
-- `script.js` : moteur d’animation canvas, interactions tactiles/souris, logique des particules.
-- `README.md` : documentation rapide et points d’ajustement.
+### Mobile / tablet
+- Touch and drag from the ball to aim and set power.
+- Release to shoot.
+- Use the large HUD buttons for pause and mute.
 
-## Réglages rapides
+## Feature summary
 
-Les paramètres principaux sont regroupés dans l’objet `config` de `script.js`.
+- 12 handcrafted holes with increasing complexity.
+- Quick Play, Course Select, Practice, and Campaign progression.
+- Responsive canvas rendering with Retina support.
+- Touch-first shot controls plus mouse/keyboard support.
+- Sand, rough, sticky zones, water hazards, boost pads, moving obstacles, rotating blockers, and portals.
+- Per-hole par scoring, score labels, medals, and locally saved best scores.
+- Lightweight procedural audio with graceful mute support.
+- Particle effects, trajectory guide, soft screen shake, animated flag, polished glassmorphism UI, and smooth state transitions.
 
-### Ajuster le nombre de points
+## Project structure
 
-Modifiez :
-
-- `density`
-- `minPoints`
-- `maxPoints`
-
-Plus `density` est faible, plus il y a de points.
-
-### Ajuster la vitesse et l’inertie
-
-Modifiez :
-
-- `maxSpeed`
-- `homePull`
-- `friction`
-- `interactionEase`
-
-### Ajuster le rayon d’attraction
-
-Modifiez :
-
-- `influenceRadius`
-- `colorRadius`
-- `haloRadius`
-
-### Ajuster la palette
-
-Modifiez dans `config.colors` :
-
-- `rest` pour la teinte au repos
-- `cool` pour la proximité intermédiaire
-- `hot` pour la proximité très forte
-
-## Notes techniques
-
-- Rendu en `Canvas 2D` pour rester simple et performant.
-- Utilisation de `requestAnimationFrame`.
-- Gestion du `devicePixelRatio` pour les écrans Retina.
-- Compatible tactile mobile et souris desktop.
-- Sans dépendance externe, prêt pour GitHub Pages.
+- `index.html` — application shell, menus, HUD, and modal overlays.
+- `style.css` — premium responsive layout, mobile-safe spacing, and UI styling.
+- `js/main.js` — requestAnimationFrame bootstrapping.
+- `js/game.js` — game state machine, shot flow, progression, and gameplay orchestration.
+- `js/renderer.js` — canvas rendering, camera, course visuals, and shot guides.
+- `js/input.js` — touch and mouse input handling.
+- `js/physics.js` — collision helpers, surface checks, hazards, and scoring utilities.
+- `js/levels.js` — handcrafted hole definitions.
+- `js/ui.js` — DOM HUD and menu management.
+- `js/audio.js` — procedural sound effects.
+- `js/storage.js` — localStorage persistence.
+- `js/effects.js` — particles and screen shake helpers.
