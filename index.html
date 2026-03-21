@@ -4,96 +4,153 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#08110f" />
-    <title>Pocket Golf Deluxe</title>
+    <meta name="theme-color" content="#080b16" />
+    <title>Simon Test 2</title>
     <meta
       name="description"
-      content="Pocket Golf Deluxe is a premium mobile-first mini-golf game with a smart camera that always frames the shot."
+      content="Simon Test 2 is a premium mobile-first Simon memory game with polished visuals, local leaderboards, and multiple play modes."
     />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <canvas id="gameCanvas" aria-label="Pocket Golf Deluxe game canvas"></canvas>
-
-      <div class="ambient ambient--one" aria-hidden="true"></div>
-      <div class="ambient ambient--two" aria-hidden="true"></div>
-      <div class="vignette" aria-hidden="true"></div>
-
-      <header class="hud glass">
-        <div class="hud__stats">
-          <div class="hud-card">
-            <span>Hole</span>
-            <strong id="hudHole">1</strong>
-          </div>
-          <div class="hud-card">
-            <span>Par</span>
-            <strong id="hudPar">3</strong>
-          </div>
-          <div class="hud-card">
-            <span>Strokes</span>
-            <strong id="hudStrokes">0</strong>
-          </div>
-          <div class="hud-card">
-            <span>Best</span>
-            <strong id="hudBest">—</strong>
-          </div>
+    <main class="app">
+      <header class="topbar panel">
+        <div>
+          <p class="eyebrow">Mobile Memory Arcade</p>
+          <h1>Simon Test 2</h1>
         </div>
-
-        <div class="hud__actions">
-          <button class="icon-button" id="restartButton" aria-label="Restart current hole">↺</button>
-          <button class="icon-button" id="muteButton" aria-label="Toggle sound">🔊</button>
-          <button class="icon-button" id="pauseButton" aria-label="Pause game">❚❚</button>
-        </div>
+        <button class="icon-button" id="helpButton" type="button" aria-label="How to play">
+          ?
+        </button>
       </header>
 
-      <aside class="shot-card glass">
-        <div class="shot-card__top">
+      <section class="hero panel" aria-label="Game status and score">
+        <div class="hero__stats">
+          <article class="stat-card">
+            <span>Score</span>
+            <strong id="scoreValue">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Best</span>
+            <strong id="bestScoreValue">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Round</span>
+            <strong id="roundValue">0</strong>
+          </article>
+        </div>
+        <p class="status" id="statusText" aria-live="polite">Pick a mode, then tap Start.</p>
+        <div class="combo-row">
+          <span class="combo-pill" id="comboText">Combo calm</span>
+          <span class="combo-pill combo-pill--accent" id="modeLabel">Classic Mode</span>
+        </div>
+      </section>
+
+      <section class="board-wrap panel" aria-label="Simon board">
+        <div class="simon-board" id="simonBoard">
+          <button class="pad pad--green" id="pad-green" data-pad="0" aria-label="Green pad"></button>
+          <button class="pad pad--red" id="pad-red" data-pad="1" aria-label="Red pad"></button>
+          <button class="pad pad--yellow" id="pad-yellow" data-pad="2" aria-label="Yellow pad"></button>
+          <button class="pad pad--blue" id="pad-blue" data-pad="3" aria-label="Blue pad"></button>
+        </div>
+      </section>
+
+      <section class="controls panel" aria-label="Game controls">
+        <div class="button-grid">
+          <button class="primary-button" id="startButton" type="button">Start</button>
+          <button class="secondary-button" id="restartButton" type="button">Restart</button>
+          <button class="toggle-button" id="soundToggle" type="button" aria-pressed="true">Sound On</button>
+          <button class="toggle-button" id="leaderboardButton" type="button">Leaderboard</button>
+        </div>
+
+        <div class="toggle-stack" role="group" aria-label="Game mode options">
+          <label class="toggle-card">
+            <input type="radio" name="mode" value="classic" checked />
+            <span>Classic Mode</span>
+            <small>Balanced tempo. One mistake ends the run.</small>
+          </label>
+          <label class="toggle-card">
+            <input type="radio" name="mode" value="strict" />
+            <span>Strict Mode</span>
+            <small>Sharper speed ramp for expert memory runs.</small>
+          </label>
+          <label class="toggle-card">
+            <input type="radio" name="mode" value="zen" />
+            <span>Zen Practice</span>
+            <small>Retry the current round after a mistake.</small>
+          </label>
+        </div>
+      </section>
+    </main>
+
+    <section class="modal" id="summaryModal" hidden>
+      <div class="modal__backdrop" data-close="summary"></div>
+      <div class="modal__panel panel" role="dialog" aria-modal="true" aria-labelledby="summaryTitle">
+        <p class="eyebrow">Run Summary</p>
+        <h2 id="summaryTitle">Great reflexes.</h2>
+        <p id="summaryMessage">You reached round 0 with a score of 0.</p>
+        <div class="summary-grid">
+          <article class="stat-card"><span>Mode</span><strong id="summaryMode">Classic</strong></article>
+          <article class="stat-card"><span>Round</span><strong id="summaryRound">0</strong></article>
+          <article class="stat-card"><span>Score</span><strong id="summaryScore">0</strong></article>
+        </div>
+        <div class="achievement-list" id="summaryAchievements"></div>
+        <div class="modal__actions">
+          <button class="primary-button" id="playAgainButton" type="button">Play Again</button>
+          <button class="secondary-button" id="closeSummaryButton" type="button">Close</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="modal" id="leaderboardModal" hidden>
+      <div class="modal__backdrop" data-close="leaderboard"></div>
+      <div class="modal__panel panel" role="dialog" aria-modal="true" aria-labelledby="leaderboardTitle">
+        <div class="modal__header">
           <div>
-            <p class="eyebrow">Smart Camera</p>
-            <h1>Pocket Golf Deluxe</h1>
+            <p class="eyebrow">Local Records</p>
+            <h2 id="leaderboardTitle">Leaderboard</h2>
           </div>
-          <div class="camera-badge" id="cameraModeLabel">Aiming View</div>
+          <button class="icon-button" id="closeLeaderboardButton" type="button" aria-label="Close leaderboard">×</button>
         </div>
-        <div class="power-meter">
-          <div class="power-meter__fill" id="powerFill"></div>
-        </div>
-        <p class="shot-card__hint" id="aimHint">
-          Drag near the ball to pull back, line up the hole, and release.
-        </p>
-      </aside>
 
-      <section class="overlay" id="pauseOverlay" hidden>
-        <div class="panel glass">
-          <p class="eyebrow">Paused</p>
-          <h2>Take Your Time</h2>
-          <p>Study the course, then jump back in when you are ready.</p>
-          <div class="panel__actions">
-            <button class="primary-button" id="resumeButton">Resume</button>
-            <button class="secondary-button" id="pauseRestartButton">Restart Hole</button>
+        <form class="nickname-form" id="nicknameForm" hidden>
+          <label for="nicknameInput">New top 10! Enter your nickname.</label>
+          <div class="nickname-form__row">
+            <input id="nicknameInput" name="nickname" type="text" maxlength="14" placeholder="Player" autocomplete="nickname" />
+            <button class="primary-button" type="submit">Save</button>
           </div>
-        </div>
-      </section>
+        </form>
 
-      <section class="overlay" id="completeOverlay" hidden>
-        <div class="panel glass">
-          <p class="eyebrow">Hole Complete</p>
-          <h2 id="completeTitle">Birdie!</h2>
-          <p id="completeSummary">You finished in 2 strokes.</p>
-          <div class="panel__stats">
-            <div><span>Score</span><strong id="completeScore">-1</strong></div>
-            <div><span>Best</span><strong id="completeBest">2</strong></div>
-            <div><span>Total</span><strong id="completeTotal">2</strong></div>
-          </div>
-          <div class="panel__actions">
-            <button class="primary-button" id="nextHoleButton">Next Hole</button>
-            <button class="secondary-button" id="replayButton">Replay Hole</button>
-          </div>
+        <div class="leaderboard-meta">
+          <article class="stat-card"><span>Best Score</span><strong id="leaderboardBest">0</strong></article>
+          <article class="stat-card"><span>Achievements</span><strong id="achievementCount">0</strong></article>
         </div>
-      </section>
-    </div>
+
+        <ol class="leaderboard-list" id="leaderboardList"></ol>
+        <div class="modal__actions">
+          <button class="secondary-button" id="resetLeaderboardButton" type="button">Reset Leaderboard</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="modal" id="helpModal" hidden>
+      <div class="modal__backdrop" data-close="help"></div>
+      <div class="modal__panel panel" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <p class="eyebrow">How to Play</p>
+        <h2 id="helpTitle">Repeat the light sequence.</h2>
+        <ul class="help-list">
+          <li>Tap Start and watch the pads light up one by one.</li>
+          <li>Repeat the exact sequence to advance.</li>
+          <li>Classic and Strict end the run after one mistake.</li>
+          <li>Zen Practice lets you retry the same round.</li>
+        </ul>
+        <div class="modal__actions">
+          <button class="primary-button" id="closeHelpButton" type="button">Got it</button>
+        </div>
+      </div>
+    </section>
 
     <script src="script.js"></script>
   </body>
