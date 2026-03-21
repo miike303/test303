@@ -5,183 +5,159 @@
   const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
   if (!ctx) return;
 
-  const hudHole = document.getElementById('hudHole');
-  const hudPar = document.getElementById('hudPar');
-  const hudStrokes = document.getElementById('hudStrokes');
-  const hudBest = document.getElementById('hudBest');
-  const powerFill = document.getElementById('powerFill');
-  const aimHint = document.getElementById('aimHint');
-  const cameraModeLabel = document.getElementById('cameraModeLabel');
-  const pauseOverlay = document.getElementById('pauseOverlay');
-  const completeOverlay = document.getElementById('completeOverlay');
-  const completeTitle = document.getElementById('completeTitle');
-  const completeSummary = document.getElementById('completeSummary');
-  const completeScore = document.getElementById('completeScore');
-  const completeBest = document.getElementById('completeBest');
-  const completeTotal = document.getElementById('completeTotal');
-  const muteButton = document.getElementById('muteButton');
-  const pauseButton = document.getElementById('pauseButton');
-  const restartButton = document.getElementById('restartButton');
-  const resumeButton = document.getElementById('resumeButton');
-  const pauseRestartButton = document.getElementById('pauseRestartButton');
-  const nextHoleButton = document.getElementById('nextHoleButton');
-  const replayButton = document.getElementById('replayButton');
+  const ui = {
+    health: document.getElementById('hudHealth'),
+    money: document.getElementById('hudMoney'),
+    wave: document.getElementById('hudWave'),
+    weapons: document.getElementById('hudWeapons'),
+    score: document.getElementById('hudScore'),
+    kills: document.getElementById('hudKills'),
+    instruction: document.getElementById('instructionText'),
+    waveState: document.getElementById('waveStateLabel'),
+    bestScore: document.getElementById('bestScoreLabel'),
+    shopMoney: document.getElementById('shopMoney'),
+    shopWave: document.getElementById('shopWave'),
+    shopGrid: document.getElementById('shopGrid'),
+    finalScore: document.getElementById('finalScore'),
+    finalWave: document.getElementById('finalWave'),
+    finalKills: document.getElementById('finalKills'),
+    finalBest: document.getElementById('finalBest'),
+    overlays: {
+      start: document.getElementById('startOverlay'),
+      shop: document.getElementById('shopOverlay'),
+      pause: document.getElementById('pauseOverlay'),
+      gameOver: document.getElementById('gameOverOverlay'),
+    },
+    buttons: {
+      start: document.getElementById('startButton'),
+      nextWave: document.getElementById('nextWaveButton'),
+      pauseResume: document.getElementById('pauseResumeButton'),
+      pause: document.getElementById('pauseButton'),
+      resume: document.getElementById('resumeButton'),
+      restart: document.getElementById('restartButton'),
+      restartGame: document.getElementById('restartGameButton'),
+      mute: document.getElementById('muteButton'),
+    },
+  };
 
-  const STORAGE_KEY = 'pocket-golf-deluxe-best-v1';
-  const LEVELS = [
-    {
-      name: 'Glow Lane',
-      par: 3,
-      width: 1320,
-      height: 860,
-      ballStart: { x: 170, y: 650 },
-      hole: { x: 1105, y: 270, r: 22 },
-      obstacles: [
-        { x: 380, y: 490, w: 120, h: 220, r: 24 },
-        { x: 612, y: 190, w: 110, h: 320, r: 24 },
-        { x: 850, y: 468, w: 220, h: 96, r: 26 },
-      ],
-      fairway: [
-        { x: 60, y: 120 }, { x: 1240, y: 120 }, { x: 1240, y: 760 }, { x: 60, y: 760 },
-      ],
-    },
-    {
-      name: 'Canal Bend',
-      par: 4,
-      width: 1480,
-      height: 960,
-      ballStart: { x: 175, y: 165 },
-      hole: { x: 1258, y: 756, r: 22 },
-      obstacles: [
-        { x: 260, y: 292, w: 900, h: 90, r: 30 },
-        { x: 402, y: 540, w: 110, h: 220, r: 22 },
-        { x: 760, y: 610, w: 112, h: 230, r: 22 },
-        { x: 1046, y: 250, w: 122, h: 240, r: 26 },
-      ],
-      fairway: [
-        { x: 60, y: 60 }, { x: 1420, y: 60 }, { x: 1420, y: 900 }, { x: 60, y: 900 },
-      ],
-    },
-    {
-      name: 'Summit Split',
-      par: 5,
-      width: 1680,
-      height: 980,
-      ballStart: { x: 232, y: 860 },
-      hole: { x: 1440, y: 165, r: 22 },
-      obstacles: [
-        { x: 390, y: 710, w: 280, h: 90, r: 22 },
-        { x: 720, y: 260, w: 90, h: 510, r: 26 },
-        { x: 990, y: 160, w: 110, h: 260, r: 22 },
-        { x: 1130, y: 500, w: 310, h: 90, r: 22 },
-      ],
-      fairway: [
-        { x: 70, y: 70 }, { x: 1610, y: 70 }, { x: 1610, y: 910 }, { x: 70, y: 910 },
-      ],
-    },
-    {
-      name: 'Harbor Arc',
-      par: 4,
-      width: 1360,
-      height: 1120,
-      ballStart: { x: 180, y: 220 },
-      hole: { x: 1142, y: 946, r: 22 },
-      obstacles: [
-        { x: 250, y: 392, w: 760, h: 90, r: 28 },
-        { x: 840, y: 592, w: 92, h: 320, r: 24 },
-        { x: 474, y: 742, w: 250, h: 90, r: 24 },
-      ],
-      fairway: [
-        { x: 65, y: 65 }, { x: 1295, y: 65 }, { x: 1295, y: 1055 }, { x: 65, y: 1055 },
-      ],
-    },
+  const STORAGE = {
+    best: 'neon-tunnel-sentinel-best-v1',
+    unlocks: 'neon-tunnel-sentinel-unlocks-v1',
+  };
+
+  const TWO_PI = Math.PI * 2;
+  const CENTER_WEAPON = 'gun';
+  const weaponOrder = ['gun', 'laser', 'sprinkler'];
+
+  const weaponTemplates = {
+    gun: { unlocked: true, level: 1, cooldown: 0.14, damage: 15, speed: 760, life: 1.1, size: 5, color: '#ffffff', price: 65 },
+    laser: { unlocked: false, level: 0, cooldown: 0.56, damage: 48, range: 560, width: 5, color: '#d47aff', price: 150 },
+    sprinkler: { unlocked: false, level: 0, cooldown: 1.15, damage: 18, speed: 420, life: 0.95, size: 4.5, count: 9, color: '#ff78c6', price: 165 },
+  };
+
+  const shopItems = [
+    { id: 'gun-level', label: 'Gun Upgrade', getPrice: (s) => 60 + s.weapons.gun.level * 45, action: (s) => { s.weapons.gun.level += 1; s.stats.damageBonus += 0.08; }, desc: (s) => `Rapid-fire bullets hit harder. Gun level ${s.weapons.gun.level} → ${s.weapons.gun.level + 1}.` },
+    { id: 'laser', label: 'Laser Unlock / Upgrade', getPrice: (s) => s.weapons.laser.unlocked ? 120 + s.weapons.laser.level * 95 : 150, action: (s) => { s.weapons.laser.unlocked = true; s.weapons.laser.level += 1; }, desc: (s) => s.weapons.laser.unlocked ? `Boost the beam. Laser level ${s.weapons.laser.level} → ${s.weapons.laser.level + 1}.` : 'Unlock a piercing purple-white beam weapon.' },
+    { id: 'sprinkler', label: 'Sprinkler Unlock / Upgrade', getPrice: (s) => s.weapons.sprinkler.unlocked ? 130 + s.weapons.sprinkler.level * 95 : 165, action: (s) => { s.weapons.sprinkler.unlocked = true; s.weapons.sprinkler.level += 1; }, desc: (s) => s.weapons.sprinkler.unlocked ? `Increase radial burst output. Sprinkler level ${s.weapons.sprinkler.level} → ${s.weapons.sprinkler.level + 1}.` : 'Unlock crowd control bursts that fire in a radial spread.' },
+    { id: 'fire-rate', label: 'Fire Rate Upgrade', getPrice: (s) => 90 + s.stats.fireRateLevel * 80, action: (s) => { s.stats.fireRateLevel += 1; s.stats.fireRateBoost += 0.08; }, desc: (s) => `All weapons cycle faster. Fire rate ${Math.round((1 + s.stats.fireRateBoost) * 100)}%.` },
+    { id: 'damage', label: 'Damage Upgrade', getPrice: (s) => 100 + s.stats.damageLevel * 90, action: (s) => { s.stats.damageLevel += 1; s.stats.damageBonus += 0.12; }, desc: (s) => `Increase raw weapon damage. Bonus ${Math.round(s.stats.damageBonus * 100)}% → ${Math.round((s.stats.damageBonus + 0.12) * 100)}%.` },
+    { id: 'projectile', label: 'Projectile Size / Pierce', getPrice: (s) => 85 + s.stats.projectileLevel * 70, action: (s) => { s.stats.projectileLevel += 1; s.stats.projectileScale += 0.12; s.stats.pierceBonus += 1; }, desc: (s) => `Bigger shots and more piercing. Pierce bonus ${s.stats.pierceBonus} → ${s.stats.pierceBonus + 1}.` },
+    { id: 'repair', label: 'Core Health Repair', getPrice: () => 90, action: (s) => { s.core.hp = Math.min(s.core.maxHp, s.core.hp + 30); }, desc: () => 'Restore 30 core health. Expensive, but lifesaving in late waves.' },
+    { id: 'shield', label: 'Shield Charge', getPrice: (s) => 110 + s.stats.shieldLevel * 90, action: (s) => { s.stats.shieldLevel += 1; s.core.shield = Math.min(s.core.shield + 20, 100); s.core.shieldTimer = 15; }, desc: (s) => `Adds a temporary defensive shield and stores ${Math.min(s.core.shield + 20, 100)} shield energy.` },
   ];
 
   const state = {
     width: 0,
     height: 0,
     dpr: 1,
-    safeViewport: { width: 0, height: 0 },
-    levelIndex: 0,
-    totalStrokes: 0,
-    strokes: 0,
-    paused: false,
-    soundEnabled: true,
-    completed: false,
-    pointerId: null,
-    pointer: { x: 0, y: 0 },
-    aim: { active: false, dragStart: null, dragCurrent: null, power: 0, dir: { x: 0, y: 0 } },
-    ball: { x: 0, y: 0, vx: 0, vy: 0, r: 18, moving: false },
-    holePulse: 0,
+    center: { x: 0, y: 0 },
+    time: 0,
     lastTime: 0,
-    bestScores: loadBestScores(),
+    pointer: { x: 0, y: -1, active: false },
+    running: false,
+    paused: false,
+    inShop: false,
+    gameOver: false,
+    audioEnabled: true,
+    screenShake: 0,
+    firstRun: !localStorage.getItem(STORAGE.best),
+    bestScore: Number(localStorage.getItem(STORAGE.best) || 0),
+    persistentUnlocks: loadPersistentUnlocks(),
+    core: { hp: 100, maxHp: 100, shield: 0, shieldTimer: 0, hitFlash: 0, angle: -Math.PI / 2 },
+    stats: { score: 0, kills: 0, money: 0, wave: 1, fireRateLevel: 0, fireRateBoost: 0, damageLevel: 0, damageBonus: 0, projectileLevel: 0, projectileScale: 0, pierceBonus: 0, shieldLevel: 0 },
+    wave: { number: 1, active: false, complete: false, spawnTimer: 0, enemiesToSpawn: 0, aliveTarget: 0 },
+    weapons: resetWeapons(loadPersistentUnlocks()),
+    projectiles: [],
+    enemies: [],
+    particles: [],
+    trails: [],
+    rings: createTunnelRings(),
+    audio: null,
   };
 
-  const camera = {
-    x: 0,
-    y: 0,
-    zoom: 1,
-    targetX: 0,
-    targetY: 0,
-    targetZoom: 1,
-    mode: 'aim',
-    lookAhead: { x: 0, y: 0 },
-    update(dt) {
-      const positionEase = this.mode === 'follow' ? 1 - Math.pow(0.002, dt) : 1 - Math.pow(0.0008, dt);
-      const zoomEase = this.mode === 'follow' ? 1 - Math.pow(0.01, dt) : 1 - Math.pow(0.0025, dt);
-      this.x += (this.targetX - this.x) * positionEase;
-      this.y += (this.targetY - this.y) * positionEase;
-      this.zoom += (this.targetZoom - this.zoom) * zoomEase;
-    },
-  };
-
-  function loadBestScores() {
+  function loadPersistentUnlocks() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      return JSON.parse(localStorage.getItem(STORAGE.unlocks) || '{}');
     } catch {
       return {};
     }
   }
 
-  function saveBestScores() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.bestScores));
+  function savePersistentUnlocks() {
+    localStorage.setItem(STORAGE.unlocks, JSON.stringify({
+      laser: state.weapons.laser.unlocked,
+      sprinkler: state.weapons.sprinkler.unlocked,
+      bestScore: state.bestScore,
+    }));
   }
 
-  function currentLevel() {
-    return LEVELS[state.levelIndex];
+  function resetWeapons(saved) {
+    return {
+      gun: { ...weaponTemplates.gun },
+      laser: { ...weaponTemplates.laser, unlocked: Boolean(saved.laser) },
+      sprinkler: { ...weaponTemplates.sprinkler, unlocked: Boolean(saved.sprinkler) },
+    };
   }
 
-  function setLevel(index, resetTotal = false) {
-    state.levelIndex = (index + LEVELS.length) % LEVELS.length;
-    if (resetTotal) state.totalStrokes = 0;
-    resetHole();
+  function createTunnelRings() {
+    return Array.from({ length: 9 }, (_, i) => {
+      const radius = 120 + i * 64;
+      const points = 10 + (i % 4);
+      const offsets = Array.from({ length: points }, (_, p) => 0.78 + Math.sin(p * 1.7 + i * 0.4) * 0.12 + Math.cos(p * 0.8 + i) * 0.06);
+      return { radius, points, offsets, pulse: Math.random() * TWO_PI, spin: (i % 2 === 0 ? 1 : -1) * (0.03 + i * 0.003) };
+    });
   }
 
-  function resetHole() {
-    const level = currentLevel();
-    state.strokes = 0;
-    state.completed = false;
-    state.paused = false;
-    state.aim.active = false;
-    state.aim.power = 0;
-    state.ball.x = level.ballStart.x;
-    state.ball.y = level.ballStart.y;
-    state.ball.vx = 0;
-    state.ball.vy = 0;
-    state.ball.moving = false;
-    pauseOverlay.hidden = true;
-    completeOverlay.hidden = true;
-    updateHUD();
-    syncCamera(true);
+  function setup() {
+    resize();
+    bindEvents();
+    renderShop();
+    updateHud();
+    requestAnimationFrame(loop);
   }
 
-  function updateHUD() {
-    const level = currentLevel();
-    const best = state.bestScores[level.name];
-    hudHole.textContent = `${state.levelIndex + 1}/${LEVELS.length}`;
-    hudPar.textContent = level.par;
-    hudStrokes.textContent = state.strokes;
-    hudBest.textContent = Number.isFinite(best) ? best : '—';
+  function bindEvents() {
+    window.addEventListener('resize', resize);
+    canvas.addEventListener('pointerdown', onPointer);
+    canvas.addEventListener('pointermove', onPointer);
+    canvas.addEventListener('pointerenter', onPointer);
+    window.addEventListener('pointerup', () => { state.pointer.active = false; });
+    window.addEventListener('pointercancel', () => { state.pointer.active = false; });
+
+    ui.buttons.start.addEventListener('click', () => {
+      ensureAudio();
+      ui.overlays.start.hidden = true;
+      state.running = true;
+      state.wave.active = false;
+      openShop('Tap Start Next Wave to begin the run.');
+    });
+    ui.buttons.nextWave.addEventListener('click', () => { closeShop(); startWave(); });
+    ui.buttons.pauseResume.addEventListener('click', restartGame);
+    ui.buttons.pause.addEventListener('click', () => togglePause());
+    ui.buttons.resume.addEventListener('click', () => togglePause(false));
+    ui.buttons.restart.addEventListener('click', restartGame);
+    ui.buttons.restartGame.addEventListener('click', restartGame);
+    ui.buttons.mute.addEventListener('click', toggleMute);
   }
 
   function resize() {
@@ -193,594 +169,733 @@
     canvas.style.width = `${state.width}px`;
     canvas.style.height = `${state.height}px`;
     ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
-
-    const horizontalMargin = Math.max(92, state.width * 0.12);
-    const topMargin = Math.max(190, state.height * 0.2);
-    const bottomMargin = Math.max(190, state.height * 0.24);
-    state.safeViewport.width = Math.max(220, state.width - horizontalMargin * 2);
-    state.safeViewport.height = Math.max(220, state.height - topMargin - bottomMargin);
-
-    syncCamera(true);
+    state.center.x = state.width / 2;
+    state.center.y = state.height / 2;
   }
 
-  function syncCamera(immediate = false) {
-    updateCameraTargets();
-    if (immediate) {
-      camera.x = camera.targetX;
-      camera.y = camera.targetY;
-      camera.zoom = camera.targetZoom;
-    }
+  function onPointer(event) {
+    const rect = canvas.getBoundingClientRect();
+    state.pointer.x = event.clientX - rect.left - state.center.x;
+    state.pointer.y = event.clientY - rect.top - state.center.y;
+    state.pointer.active = true;
+    if (!state.running) return;
+    ensureAudio();
   }
 
-  function updateCameraTargets() {
-    const level = currentLevel();
-    if (state.ball.moving) {
-      camera.mode = 'follow';
-      const velocityLead = {
-        x: clamp(state.ball.vx * 0.15, -120, 120),
-        y: clamp(state.ball.vy * 0.15, -120, 120),
-      };
-      const followBox = expandBox({
-        minX: state.ball.x - 180,
-        maxX: state.ball.x + 180,
-        minY: state.ball.y - 180,
-        maxY: state.ball.y + 180,
-      }, 140, 140);
-      const fitted = fitCameraToBox(followBox, 0.9, level);
-      camera.targetX = fitted.x + velocityLead.x * 0.32;
-      camera.targetY = fitted.y + velocityLead.y * 0.32;
-      camera.targetZoom = Math.min(fitted.zoom, camera.zoom + 0.025);
-      return;
-    }
-
-    camera.mode = 'aim';
-    const smartBox = computeAimingBox(level);
-    const fitted = fitCameraToBox(smartBox, 1, level);
-    camera.targetX = fitted.x;
-    camera.targetY = fitted.y;
-    camera.targetZoom = fitted.zoom;
+  function ensureAudio() {
+    if (state.audio || !window.AudioContext) return;
+    const context = new AudioContext();
+    const master = context.createGain();
+    master.gain.value = 0.06;
+    master.connect(context.destination);
+    state.audio = { context, master };
   }
 
-  function computeAimingBox(level) {
-    const ball = state.ball;
-    const hole = level.hole;
-    const box = {
-      minX: Math.min(ball.x, hole.x),
-      maxX: Math.max(ball.x, hole.x),
-      minY: Math.min(ball.y, hole.y),
-      maxY: Math.max(ball.y, hole.y),
+  function playSound(type) {
+    if (!state.audioEnabled || !state.audio) return;
+    const { context, master } = state.audio;
+    if (context.state === 'suspended') context.resume();
+    const now = context.currentTime;
+    const gain = context.createGain();
+    const osc = context.createOscillator();
+    const osc2 = context.createOscillator();
+    osc.connect(gain);
+    osc2.connect(gain);
+    gain.connect(master);
+
+    const defs = {
+      gun: [300, 180, 'square', 0.04],
+      laser: [520, 260, 'sawtooth', 0.08],
+      sprinkler: [220, 120, 'triangle', 0.09],
+      hit: [180, 90, 'square', 0.03],
+      explode: [120, 40, 'sawtooth', 0.12],
+      buy: [640, 880, 'triangle', 0.08],
+      wave: [420, 680, 'sine', 0.14],
+      over: [280, 80, 'sine', 0.24],
+      hurt: [160, 70, 'square', 0.09],
     };
-
-    const shotVector = normalize({ x: hole.x - ball.x, y: hole.y - ball.y });
-    const lookAhead = state.aim.active
-      ? { x: shotVector.x * 70, y: shotVector.y * 70 }
-      : { x: shotVector.x * 34, y: shotVector.y * 34 };
-
-    box.minX = Math.min(box.minX, ball.x + lookAhead.x, hole.x + lookAhead.x * 0.15);
-    box.maxX = Math.max(box.maxX, ball.x + lookAhead.x, hole.x + lookAhead.x * 0.15);
-    box.minY = Math.min(box.minY, ball.y + lookAhead.y, hole.y + lookAhead.y * 0.15);
-    box.maxY = Math.max(box.maxY, ball.y + lookAhead.y, hole.y + lookAhead.y * 0.15);
-
-    for (const obstacle of level.obstacles) {
-      const cx = obstacle.x + obstacle.w * 0.5;
-      const cy = obstacle.y + obstacle.h * 0.5;
-      if (distanceToSegment(cx, cy, ball.x, ball.y, hole.x, hole.y) < 170) {
-        box.minX = Math.min(box.minX, obstacle.x);
-        box.maxX = Math.max(box.maxX, obstacle.x + obstacle.w);
-        box.minY = Math.min(box.minY, obstacle.y);
-        box.maxY = Math.max(box.maxY, obstacle.y + obstacle.h);
-      }
-    }
-
-    const distance = Math.hypot(hole.x - ball.x, hole.y - ball.y);
-    const padX = clamp(distance * 0.14, 170, 330);
-    const padY = clamp(distance * 0.18, 150, 340);
-    return expandBox(box, padX, padY);
+    const [start, end, waveType, duration] = defs[type] || defs.gun;
+    osc.type = waveType;
+    osc2.type = 'sine';
+    osc.frequency.setValueAtTime(start, now);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(30, end), now + duration);
+    osc2.frequency.setValueAtTime(start * 1.5, now);
+    osc2.frequency.exponentialRampToValueAtTime(Math.max(40, end * 1.2), now + duration);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(type === 'explode' ? 0.13 : 0.08, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.start(now);
+    osc2.start(now);
+    osc.stop(now + duration);
+    osc2.stop(now + duration);
   }
 
-  function fitCameraToBox(box, zoomBias, level) {
-    const safeWidth = state.safeViewport.width || state.width;
-    const safeHeight = state.safeViewport.height || state.height;
-    const boxWidth = Math.max(220, box.maxX - box.minX);
-    const boxHeight = Math.max(220, box.maxY - box.minY);
-    const zoomX = safeWidth / boxWidth;
-    const zoomY = safeHeight / boxHeight;
-    const maxZoom = Math.min(1.75, Math.max(state.width / level.width, state.height / level.height) * 2.6);
-    const minZoom = Math.min(state.width / level.width, state.height / level.height) * 0.9;
-    const zoom = clamp(Math.min(zoomX, zoomY) * zoomBias, minZoom, maxZoom);
-    const halfViewWidth = state.width / zoom / 2;
-    const halfViewHeight = state.height / zoom / 2;
-    return {
-      x: clamp((box.minX + box.maxX) / 2, halfViewWidth, level.width - halfViewWidth),
-      y: clamp((box.minY + box.maxY) / 2, halfViewHeight, level.height - halfViewHeight),
-      zoom,
-    };
-  }
-
-  function expandBox(box, padX, padY) {
-    return {
-      minX: box.minX - padX,
-      maxX: box.maxX + padX,
-      minY: box.minY - padY,
-      maxY: box.maxY + padY,
-    };
-  }
-
-  function worldToScreen(x, y) {
-    return {
-      x: (x - camera.x) * camera.zoom + state.width / 2,
-      y: (y - camera.y) * camera.zoom + state.height / 2,
-    };
-  }
-
-  function screenToWorld(x, y) {
-    return {
-      x: (x - state.width / 2) / camera.zoom + camera.x,
-      y: (y - state.height / 2) / camera.zoom + camera.y,
-    };
-  }
-
-  function isPointerNearBall(x, y) {
-    const screenBall = worldToScreen(state.ball.x, state.ball.y);
-    return Math.hypot(screenBall.x - x, screenBall.y - y) <= Math.max(40, state.ball.r * camera.zoom + 22);
-  }
-
-  function beginAim(clientX, clientY, pointerId) {
-    if (state.paused || state.completed || state.ball.moving) return;
-    if (!isPointerNearBall(clientX, clientY)) return;
-    state.pointerId = pointerId;
-    const worldPoint = screenToWorld(clientX, clientY);
-    state.aim.active = true;
-    state.aim.dragStart = { x: state.ball.x, y: state.ball.y };
-    state.aim.dragCurrent = worldPoint;
-    aimHint.textContent = 'Release to strike. The camera keeps the ball and cup in view.';
-  }
-
-  function updateAim(clientX, clientY) {
-    if (!state.aim.active) return;
-    state.pointer.x = clientX;
-    state.pointer.y = clientY;
-    const worldPoint = screenToWorld(clientX, clientY);
-    state.aim.dragCurrent = worldPoint;
-    const drag = { x: state.ball.x - worldPoint.x, y: state.ball.y - worldPoint.y };
-    const distance = Math.min(Math.hypot(drag.x, drag.y), 220);
-    state.aim.power = distance / 220;
-    state.aim.dir = normalize(drag);
-  }
-
-  function releaseAim(pointerId) {
-    if (!state.aim.active || (state.pointerId !== null && pointerId !== undefined && pointerId !== state.pointerId)) return;
-    state.pointerId = null;
-    if (state.aim.power > 0.05) {
-      const impulse = 980 * Math.pow(state.aim.power, 1.15);
-      state.ball.vx = state.aim.dir.x * impulse;
-      state.ball.vy = state.aim.dir.y * impulse;
-      state.ball.moving = true;
-      state.strokes += 1;
-      state.totalStrokes += 1;
-      playTone(220 + state.aim.power * 180, 0.07, 'triangle');
-      updateHUD();
-    }
-    state.aim.active = false;
-    state.aim.power = 0;
-    aimHint.textContent = 'Drag near the ball to pull back, line up the hole, and release.';
+  function toggleMute() {
+    state.audioEnabled = !state.audioEnabled;
+    ui.buttons.mute.textContent = state.audioEnabled ? '🔊' : '🔇';
   }
 
   function togglePause(force) {
+    if (!state.running || state.inShop || state.gameOver) return;
     state.paused = typeof force === 'boolean' ? force : !state.paused;
-    pauseOverlay.hidden = !state.paused;
+    ui.overlays.pause.hidden = !state.paused;
   }
 
-  function updatePhysics(dt) {
-    const level = currentLevel();
-    if (!state.ball.moving) return;
+  function restartGame() {
+    state.running = true;
+    state.paused = false;
+    state.inShop = false;
+    state.gameOver = false;
+    state.screenShake = 0;
+    state.core.hp = state.core.maxHp = 100;
+    state.core.shield = 0;
+    state.core.shieldTimer = 0;
+    state.core.hitFlash = 0;
+    state.stats = { score: 0, kills: 0, money: 0, wave: 1, fireRateLevel: 0, fireRateBoost: 0, damageLevel: 0, damageBonus: 0, projectileLevel: 0, projectileScale: 0, pierceBonus: 0, shieldLevel: 0 };
+    state.wave = { number: 1, active: false, complete: false, spawnTimer: 0, enemiesToSpawn: 0, aliveTarget: 0 };
+    state.weapons = resetWeapons(state.persistentUnlocks);
+    state.projectiles.length = 0;
+    state.enemies.length = 0;
+    state.particles.length = 0;
+    state.trails.length = 0;
+    ui.overlays.pause.hidden = true;
+    ui.overlays.gameOver.hidden = true;
+    ui.overlays.start.hidden = true;
+    openShop('Run reset. Start the next wave when ready.');
+    updateHud();
+  }
 
-    state.ball.x += state.ball.vx * dt;
-    state.ball.y += state.ball.vy * dt;
-    state.ball.vx *= Math.pow(0.985, dt * 60);
-    state.ball.vy *= Math.pow(0.985, dt * 60);
+  function startWave() {
+    state.wave.active = true;
+    state.wave.complete = false;
+    state.wave.number = state.stats.wave;
+    state.wave.enemiesToSpawn = 5 + state.wave.number * 3;
+    state.wave.aliveTarget = state.wave.enemiesToSpawn;
+    state.wave.spawnTimer = 0.4;
+    ui.waveState.textContent = `Wave ${state.wave.number} live`;
+    ui.instruction.textContent = 'Drag to rotate the turret. Weapons auto-fire while targets are in range.';
+    playSound('wave');
+    updateHud();
+  }
 
-    collideWorldBounds(level);
-    for (const obstacle of level.obstacles) {
-      collideRoundedRect(obstacle);
-    }
+  function openShop(message) {
+    state.inShop = true;
+    state.wave.active = false;
+    ui.waveState.textContent = 'Upgrade phase';
+    ui.overlays.shop.hidden = false;
+    if (message) ui.instruction.textContent = message;
+    renderShop();
+  }
 
-    const speed = Math.hypot(state.ball.vx, state.ball.vy);
-    const holeDx = level.hole.x - state.ball.x;
-    const holeDy = level.hole.y - state.ball.y;
-    const holeDistance = Math.hypot(holeDx, holeDy);
+  function closeShop() {
+    state.inShop = false;
+    ui.overlays.shop.hidden = true;
+  }
 
-    if (holeDistance < level.hole.r - 4 && speed < 210) {
-      state.ball.x += holeDx * Math.min(1, dt * 7);
-      state.ball.y += holeDy * Math.min(1, dt * 7);
-      state.ball.vx *= 0.9;
-      state.ball.vy *= 0.9;
-    }
+  function endWave() {
+    state.wave.active = false;
+    state.stats.money += 40 + state.wave.number * 18;
+    state.stats.score += 100 + state.wave.number * 30;
+    state.stats.wave += 1;
+    playSound('buy');
+    openShop('Spend your credits and prepare for the next assault.');
+    updateHud();
+  }
 
-    if (holeDistance < level.hole.r - 2 && speed < 90) {
-      finishHole();
-      return;
-    }
+  function renderShop() {
+    ui.shopMoney.textContent = state.stats.money;
+    ui.shopWave.textContent = state.stats.wave;
+    ui.shopGrid.innerHTML = '';
 
-    if (speed < 12) {
-      state.ball.vx = 0;
-      state.ball.vy = 0;
-      state.ball.moving = false;
+    for (const item of shopItems) {
+      const price = item.getPrice(state);
+      const affordable = state.stats.money >= price;
+      const button = document.createElement('button');
+      button.className = 'shop-card';
+      button.disabled = !affordable;
+      button.innerHTML = `
+        <div class="shop-card__top">
+          <div>
+            <div class="shop-card__meta">Upgrade</div>
+            <h3>${item.label}</h3>
+          </div>
+          <div class="shop-card__price">$${price}</div>
+        </div>
+        <p class="shop-card__desc">${item.desc(state)}</p>
+        <div class="shop-card__state">${affordable ? 'Available now' : 'Need more credits'}</div>
+      `;
+      button.addEventListener('click', () => {
+        if (state.stats.money < price) return;
+        state.stats.money -= price;
+        item.action(state);
+        state.persistentUnlocks.laser = state.weapons.laser.unlocked;
+        state.persistentUnlocks.sprinkler = state.weapons.sprinkler.unlocked;
+        savePersistentUnlocks();
+        playSound('buy');
+        renderShop();
+        updateHud();
+      });
+      ui.shopGrid.appendChild(button);
     }
   }
 
-  function collideWorldBounds(level) {
-    const ball = state.ball;
-    const minX = ball.r + 26;
-    const minY = ball.r + 26;
-    const maxX = level.width - ball.r - 26;
-    const maxY = level.height - ball.r - 26;
+  function loop(timestamp) {
+    const dt = Math.min(0.033, (timestamp - (state.lastTime || timestamp)) / 1000 || 0.016);
+    state.lastTime = timestamp;
+    state.time += dt;
 
-    if (ball.x < minX) {
-      ball.x = minX;
-      ball.vx *= -0.82;
-      playTone(140, 0.03, 'square');
-    } else if (ball.x > maxX) {
-      ball.x = maxX;
-      ball.vx *= -0.82;
-      playTone(140, 0.03, 'square');
-    }
+    if (state.running && !state.paused && !state.inShop && !state.gameOver) update(dt);
+    render(dt);
+    requestAnimationFrame(loop);
+  }
 
-    if (ball.y < minY) {
-      ball.y = minY;
-      ball.vy *= -0.82;
-      playTone(140, 0.03, 'square');
-    } else if (ball.y > maxY) {
-      ball.y = maxY;
-      ball.vy *= -0.82;
-      playTone(140, 0.03, 'square');
+  function update(dt) {
+    updateAim(dt);
+    updateWeapons(dt);
+    spawnEnemies(dt);
+    updateProjectiles(dt);
+    updateEnemies(dt);
+    updateParticles(dt);
+    updateTrails(dt);
+    updateCore(dt);
+    updateRings(dt);
+
+    if (state.wave.active && state.wave.enemiesToSpawn <= 0 && state.enemies.length === 0) endWave();
+    updateHud();
+  }
+
+  function updateAim(dt) {
+    const pointerAngle = Math.atan2(state.pointer.y || -1, state.pointer.x || 0);
+    const targetAngle = Number.isFinite(pointerAngle) ? pointerAngle : state.core.angle;
+    state.core.angle = lerpAngle(state.core.angle, targetAngle, 1 - Math.pow(0.00001, dt));
+  }
+
+  function updateWeapons(dt) {
+    const enemiesExist = state.enemies.length > 0;
+    for (const key of weaponOrder) {
+      const weapon = state.weapons[key];
+      weapon.cooldownLeft = Math.max(0, (weapon.cooldownLeft || 0) - dt);
+      if (!weapon.unlocked || !enemiesExist || weapon.cooldownLeft > 0) continue;
+      if (key === 'gun') fireGun(weapon);
+      if (key === 'laser') fireLaser(weapon);
+      if (key === 'sprinkler') fireSprinkler(weapon);
+      weapon.cooldownLeft = weapon.cooldown / (1 + state.stats.fireRateBoost + weapon.level * 0.03);
     }
   }
 
-  function collideRoundedRect(obstacle) {
-    const ball = state.ball;
-    const nearestX = clamp(ball.x, obstacle.x, obstacle.x + obstacle.w);
-    const nearestY = clamp(ball.y, obstacle.y, obstacle.y + obstacle.h);
-    const dx = ball.x - nearestX;
-    const dy = ball.y - nearestY;
-    const distanceSq = dx * dx + dy * dy;
-    if (distanceSq > ball.r * ball.r) return;
+  function spawnEnemies(dt) {
+    if (!state.wave.active || state.wave.enemiesToSpawn <= 0) return;
+    state.wave.spawnTimer -= dt;
+    if (state.wave.spawnTimer > 0) return;
+    state.wave.spawnTimer = Math.max(0.22, 0.9 - state.wave.number * 0.035 + Math.random() * 0.12);
+    const typeRoll = Math.random();
+    let type = 'runner';
+    if (state.wave.number > 2 && typeRoll > 0.72) type = 'fast';
+    if (state.wave.number > 3 && typeRoll > 0.87) type = 'tank';
+    if (state.wave.number > 5 && typeRoll > 0.94) type = 'zigzag';
+    state.enemies.push(createEnemy(type));
+    state.wave.enemiesToSpawn -= 1;
+  }
 
-    if (distanceSq < 0.0001) {
-      const left = Math.abs(ball.x - obstacle.x);
-      const right = Math.abs(obstacle.x + obstacle.w - ball.x);
-      const top = Math.abs(ball.y - obstacle.y);
-      const bottom = Math.abs(obstacle.y + obstacle.h - ball.y);
-      const minEdge = Math.min(left, right, top, bottom);
+  function createEnemy(type) {
+    const distance = Math.max(state.width, state.height) * 0.62 + 220;
+    const angle = Math.random() * TWO_PI;
+    const px = state.center.x + Math.cos(angle) * distance;
+    const py = state.center.y + Math.sin(angle) * distance;
+    const defs = {
+      runner: { hp: 34, speed: 68, size: 15, damage: 12, reward: 18, color: '#ff77cb' },
+      fast: { hp: 22, speed: 108, size: 11, damage: 10, reward: 15, color: '#ffd0ff' },
+      tank: { hp: 110, speed: 42, size: 21, damage: 24, reward: 36, color: '#ff9cae' },
+      zigzag: { hp: 42, speed: 82, size: 14, damage: 14, reward: 24, color: '#c88cff' },
+    };
+    const base = defs[type];
+    return {
+      type,
+      x: px,
+      y: py,
+      angle,
+      hp: base.hp + state.wave.number * (type === 'tank' ? 12 : 5),
+      maxHp: base.hp + state.wave.number * (type === 'tank' ? 12 : 5),
+      speed: base.speed + state.wave.number * 2.3,
+      size: base.size + Math.random() * 2,
+      damage: base.damage,
+      reward: base.reward,
+      color: base.color,
+      pulse: Math.random() * TWO_PI,
+      wiggle: Math.random() * TWO_PI,
+      hitFlash: 0,
+    };
+  }
 
-      if (minEdge === left) {
-        ball.x = obstacle.x - ball.r;
-        ball.vx = -Math.abs(ball.vx) * 0.82;
-      } else if (minEdge === right) {
-        ball.x = obstacle.x + obstacle.w + ball.r;
-        ball.vx = Math.abs(ball.vx) * 0.82;
-      } else if (minEdge === top) {
-        ball.y = obstacle.y - ball.r;
-        ball.vy = -Math.abs(ball.vy) * 0.82;
-      } else {
-        ball.y = obstacle.y + obstacle.h + ball.r;
-        ball.vy = Math.abs(ball.vy) * 0.82;
+  function fireGun(weapon) {
+    const target = findNearestEnemyInArc(0.92);
+    if (!target) return;
+    const angle = Math.atan2(target.y - state.center.y, target.x - state.center.x);
+    const scale = 1 + state.stats.projectileScale + weapon.level * 0.06;
+    spawnProjectile({
+      x: state.center.x + Math.cos(angle) * 26,
+      y: state.center.y + Math.sin(angle) * 26,
+      vx: Math.cos(angle) * weapon.speed,
+      vy: Math.sin(angle) * weapon.speed,
+      damage: weapon.damage * (1 + state.stats.damageBonus + weapon.level * 0.14),
+      life: weapon.life,
+      size: weapon.size * scale,
+      color: weapon.color,
+      pierce: state.stats.pierceBonus,
+      trail: '#ff9be2',
+    });
+    playSound('gun');
+  }
+
+  function fireLaser(weapon) {
+    const target = findNearestEnemyInArc(0.5);
+    if (!target) return;
+    const angle = Math.atan2(target.y - state.center.y, target.x - state.center.x);
+    const range = weapon.range + weapon.level * 50;
+    const width = weapon.width + state.stats.projectileScale * 4 + weapon.level * 0.6;
+    const damage = weapon.damage * (1 + state.stats.damageBonus + weapon.level * 0.18);
+    const hits = [];
+    for (const enemy of state.enemies) {
+      const hit = distanceToSegment(enemy.x, enemy.y, state.center.x, state.center.y, state.center.x + Math.cos(angle) * range, state.center.y + Math.sin(angle) * range);
+      if (hit < enemy.size + width) hits.push(enemy);
+    }
+    hits.sort((a, b) => distSq(a.x, a.y, state.center.x, state.center.y) - distSq(b.x, b.y, state.center.x, state.center.y));
+    hits.slice(0, 3 + state.stats.pierceBonus).forEach((enemy) => damageEnemy(enemy, damage, angle));
+    state.trails.push({ type: 'laser', angle, life: 0.13, range, width, color: weapon.color });
+    playSound('laser');
+  }
+
+  function fireSprinkler(weapon) {
+    const shots = weapon.count + weapon.level + state.stats.pierceBonus;
+    const speed = weapon.speed + weapon.level * 12;
+    for (let i = 0; i < shots; i += 1) {
+      const angle = state.core.angle + (i / shots) * TWO_PI;
+      spawnProjectile({
+        x: state.center.x + Math.cos(angle) * 24,
+        y: state.center.y + Math.sin(angle) * 24,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        damage: weapon.damage * (1 + state.stats.damageBonus + weapon.level * 0.12),
+        life: weapon.life + weapon.level * 0.05,
+        size: weapon.size * (1 + state.stats.projectileScale),
+        color: weapon.color,
+        pierce: Math.floor(state.stats.pierceBonus / 2),
+        trail: '#ffd6ff',
+      });
+    }
+    playSound('sprinkler');
+  }
+
+  function findNearestEnemyInArc(arcWidth) {
+    let best = null;
+    let bestDist = Infinity;
+    for (const enemy of state.enemies) {
+      const angle = Math.atan2(enemy.y - state.center.y, enemy.x - state.center.x);
+      const diff = Math.abs(normalizeAngle(angle - state.core.angle));
+      const d = distSq(enemy.x, enemy.y, state.center.x, state.center.y);
+      if (diff < arcWidth && d < bestDist) {
+        best = enemy;
+        bestDist = d;
       }
-      playTone(180, 0.025, 'square');
-      return;
     }
+    if (best) return best;
+    return state.enemies[0] || null;
+  }
 
-    const distance = Math.sqrt(distanceSq);
-    const overlap = ball.r - distance;
-    const normalX = dx / distance;
-    const normalY = dy / distance;
-    ball.x += normalX * overlap;
-    ball.y += normalY * overlap;
-    const velocityDot = ball.vx * normalX + ball.vy * normalY;
-    if (velocityDot < 0) {
-      ball.vx -= 1.86 * velocityDot * normalX;
-      ball.vy -= 1.86 * velocityDot * normalY;
-      ball.vx *= 0.92;
-      ball.vy *= 0.92;
-      playTone(180, 0.025, 'square');
+  function spawnProjectile(projectile) {
+    state.projectiles.push(projectile);
+  }
+
+  function updateProjectiles(dt) {
+    for (let i = state.projectiles.length - 1; i >= 0; i -= 1) {
+      const p = state.projectiles[i];
+      p.life -= dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      state.trails.push({ type: 'projectile', x: p.x, y: p.y, size: p.size * 1.5, color: p.trail, life: 0.12 });
+      let remove = p.life <= 0;
+      for (let e = state.enemies.length - 1; e >= 0 && !remove; e -= 1) {
+        const enemy = state.enemies[e];
+        const radius = enemy.size + p.size;
+        if (distSq(p.x, p.y, enemy.x, enemy.y) > radius * radius) continue;
+        damageEnemy(enemy, p.damage, Math.atan2(p.vy, p.vx));
+        p.pierce -= 1;
+        remove = p.pierce < 0;
+      }
+      if (remove) state.projectiles.splice(i, 1);
     }
   }
 
-  function finishHole() {
-    if (state.completed) return;
-    state.completed = true;
-    state.ball.moving = false;
-    state.ball.vx = 0;
-    state.ball.vy = 0;
-
-    const level = currentLevel();
-    const score = state.strokes - level.par;
-    const previousBest = state.bestScores[level.name];
-    if (!Number.isFinite(previousBest) || state.strokes < previousBest) {
-      state.bestScores[level.name] = state.strokes;
-      saveBestScores();
-    }
-    updateHUD();
-
-    completeTitle.textContent = score <= -2 ? 'Albatross Energy' : score <= -1 ? 'Birdie Beauty' : score === 0 ? 'Par Precision' : 'Keep Rolling';
-    completeSummary.textContent = `You cleared ${level.name} in ${state.strokes} stroke${state.strokes === 1 ? '' : 's'}.`;
-    completeScore.textContent = score > 0 ? `+${score}` : `${score}`;
-    completeBest.textContent = state.bestScores[level.name];
-    completeTotal.textContent = state.totalStrokes;
-    completeOverlay.hidden = false;
-    playTone(520, 0.12, 'sine');
-    setTimeout(() => playTone(660, 0.1, 'sine'), 90);
+  function damageEnemy(enemy, damage, angle) {
+    enemy.hp -= damage;
+    enemy.hitFlash = 0.14;
+    createImpact(enemy.x, enemy.y, enemy.color, 10, 1.6);
+    playSound('hit');
+    if (enemy.hp <= 0) killEnemy(enemy, angle);
   }
 
-  function draw(now) {
-    const level = currentLevel();
+  function killEnemy(enemy, angle) {
+    const index = state.enemies.indexOf(enemy);
+    if (index >= 0) state.enemies.splice(index, 1);
+    state.stats.kills += 1;
+    state.stats.score += enemy.reward * 4;
+    state.stats.money += enemy.reward;
+    state.screenShake = Math.max(state.screenShake, enemy.type === 'tank' ? 10 : 5);
+    createImpact(enemy.x, enemy.y, enemy.color, enemy.type === 'tank' ? 32 : 20, 3.2);
+    if (enemy.type === 'zigzag') {
+      for (let i = 0; i < 2; i += 1) {
+        const split = createEnemy('fast');
+        split.x = enemy.x + Math.cos(angle + i) * 18;
+        split.y = enemy.y + Math.sin(angle + i) * 18;
+        split.hp *= 0.6;
+        split.maxHp = split.hp;
+        split.size *= 0.8;
+        state.enemies.push(split);
+      }
+    }
+    playSound('explode');
+  }
+
+  function updateEnemies(dt) {
+    for (let i = state.enemies.length - 1; i >= 0; i -= 1) {
+      const enemy = state.enemies[i];
+      enemy.pulse += dt * 3.4;
+      enemy.wiggle += dt * (enemy.type === 'zigzag' ? 5.5 : 2.1);
+      enemy.hitFlash = Math.max(0, enemy.hitFlash - dt);
+      const dx = state.center.x - enemy.x;
+      const dy = state.center.y - enemy.y;
+      const distance = Math.hypot(dx, dy) || 1;
+      const nx = dx / distance;
+      const ny = dy / distance;
+      let moveX = nx;
+      let moveY = ny;
+      if (enemy.type === 'zigzag') {
+        moveX += -ny * Math.sin(enemy.wiggle) * 0.75;
+        moveY += nx * Math.sin(enemy.wiggle) * 0.75;
+      }
+      const len = Math.hypot(moveX, moveY) || 1;
+      enemy.x += (moveX / len) * enemy.speed * dt;
+      enemy.y += (moveY / len) * enemy.speed * dt;
+      if (distance < enemy.size + 24) {
+        state.enemies.splice(i, 1);
+        hitCore(enemy.damage);
+      }
+    }
+  }
+
+  function hitCore(damage) {
+    let remaining = damage;
+    if (state.core.shield > 0) {
+      const absorbed = Math.min(state.core.shield, remaining);
+      state.core.shield -= absorbed;
+      remaining -= absorbed;
+    }
+    state.core.hp = Math.max(0, state.core.hp - remaining);
+    state.core.hitFlash = 0.35;
+    state.screenShake = Math.max(state.screenShake, 14);
+    createImpact(state.center.x, state.center.y, '#ffffff', 26, 3.8);
+    playSound('hurt');
+    if (state.core.hp <= 0) triggerGameOver();
+  }
+
+  function triggerGameOver() {
+    state.gameOver = true;
+    state.wave.active = false;
+    state.inShop = false;
+    ui.overlays.shop.hidden = true;
+    ui.overlays.pause.hidden = true;
+    ui.overlays.gameOver.hidden = false;
+    state.bestScore = Math.max(state.bestScore, state.stats.score);
+    localStorage.setItem(STORAGE.best, String(state.bestScore));
+    savePersistentUnlocks();
+    ui.finalScore.textContent = state.stats.score;
+    ui.finalWave.textContent = Math.max(1, state.stats.wave);
+    ui.finalKills.textContent = state.stats.kills;
+    ui.finalBest.textContent = state.bestScore;
+    ui.waveState.textContent = 'Core destroyed';
+    playSound('over');
+  }
+
+  function updateCore(dt) {
+    state.core.hitFlash = Math.max(0, state.core.hitFlash - dt);
+    if (state.core.shieldTimer > 0) state.core.shieldTimer -= dt;
+    else state.core.shield = Math.max(0, state.core.shield - dt * 4);
+    state.screenShake = Math.max(0, state.screenShake - dt * 18);
+  }
+
+  function updateParticles(dt) {
+    for (let i = state.particles.length - 1; i >= 0; i -= 1) {
+      const p = state.particles[i];
+      p.life -= dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= 0.98;
+      p.vy *= 0.98;
+      if (p.life <= 0) state.particles.splice(i, 1);
+    }
+  }
+
+  function updateTrails(dt) {
+    for (let i = state.trails.length - 1; i >= 0; i -= 1) {
+      state.trails[i].life -= dt;
+      if (state.trails[i].life <= 0) state.trails.splice(i, 1);
+    }
+  }
+
+  function updateRings(dt) {
+    for (const ring of state.rings) ring.pulse += dt * (0.8 + ring.radius * 0.0008);
+  }
+
+  function createImpact(x, y, color, amount, speed) {
+    for (let i = 0; i < amount; i += 1) {
+      const angle = Math.random() * TWO_PI;
+      const velocity = (0.3 + Math.random()) * 110 * speed;
+      state.particles.push({ x, y, vx: Math.cos(angle) * velocity, vy: Math.sin(angle) * velocity, life: 0.25 + Math.random() * 0.45, size: 2 + Math.random() * 4, color });
+    }
+  }
+
+  function updateHud() {
+    ui.health.textContent = `${Math.ceil(state.core.hp)}${state.core.shield > 0 ? ` +${Math.ceil(state.core.shield)}` : ''}`;
+    ui.money.textContent = state.stats.money;
+    ui.wave.textContent = state.stats.wave;
+    ui.score.textContent = state.stats.score;
+    ui.kills.textContent = state.stats.kills;
+    ui.bestScore.textContent = `Best ${state.bestScore}`;
+    ui.weapons.textContent = `Gun Lv${state.weapons.gun.level} · Laser ${state.weapons.laser.unlocked ? `Lv${state.weapons.laser.level}` : 'Locked'} · Sprinkler ${state.weapons.sprinkler.unlocked ? `Lv${state.weapons.sprinkler.level}` : 'Locked'}`;
+    if (state.inShop) renderShop();
+  }
+
+  function render() {
+    ctx.save();
+    ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
     ctx.clearRect(0, 0, state.width, state.height);
-    ctx.fillStyle = '#0a1510';
+
+    const shakeX = (Math.random() - 0.5) * state.screenShake;
+    const shakeY = (Math.random() - 0.5) * state.screenShake;
+    ctx.translate(shakeX, shakeY);
+
+    drawBackground();
+    drawTunnel();
+    drawTrails();
+    drawProjectiles();
+    drawEnemies();
+    drawCore();
+    drawParticles();
+    ctx.restore();
+  }
+
+  function drawBackground() {
+    const g = ctx.createRadialGradient(state.center.x, state.center.y, 60, state.center.x, state.center.y, Math.max(state.width, state.height) * 0.7);
+    g.addColorStop(0, '#3b0919');
+    g.addColorStop(0.35, '#1c0410');
+    g.addColorStop(1, '#060006');
+    ctx.fillStyle = g;
     ctx.fillRect(0, 0, state.width, state.height);
 
-    ctx.save();
-    ctx.translate(state.width / 2, state.height / 2);
-    ctx.scale(camera.zoom, camera.zoom);
-    ctx.translate(-camera.x, -camera.y);
-
-    drawCourse(level, now);
-    drawHole(level, now);
-    drawAimGuides(level);
-    drawBall(now);
-
-    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.018)';
+    for (let i = 0; i < 40; i += 1) {
+      const x = (i * 131.7 + state.time * 12) % (state.width + 60);
+      const y = (i * 87.3) % (state.height + 40);
+      ctx.fillRect(x, y, 2, 2);
+    }
   }
 
-  function drawCourse(level, now) {
-    const gradient = ctx.createLinearGradient(0, 0, level.width, level.height);
-    gradient.addColorStop(0, '#1c5d3e');
-    gradient.addColorStop(1, '#123a2d');
-
-    roundedRectPath(24, 24, level.width - 48, level.height - 48, 40);
-    ctx.fillStyle = '#0c1713';
-    ctx.fill();
-
-    roundedRectPath(46, 46, level.width - 92, level.height - 92, 34);
-    ctx.fillStyle = gradient;
-    ctx.fill();
-
+  function drawTunnel() {
     ctx.save();
-    ctx.globalAlpha = 0.25;
-    for (let i = 0; i < 12; i += 1) {
-      const y = 120 + i * ((level.height - 240) / 11);
-      ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.035)' : 'rgba(255,255,255,0.01)';
-      roundedRectPath(70, y, level.width - 140, 28, 14);
-      ctx.fill();
-    }
-    ctx.restore();
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 8;
-    roundedRectPath(46, 46, level.width - 92, level.height - 92, 34);
-    ctx.stroke();
-
-    for (const obstacle of level.obstacles) {
-      const obstacleGradient = ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.w, obstacle.y + obstacle.h);
-      obstacleGradient.addColorStop(0, '#182b24');
-      obstacleGradient.addColorStop(1, '#0d1a14');
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+    ctx.globalCompositeOperation = 'lighter';
+    for (const ring of state.rings) {
+      const pulse = 1 + Math.sin(state.time * 1.3 + ring.pulse) * 0.04;
+      const radius = ring.radius * pulse;
+      ctx.beginPath();
+      for (let i = 0; i <= ring.points; i += 1) {
+        const index = i % ring.points;
+        const angle = (index / ring.points) * TWO_PI + state.time * ring.spin;
+        const wobble = ring.offsets[index] * (1 + Math.sin(state.time * 1.2 + index * 0.7) * 0.05);
+        const x = state.center.x + Math.cos(angle) * radius * wobble;
+        const y = state.center.y + Math.sin(angle) * radius * wobble;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      const alpha = Math.max(0.14, 0.42 - ring.radius * 0.00045);
+      ctx.strokeStyle = `rgba(255, 87, 191, ${alpha})`;
+      ctx.lineWidth = Math.max(1.6, 4.4 - ring.radius * 0.005);
       ctx.shadowBlur = 22;
-      roundedRectPath(obstacle.x, obstacle.y, obstacle.w, obstacle.h, obstacle.r);
-      ctx.fillStyle = obstacleGradient;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = 'rgba(197,255,215,0.08)';
-      ctx.lineWidth = 4;
-      roundedRectPath(obstacle.x, obstacle.y, obstacle.w, obstacle.h, obstacle.r);
+      ctx.shadowColor = '#ff62c9';
+      ctx.stroke();
+      ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.42})`;
+      ctx.lineWidth = Math.max(0.6, 1.3 - ring.radius * 0.001);
+      ctx.shadowBlur = 10;
       ctx.stroke();
     }
-
-    const sparkle = (Math.sin(now * 0.0014) + 1) * 0.5;
-    ctx.fillStyle = `rgba(157, 255, 182, ${0.06 + sparkle * 0.035})`;
-    ctx.beginPath();
-    ctx.arc(level.hole.x, level.hole.y, 110, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  function drawHole(level, now) {
-    const pulse = (Math.sin(now * 0.004) + 1) * 0.5;
-    ctx.save();
-    ctx.translate(level.hole.x, level.hole.y);
-    ctx.fillStyle = 'rgba(20, 28, 24, 0.9)';
-    ctx.beginPath();
-    ctx.arc(0, 0, level.hole.r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = `rgba(150, 255, 196, ${0.45 + pulse * 0.35})`;
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(0, 0, level.hole.r + 8 + pulse * 3, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = '#d5ffd7';
-    ctx.fillRect(12, -78, 8, 84);
-    ctx.beginPath();
-    ctx.moveTo(18, -78);
-    ctx.lineTo(72, -54);
-    ctx.lineTo(18, -26);
-    ctx.closePath();
-    ctx.fillStyle = '#7bf0a0';
-    ctx.fill();
     ctx.restore();
   }
 
-  function drawAimGuides(level) {
-    const ball = state.ball;
-    const hole = level.hole;
+  function drawCore() {
+    const pulse = 1 + Math.sin(state.time * 2.5) * 0.04;
+    ctx.save();
+    ctx.translate(state.center.x, state.center.y);
+    ctx.rotate(state.core.angle);
+    ctx.globalCompositeOperation = 'lighter';
 
-    if (!state.ball.moving) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 30 * pulse, 0, TWO_PI);
+    ctx.fillStyle = state.core.hitFlash > 0 ? '#fff2f8' : '#ffd6f1';
+    ctx.shadowBlur = 28;
+    ctx.shadowColor = state.core.hitFlash > 0 ? '#ffffff' : '#ff66c8';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(12, -10);
+    ctx.lineTo(48, 0);
+    ctx.lineTo(12, 10);
+    ctx.closePath();
+    ctx.fillStyle = '#fff';
+    ctx.shadowBlur = 22;
+    ctx.shadowColor = '#d07cff';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, TWO_PI);
+    ctx.fillStyle = '#44091f';
+    ctx.fill();
+    ctx.restore();
+
+    if (state.core.shield > 0) {
       ctx.save();
-      ctx.setLineDash([18, 18]);
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = 'rgba(225, 255, 230, 0.16)';
       ctx.beginPath();
-      ctx.moveTo(ball.x, ball.y);
-      ctx.lineTo(hole.x, hole.y);
+      ctx.arc(state.center.x, state.center.y, 44 + Math.sin(state.time * 4) * 2, 0, TWO_PI);
+      ctx.strokeStyle = `rgba(198,132,255,${0.32 + state.core.shield / 220})`;
+      ctx.lineWidth = 4;
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = '#bb83ff';
       ctx.stroke();
       ctx.restore();
     }
+  }
 
-    if (!state.aim.active) return;
-    const dir = state.aim.dir;
-    const guideLength = 170 + state.aim.power * 170;
+  function drawEnemies() {
     ctx.save();
-    ctx.lineCap = 'round';
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.78)';
-    ctx.beginPath();
-    ctx.moveTo(ball.x, ball.y);
-    ctx.lineTo(ball.x + dir.x * guideLength, ball.y + dir.y * guideLength);
-    ctx.stroke();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const enemy of state.enemies) {
+      const pulse = 1 + Math.sin(enemy.pulse) * 0.08;
+      ctx.beginPath();
+      ctx.arc(enemy.x, enemy.y, enemy.size * pulse, 0, TWO_PI);
+      ctx.fillStyle = enemy.hitFlash > 0 ? '#fff' : enemy.color;
+      ctx.shadowBlur = enemy.type === 'tank' ? 28 : 20;
+      ctx.shadowColor = enemy.color;
+      ctx.fill();
 
-    ctx.setLineDash([12, 12]);
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = 'rgba(142, 242, 138, 0.75)';
-    ctx.beginPath();
-    ctx.moveTo(ball.x, ball.y);
-    ctx.lineTo(ball.x - dir.x * Math.min(state.aim.power * 150, 110), ball.y - dir.y * Math.min(state.aim.power * 150, 110));
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(enemy.x, enemy.y, enemy.size * 0.42, 0, TWO_PI);
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.fill();
+
+      const hpWidth = enemy.size * 2.4;
+      const hpRatio = Math.max(0, enemy.hp / enemy.maxHp);
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.fillRect(enemy.x - hpWidth / 2, enemy.y + enemy.size + 10, hpWidth, 4);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(enemy.x - hpWidth / 2, enemy.y + enemy.size + 10, hpWidth * hpRatio, 4);
+    }
     ctx.restore();
   }
 
-  function drawBall(now) {
-    const ball = state.ball;
-    const glow = 16 + Math.sin(now * 0.004) * 2;
+  function drawProjectiles() {
     ctx.save();
-    ctx.shadowColor = 'rgba(135, 255, 170, 0.35)';
-    ctx.shadowBlur = glow;
-    ctx.fillStyle = '#f5fff7';
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(133, 170, 145, 0.38)';
-    ctx.beginPath();
-    ctx.arc(ball.x - 5, ball.y - 6, 5, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of state.projectiles) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, TWO_PI);
+      ctx.fillStyle = p.color;
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = p.color;
+      ctx.fill();
+    }
     ctx.restore();
   }
 
-  function roundedRectPath(x, y, width, height, radius) {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.arcTo(x + width, y, x + width, y + height, radius);
-    ctx.arcTo(x + width, y + height, x, y + height, radius);
-    ctx.arcTo(x, y + height, x, y, radius);
-    ctx.arcTo(x, y, x + width, y, radius);
-    ctx.closePath();
-  }
-
-  function animate(now) {
-    if (!state.lastTime) state.lastTime = now;
-    const dt = Math.min(0.033, (now - state.lastTime) / 1000 || 0.016);
-    state.lastTime = now;
-
-    if (!state.paused && !state.completed) {
-      updatePhysics(dt);
-      updateCameraTargets();
-      camera.update(dt);
+  function drawTrails() {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const trail of state.trails) {
+      if (trail.type === 'laser') {
+        const alpha = trail.life / 0.13;
+        const x2 = state.center.x + Math.cos(trail.angle) * trail.range;
+        const y2 = state.center.y + Math.sin(trail.angle) * trail.range;
+        ctx.strokeStyle = `rgba(212,122,255,${alpha})`;
+        ctx.lineWidth = trail.width + 4;
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = trail.color;
+        ctx.beginPath();
+        ctx.moveTo(state.center.x, state.center.y);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.8})`;
+        ctx.lineWidth = Math.max(2, trail.width * 0.45);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(trail.x, trail.y, trail.size, 0, TWO_PI);
+        ctx.fillStyle = withAlpha(trail.color, trail.life / 0.12 * 0.4);
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = trail.color;
+        ctx.fill();
+      }
     }
-
-    cameraModeLabel.textContent = camera.mode === 'follow' ? 'Tracking Shot' : 'Aiming View';
-    powerFill.style.width = `${Math.round(state.aim.power * 100)}%`;
-    draw(now);
-    requestAnimationFrame(animate);
+    ctx.restore();
   }
 
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  function normalize(vector) {
-    const length = Math.hypot(vector.x, vector.y) || 1;
-    return { x: vector.x / length, y: vector.y / length };
-  }
-
-  function distanceToSegment(px, py, ax, ay, bx, by) {
-    const abx = bx - ax;
-    const aby = by - ay;
-    const abLengthSq = abx * abx + aby * aby || 1;
-    const t = clamp(((px - ax) * abx + (py - ay) * aby) / abLengthSq, 0, 1);
-    const closestX = ax + abx * t;
-    const closestY = ay + aby * t;
-    return Math.hypot(px - closestX, py - closestY);
-  }
-
-  let audioContext;
-  function playTone(frequency, duration, type) {
-    if (!state.soundEnabled) return;
-    audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-    if (!audioContext) return;
-    const now = audioContext.currentTime;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, now);
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.exponentialRampToValueAtTime(0.04, now + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-    oscillator.connect(gain).connect(audioContext.destination);
-    oscillator.start(now);
-    oscillator.stop(now + duration + 0.02);
-  }
-
-  function onPointerDown(event) {
-    event.preventDefault();
-    canvas.setPointerCapture?.(event.pointerId);
-    beginAim(event.clientX, event.clientY, event.pointerId);
-  }
-
-  function onPointerMove(event) {
-    if (!state.aim.active || (state.pointerId !== null && event.pointerId !== state.pointerId)) return;
-    event.preventDefault();
-    updateAim(event.clientX, event.clientY);
-  }
-
-  function onPointerUp(event) {
-    releaseAim(event?.pointerId);
-  }
-
-  canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
-  canvas.addEventListener('pointermove', onPointerMove, { passive: false });
-  canvas.addEventListener('pointerup', onPointerUp, { passive: true });
-  canvas.addEventListener('pointercancel', onPointerUp, { passive: true });
-  canvas.addEventListener('touchstart', (event) => event.preventDefault(), { passive: false });
-  canvas.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
-
-  restartButton.addEventListener('click', () => resetHole());
-  pauseButton.addEventListener('click', () => togglePause());
-  resumeButton.addEventListener('click', () => togglePause(false));
-  pauseRestartButton.addEventListener('click', () => {
-    togglePause(false);
-    resetHole();
-  });
-  muteButton.addEventListener('click', async () => {
-    state.soundEnabled = !state.soundEnabled;
-    muteButton.textContent = state.soundEnabled ? '🔊' : '🔈';
-    if (state.soundEnabled && audioContext?.state === 'suspended') {
-      await audioContext.resume();
+  function drawParticles() {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of state.particles) {
+      ctx.globalAlpha = Math.max(0, p.life * 1.6);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, TWO_PI);
+      ctx.fillStyle = p.color;
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = p.color;
+      ctx.fill();
     }
-  });
-  replayButton.addEventListener('click', () => resetHole());
-  nextHoleButton.addEventListener('click', () => {
-    completeOverlay.hidden = true;
-    setLevel(state.levelIndex + 1, false);
-  });
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
 
-  window.addEventListener('keydown', (event) => {
-    if (event.key === 'r' || event.key === 'R') resetHole();
-    if (event.key === 'm' || event.key === 'M') muteButton.click();
-    if (event.key === 'p' || event.key === 'P' || event.key === 'Escape') togglePause();
-    if (state.completed && event.key === 'Enter') nextHoleButton.click();
-  });
+  function lerpAngle(a, b, t) {
+    return a + normalizeAngle(b - a) * t;
+  }
 
-  window.addEventListener('resize', resize, { passive: true });
-  window.addEventListener('orientationchange', () => window.setTimeout(resize, 140), { passive: true });
+  function normalizeAngle(a) {
+    while (a > Math.PI) a -= TWO_PI;
+    while (a < -Math.PI) a += TWO_PI;
+    return a;
+  }
 
-  resize();
-  setLevel(0, true);
-  requestAnimationFrame(animate);
+  function distSq(x1, y1, x2, y2) {
+    const dx = x1 - x2;
+    const dy = y1 - y2;
+    return dx * dx + dy * dy;
+  }
+
+  function distanceToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / len));
+    const x = x1 + dx * t;
+    const y = y1 + dy * t;
+    return Math.hypot(px - x, py - y);
+  }
+
+  function withAlpha(color, alpha) {
+    if (color.startsWith('#')) {
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, alpha))})`;
+    }
+    return color;
+  }
+
+  setup();
 })();

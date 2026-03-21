@@ -6,90 +6,131 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
     />
-    <meta name="theme-color" content="#08110f" />
-    <title>Pocket Golf Deluxe</title>
+    <meta name="theme-color" content="#18030a" />
+    <title>Neon Tunnel Sentinel</title>
     <meta
       name="description"
-      content="Pocket Golf Deluxe is a premium mobile-first mini-golf game with a smart camera that always frames the shot."
+      content="Neon Tunnel Sentinel is a premium mobile-first tunnel defense shooter built with vanilla HTML5 canvas."
     />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="app-shell">
-      <canvas id="gameCanvas" aria-label="Pocket Golf Deluxe game canvas"></canvas>
+      <canvas id="gameCanvas" aria-label="Neon Tunnel Sentinel game canvas"></canvas>
 
-      <div class="ambient ambient--one" aria-hidden="true"></div>
-      <div class="ambient ambient--two" aria-hidden="true"></div>
+      <div class="backdrop-glow backdrop-glow--left" aria-hidden="true"></div>
+      <div class="backdrop-glow backdrop-glow--right" aria-hidden="true"></div>
       <div class="vignette" aria-hidden="true"></div>
 
       <header class="hud glass">
-        <div class="hud__stats">
+        <div class="hud__group">
           <div class="hud-card">
-            <span>Hole</span>
-            <strong id="hudHole">1</strong>
+            <span>Core HP</span>
+            <strong id="hudHealth">100</strong>
           </div>
           <div class="hud-card">
-            <span>Par</span>
-            <strong id="hudPar">3</strong>
+            <span>Money</span>
+            <strong id="hudMoney">0</strong>
           </div>
           <div class="hud-card">
-            <span>Strokes</span>
-            <strong id="hudStrokes">0</strong>
+            <span>Wave</span>
+            <strong id="hudWave">1</strong>
           </div>
-          <div class="hud-card">
-            <span>Best</span>
-            <strong id="hudBest">—</strong>
+          <div class="hud-card hud-card--wide">
+            <span>Weapons</span>
+            <strong id="hudWeapons">Gun Lv1 · Laser Locked · Sprinkler Locked</strong>
           </div>
         </div>
-
-        <div class="hud__actions">
-          <button class="icon-button" id="restartButton" aria-label="Restart current hole">↺</button>
+        <div class="hud__group hud__group--actions">
+          <div class="hud-card">
+            <span>Score</span>
+            <strong id="hudScore">0</strong>
+          </div>
+          <div class="hud-card">
+            <span>Kills</span>
+            <strong id="hudKills">0</strong>
+          </div>
           <button class="icon-button" id="muteButton" aria-label="Toggle sound">🔊</button>
           <button class="icon-button" id="pauseButton" aria-label="Pause game">❚❚</button>
         </div>
       </header>
 
-      <aside class="shot-card glass">
-        <div class="shot-card__top">
-          <div>
-            <p class="eyebrow">Smart Camera</p>
-            <h1>Pocket Golf Deluxe</h1>
-          </div>
-          <div class="camera-badge" id="cameraModeLabel">Aiming View</div>
+      <section class="touch-panel glass">
+        <div>
+          <p class="eyebrow">Mobile-first defense</p>
+          <h1>Neon Tunnel Sentinel</h1>
         </div>
-        <div class="power-meter">
-          <div class="power-meter__fill" id="powerFill"></div>
+        <div class="touch-panel__right">
+          <div class="status-pill" id="waveStateLabel">Tap to start</div>
+          <div class="status-pill status-pill--accent" id="bestScoreLabel">Best 0</div>
         </div>
-        <p class="shot-card__hint" id="aimHint">
-          Drag near the ball to pull back, line up the hole, and release.
+        <p id="instructionText">
+          Drag anywhere to aim. Auto-fire engages while enemies are active. Survive waves and spend credits between rounds.
         </p>
-      </aside>
+      </section>
 
-      <section class="overlay" id="pauseOverlay" hidden>
-        <div class="panel glass">
-          <p class="eyebrow">Paused</p>
-          <h2>Take Your Time</h2>
-          <p>Study the course, then jump back in when you are ready.</p>
+      <section class="overlay overlay--visible" id="startOverlay">
+        <div class="panel glass panel--hero">
+          <p class="eyebrow">Premium neon defense</p>
+          <h2>Defend the core.</h2>
+          <p>
+            Rotate the central turret, melt enemies in the tunnel, and survive escalating waves. Optimized for touch, mouse, and fast arcade flow.
+          </p>
+          <div class="panel__list">
+            <div>• Gun starts unlocked with reliable rapid fire.</div>
+            <div>• Laser pierces packs with intense focused damage.</div>
+            <div>• Sprinkler bursts punish swarms from every angle.</div>
+          </div>
           <div class="panel__actions">
-            <button class="primary-button" id="resumeButton">Resume</button>
-            <button class="secondary-button" id="pauseRestartButton">Restart Hole</button>
+            <button class="primary-button" id="startButton">Start Defense</button>
           </div>
         </div>
       </section>
 
-      <section class="overlay" id="completeOverlay" hidden>
+      <section class="overlay" id="shopOverlay" hidden>
+        <div class="panel glass panel--shop">
+          <div class="panel__header">
+            <div>
+              <p class="eyebrow">Upgrade shop</p>
+              <h2>Wave complete</h2>
+            </div>
+            <div class="shop-summary">
+              <div class="shop-chip">Credits <strong id="shopMoney">0</strong></div>
+              <div class="shop-chip">Wave <strong id="shopWave">1</strong></div>
+            </div>
+          </div>
+          <div class="shop-grid" id="shopGrid"></div>
+          <div class="panel__actions panel__actions--spread">
+            <button class="secondary-button" id="pauseResumeButton">Restart Run</button>
+            <button class="primary-button" id="nextWaveButton">Start Next Wave</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="overlay" id="pauseOverlay" hidden>
         <div class="panel glass">
-          <p class="eyebrow">Hole Complete</p>
-          <h2 id="completeTitle">Birdie!</h2>
-          <p id="completeSummary">You finished in 2 strokes.</p>
-          <div class="panel__stats">
-            <div><span>Score</span><strong id="completeScore">-1</strong></div>
-            <div><span>Best</span><strong id="completeBest">2</strong></div>
-            <div><span>Total</span><strong id="completeTotal">2</strong></div>
+          <p class="eyebrow">Paused</p>
+          <h2>Systems standing by</h2>
+          <p>Resume the defense whenever you're ready.</p>
+          <div class="panel__actions">
+            <button class="primary-button" id="resumeButton">Resume</button>
+            <button class="secondary-button" id="restartButton">Restart Run</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="overlay" id="gameOverOverlay" hidden>
+        <div class="panel glass">
+          <p class="eyebrow">Core destroyed</p>
+          <h2>Game over</h2>
+          <div class="panel__stats panel__stats--large">
+            <div><span>Score</span><strong id="finalScore">0</strong></div>
+            <div><span>Wave</span><strong id="finalWave">1</strong></div>
+            <div><span>Kills</span><strong id="finalKills">0</strong></div>
+            <div><span>Best</span><strong id="finalBest">0</strong></div>
           </div>
           <div class="panel__actions">
-            <button class="primary-button" id="nextHoleButton">Next Hole</button>
-            <button class="secondary-button" id="replayButton">Replay Hole</button>
+            <button class="primary-button" id="restartGameButton">Restart Defense</button>
           </div>
         </div>
       </section>

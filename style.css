@@ -1,19 +1,21 @@
 :root {
   color-scheme: dark;
-  --bg: #07100d;
-  --bg-2: #122019;
-  --panel: rgba(10, 20, 16, 0.7);
-  --panel-border: rgba(255, 255, 255, 0.12);
-  --text: #f2faef;
-  --muted: rgba(232, 244, 237, 0.74);
-  --accent: #8ef28a;
-  --accent-2: #5ec8b0;
-  --danger: #ff939d;
-  --shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
+  --bg: #120109;
+  --bg-2: #260411;
+  --panel: rgba(26, 6, 18, 0.72);
+  --panel-strong: rgba(39, 7, 27, 0.88);
+  --panel-border: rgba(255, 189, 231, 0.14);
+  --text: #fff6fb;
+  --muted: rgba(255, 220, 239, 0.74);
+  --accent: #ff53bb;
+  --accent-2: #ca6bff;
+  --accent-3: #ffffff;
+  --danger: #ff8fa8;
   --safe-top: max(14px, env(safe-area-inset-top));
   --safe-right: max(14px, env(safe-area-inset-right));
   --safe-bottom: max(14px, env(safe-area-inset-bottom));
   --safe-left: max(14px, env(safe-area-inset-left));
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -27,11 +29,11 @@ body {
   min-height: 100%;
   overflow: hidden;
   background:
-    radial-gradient(circle at top, rgba(92, 215, 162, 0.12), transparent 28%),
-    radial-gradient(circle at 15% 80%, rgba(78, 131, 255, 0.12), transparent 22%),
-    linear-gradient(180deg, #0d1713 0%, #07100d 55%, #050a08 100%);
+    radial-gradient(circle at top, rgba(255, 92, 140, 0.16), transparent 34%),
+    radial-gradient(circle at 50% 110%, rgba(108, 25, 70, 0.35), transparent 36%),
+    linear-gradient(180deg, #2b0815 0%, #120109 55%, #090007 100%);
   color: var(--text);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 body {
@@ -42,57 +44,58 @@ body {
 button {
   font: inherit;
   color: inherit;
+  border: 0;
 }
 
-.app-shell {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
-
+.app-shell,
 #gameCanvas,
-.ambient,
+.backdrop-glow,
 .vignette,
 .overlay {
   position: absolute;
   inset: 0;
 }
 
-#gameCanvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+.app-shell {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.ambient,
+#gameCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.backdrop-glow,
 .vignette {
   pointer-events: none;
 }
 
-.ambient--one {
-  background: radial-gradient(circle at 18% 16%, rgba(103, 255, 168, 0.12), transparent 24%);
+.backdrop-glow--left {
+  background: radial-gradient(circle at 12% 18%, rgba(255, 66, 144, 0.16), transparent 28%);
 }
 
-.ambient--two {
-  background: radial-gradient(circle at 82% 84%, rgba(120, 198, 255, 0.12), transparent 22%);
+.backdrop-glow--right {
+  background: radial-gradient(circle at 88% 82%, rgba(168, 86, 255, 0.16), transparent 24%);
 }
 
 .vignette {
   background:
-    radial-gradient(circle at center, transparent 52%, rgba(0, 0, 0, 0.22) 100%),
+    radial-gradient(circle at center, transparent 42%, rgba(0, 0, 0, 0.38) 100%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%);
 }
 
 .glass {
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  backdrop-filter: blur(18px) saturate(1.1);
+  backdrop-filter: blur(18px) saturate(1.2);
   box-shadow: var(--shadow);
 }
 
 .hud,
-.shot-card {
+.touch-panel {
   position: absolute;
   z-index: 3;
 }
@@ -101,131 +104,146 @@ button {
   top: var(--safe-top);
   left: var(--safe-left);
   right: var(--safe-right);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
   padding: 10px;
   border-radius: 22px;
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-  align-items: flex-start;
 }
 
-.hud__stats,
-.hud__actions,
-.panel__stats,
+.hud__group,
+.touch-panel__right,
 .panel__actions,
-.shot-card__top {
+.panel__stats,
+.panel__header,
+.shop-summary {
   display: flex;
   gap: 10px;
 }
 
-.hud__stats {
+.hud__group {
   flex-wrap: wrap;
+  align-items: center;
 }
 
-.hud__actions {
-  margin-left: auto;
+.hud__group--actions {
+  justify-content: flex-end;
 }
 
 .hud-card,
-.camera-badge,
-.panel__stats > div {
-  min-width: 78px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
+.status-pill,
+.shop-chip,
+.shop-card {
+  background: rgba(255, 255, 255, 0.055);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.hud-card {
+  min-width: 76px;
+  padding: 10px 12px;
+}
+
+.hud-card--wide {
+  min-width: min(320px, 72vw);
 }
 
 .hud-card span,
-.panel__stats span {
+.panel__stats span,
+.shop-card__meta,
+.shop-card__state {
   display: block;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 6px;
 }
 
 .hud-card strong,
-.panel__stats strong {
-  font-size: 1.1rem;
+.panel__stats strong,
+.shop-chip strong {
+  font-size: 1rem;
 }
 
-.shot-card {
+.touch-panel {
   left: var(--safe-left);
   right: var(--safe-right);
   bottom: var(--safe-bottom);
-  padding: 16px;
+  padding: 16px 18px;
   border-radius: 24px;
 }
 
-.shot-card__top {
-  align-items: center;
+.touch-panel__right,
+.panel__header,
+.shop-summary,
+.panel__actions--spread {
   justify-content: space-between;
+  align-items: center;
 }
 
-.eyebrow {
-  margin: 0 0 4px;
-  color: #b8e7c0;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
+.touch-panel__right {
+  margin-top: 10px;
 }
 
-h1,
-h2,
-p {
+.eyebrow,
+#instructionText,
+.panel p {
   margin: 0;
 }
 
-h1 {
-  font-size: clamp(1.35rem, 4vw, 2rem);
-  letter-spacing: -0.03em;
+.eyebrow {
+  color: #ffc5ea;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 6px;
 }
 
+h1,
 h2 {
-  font-size: clamp(2rem, 5vw, 2.8rem);
+  margin: 0;
   letter-spacing: -0.04em;
 }
 
-.camera-badge {
-  min-width: 110px;
-  text-align: center;
-  color: #d8ffdb;
-  font-size: 0.85rem;
+h1 {
+  font-size: clamp(1.3rem, 5vw, 2rem);
 }
 
-.power-meter {
-  margin-top: 14px;
-  height: 13px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+h2 {
+  font-size: clamp(2rem, 7vw, 3rem);
 }
 
-.power-meter__fill {
-  width: 0%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #8af195, #70cfdf 62%, #ffd56a);
-  box-shadow: 0 0 24px rgba(138, 241, 149, 0.35);
-  transition: width 80ms linear;
-}
-
-.shot-card__hint {
-  margin-top: 12px;
+#instructionText,
+.panel p,
+.shop-card__desc {
   color: var(--muted);
   line-height: 1.45;
+}
+
+.status-pill,
+.shop-chip {
+  padding: 9px 12px;
+  font-size: 0.9rem;
+}
+
+.status-pill--accent {
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 22px rgba(202, 107, 255, 0.16);
+}
+
+.icon-button,
+.primary-button,
+.secondary-button,
+.shop-card {
+  transition: transform 160ms ease, background 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
 }
 
 .icon-button,
 .primary-button,
 .secondary-button {
-  border: 0;
-  border-radius: 16px;
   cursor: pointer;
-  transition: transform 160ms ease, background 160ms ease, opacity 160ms ease;
+  border-radius: 16px;
 }
 
 .icon-button {
@@ -236,14 +254,15 @@ h2 {
 
 .primary-button,
 .secondary-button {
-  min-height: 52px;
-  padding: 0 18px;
+  min-height: 54px;
+  padding: 0 20px;
   font-weight: 700;
 }
 
 .primary-button {
-  background: linear-gradient(180deg, #96eb96, #60c77f);
-  color: #08100b;
+  color: #22020e;
+  background: linear-gradient(180deg, #ffb7e5 0%, #ff5abc 100%);
+  box-shadow: 0 12px 28px rgba(255, 90, 188, 0.32);
 }
 
 .secondary-button {
@@ -253,62 +272,149 @@ h2 {
 .icon-button:hover,
 .primary-button:hover,
 .secondary-button:hover,
+.shop-card:hover,
 .icon-button:focus-visible,
 .primary-button:focus-visible,
-.secondary-button:focus-visible {
+.secondary-button:focus-visible,
+.shop-card:focus-visible {
   transform: translateY(-1px);
 }
 
 .overlay {
-  z-index: 4;
   display: grid;
   place-items: center;
-  padding: max(20px, var(--safe-top)) max(20px, var(--safe-right)) max(20px, var(--safe-bottom)) max(20px, var(--safe-left));
-  background: rgba(3, 8, 6, 0.58);
+  padding: 22px;
+  background: rgba(6, 0, 4, 0.48);
+  z-index: 4;
+}
+
+.overlay[hidden] {
+  display: none;
 }
 
 .panel {
-  width: min(460px, 100%);
+  width: min(960px, 100%);
   padding: 24px;
   border-radius: 28px;
-  text-align: center;
+  background: var(--panel-strong);
 }
 
-.panel p {
+.panel--hero {
+  max-width: 680px;
+}
+
+.panel__list {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 0;
   color: var(--muted);
-  margin-top: 12px;
-  line-height: 1.5;
 }
 
-.panel__stats,
 .panel__actions {
-  margin-top: 18px;
-  justify-content: center;
   flex-wrap: wrap;
+  margin-top: 22px;
 }
 
-@media (min-width: 900px) {
-  .hud {
-    padding: 12px;
-  }
-
-  .shot-card {
-    max-width: 430px;
-    right: auto;
-  }
+.panel__stats {
+  flex-wrap: wrap;
+  margin-top: 18px;
 }
 
-@media (max-width: 620px) {
+.panel__stats > div {
+  min-width: 108px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.panel__stats--large > div {
+  min-width: 132px;
+}
+
+.panel--shop {
+  max-width: 1100px;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.shop-card {
+  width: 100%;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shop-card[disabled] {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.shop-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.shop-card h3,
+.shop-card p {
+  margin: 0;
+}
+
+.shop-card h3 {
+  font-size: 1.02rem;
+}
+
+.shop-card__price {
+  color: #fff;
+  font-weight: 800;
+}
+
+.shop-card__desc {
+  margin-top: 10px;
+  min-height: 40px;
+}
+
+@media (max-width: 900px) {
   .hud {
-    border-radius: 18px;
-  }
-
-  .hud__actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .panel__actions {
     flex-direction: column;
+  }
+
+  .shop-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .hud-card--wide {
+    min-width: 100%;
+  }
+
+  .touch-panel {
+    padding: 14px;
+  }
+
+  .panel {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .panel__header,
+  .touch-panel__right,
+  .panel__actions--spread {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .icon-button,
+  .primary-button,
+  .secondary-button {
+    min-height: 50px;
   }
 }
