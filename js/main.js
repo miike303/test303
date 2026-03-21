@@ -6,11 +6,10 @@ game.init();
 
 let last = performance.now();
 function frame(now) {
-  const dt = Math.min((now - last) / 1000, 0.033);
+  const dt = Math.min(0.033, (now - last) / 1000);
   last = now;
   game.update(dt);
-  game.renderer.render(game, dt);
+  game.renderer.render(game);
   requestAnimationFrame(frame);
 }
-
 requestAnimationFrame(frame);

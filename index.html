@@ -2,180 +2,186 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-    <meta name="theme-color" content="#090c14" />
-    <title>Tunnel Swarm</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1"
+    />
+    <meta name="theme-color" content="#090c18" />
+    <title>Wall Shift</title>
     <meta
       name="description"
-      content="Tunnel Swarm is a premium browser survival roguelite set inside a dark industrial reactor tunnel."
+      content="Wall Shift is a polished portrait-mode arcade climber about wall hopping through a neon hazard shaft."
     />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <canvas id="gameCanvas" aria-label="Tunnel Swarm game canvas"></canvas>
+    <div id="app" class="app-shell">
+      <div class="desktop-matte left"></div>
+      <main class="phone-frame">
+        <canvas id="gameCanvas" aria-label="Wall Shift game canvas"></canvas>
+        <div class="parallax parallax-back"></div>
+        <div class="parallax parallax-front"></div>
+        <div class="scanlines"></div>
+        <div class="vignette"></div>
 
-      <div class="backdrop-grid"></div>
-      <div class="vignette"></div>
-
-      <section class="screen active" id="titleScreen">
-        <div class="panel hero-panel">
-          <p class="eyebrow">Industrial Survival Roguelite</p>
-          <h1>Tunnel Swarm</h1>
-          <p class="lede">
-            Survive endless reactor tunnel assaults, evolve absurdly powerful builds, defeat machine horrors,
-            and cash out with persistent upgrades.
-          </p>
-          <div class="cta-row">
-            <button class="primary-button" id="playButton">Start Run</button>
-            <button class="secondary-button" id="metaButton">Unlock Bay</button>
-            <button class="secondary-button" id="helpButton">How To Play</button>
-          </div>
-          <div class="hero-stats">
-            <article><span>Best Time</span><strong id="bestTimeStat">00:00</strong></article>
-            <article><span>Best Score</span><strong id="bestScoreStat">0</strong></article>
-            <article><span>Alloy</span><strong id="currencyStat">0</strong></article>
-          </div>
-        </div>
-      </section>
-
-      <section class="screen" id="metaScreen">
-        <div class="panel modal-panel large-panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Persistent Upgrades</p>
-              <h2>Unlock Bay</h2>
+        <section id="titleScreen" class="screen active">
+          <div class="panel hero-panel">
+            <p class="eyebrow">Vertical Neon Survival</p>
+            <h1>Wall Shift</h1>
+            <p class="lede">Leap wall-to-wall, dodge telegraphed hazards, chain risky jumps, and climb forever.</p>
+            <div class="hero-buttons">
+              <button id="playButton" class="primary-button">Play</button>
+              <button data-open="shopScreen" class="secondary-button">Shop</button>
+              <button data-open="missionsScreen" class="secondary-button">Missions</button>
+              <button data-open="settingsScreen" class="secondary-button">Settings</button>
             </div>
-            <button class="icon-button" data-close="metaScreen">×</button>
-          </div>
-          <p class="lede compact">
-            Spend recovered alloy to improve future runs. Upgrades save automatically to localStorage.
-          </p>
-          <div class="meta-topline">
-            <div class="chip">Alloy: <strong id="metaCurrency">0</strong></div>
-            <div class="chip">Skins: <strong id="skinStatus">Default</strong></div>
-          </div>
-          <div class="meta-grid" id="metaGrid"></div>
-        </div>
-      </section>
-
-      <section class="screen" id="helpScreen">
-        <div class="panel modal-panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Controls & Tips</p>
-              <h2>Survive The Swarm</h2>
+            <div class="hero-stats">
+              <article><span>Best Score</span><strong id="bestScoreValue">0</strong></article>
+              <article><span>Total Coins</span><strong id="totalCoinsValue">0</strong></article>
+              <article><span>Best Height</span><strong id="bestHeightValue">0m</strong></article>
             </div>
-            <button class="icon-button" data-close="helpScreen">×</button>
           </div>
-          <div class="help-grid">
-            <article>
-              <h3>Desktop</h3>
-              <ul>
-                <li>Move with <strong>WASD</strong> or <strong>Arrow Keys</strong>.</li>
-                <li><strong>Space</strong> dashes. <strong>P</strong> pauses.</li>
-                <li>Weapons auto-fire at nearby threats.</li>
-              </ul>
-            </article>
-            <article>
-              <h3>Mobile</h3>
-              <ul>
-                <li>Drag the virtual stick on the lower-left.</li>
-                <li>Tap the <strong>Dash</strong> button for burst evasion.</li>
-                <li>Menus use large touch-friendly controls.</li>
-              </ul>
-            </article>
-            <article>
-              <h3>Run Flow</h3>
-              <ul>
-                <li>Gather XP cells to level up and choose 1 of 3 upgrades.</li>
-                <li>Difficulty surges over time with elites, mini-bosses, hazards, and bosses.</li>
-                <li>Earn alloy after every run and buy permanent upgrades.</li>
-              </ul>
-            </article>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="hud hidden" id="hud">
-        <div class="hud-top">
-          <div class="panel hud-card hp-card">
-            <div class="bar-label"><span>Integrity</span><strong id="hpText">0 / 0</strong></div>
-            <div class="bar"><div id="hpFill"></div></div>
+        <section id="tutorialOverlay" class="screen overlay-screen hidden">
+          <div class="panel modal-panel compact-panel">
+            <p class="eyebrow">First Run</p>
+            <h2>Climb The Shaft</h2>
+            <div class="tutorial-steps">
+              <div><strong>Tap anywhere</strong><span>Leap to the opposite wall.</span></div>
+              <div><strong>Avoid red hazards</strong><span>Telegraphs glow before they strike.</span></div>
+              <div><strong>Grab coins & power-ups</strong><span>Build score, combos, and unlock cosmetics.</span></div>
+            </div>
+            <div class="hero-buttons tight">
+              <button id="tutorialStartButton" class="primary-button">Start Tutorial Run</button>
+              <button id="tutorialSkipButton" class="secondary-button">Skip</button>
+            </div>
           </div>
-          <div class="panel hud-card xp-card">
-            <div class="bar-label"><span>XP</span><strong id="xpText">Lv 1</strong></div>
-            <div class="bar"><div id="xpFill"></div></div>
-          </div>
-          <div class="panel hud-stats">
-            <div><span>Time</span><strong id="timerText">00:00</strong></div>
-            <div><span>Kills</span><strong id="killsText">0</strong></div>
-            <div><span>Score</span><strong id="scoreText">0</strong></div>
-            <div><span>Intensity</span><strong id="waveText">Calm</strong></div>
-          </div>
-        </div>
-        <div class="hud-bottom">
-          <div class="panel arsenal-panel">
-            <div class="panel-title-row"><span>Weapons</span><strong id="weaponCountText">1 online</strong></div>
-            <div class="weapon-list" id="weaponList"></div>
-          </div>
-          <div class="panel passive-panel">
-            <div class="panel-title-row"><span>Upgrades</span><strong id="passiveCountText">0 active</strong></div>
-            <div class="passive-list" id="passiveList"></div>
-          </div>
-          <div class="panel controls-panel">
-            <button class="secondary-button small-button" id="pauseButton">Pause</button>
-            <button class="secondary-button small-button" id="muteButton">Audio</button>
-            <button class="primary-button small-button" id="dashButton">Dash</button>
-            <div class="cooldown-pill" id="dashCooldownText">Dash Ready</div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="screen overlay-screen" id="levelUpScreen">
-        <div class="panel modal-panel levelup-panel">
-          <p class="eyebrow">Power Surge</p>
-          <h2>Choose An Upgrade</h2>
-          <p class="lede compact">The tunnel briefly stabilizes. Pick one enhancement for this run.</p>
-          <div class="upgrade-grid" id="upgradeChoices"></div>
-        </div>
-      </section>
-
-      <section class="screen overlay-screen" id="pauseScreen">
-        <div class="panel modal-panel">
-          <p class="eyebrow">Systems Paused</p>
-          <h2>Run Suspended</h2>
-          <div class="cta-row stretch">
-            <button class="primary-button" id="resumeButton">Resume</button>
-            <button class="secondary-button" id="quitButton">Quit Run</button>
+        <section id="hud" class="hud hidden">
+          <div class="hud-top">
+            <div class="hud-card score-card">
+              <span>Score</span>
+              <strong id="hudScore">0</strong>
+            </div>
+            <div class="hud-card coin-card">
+              <span>Coins</span>
+              <strong id="hudCoins">0</strong>
+            </div>
+            <div class="hud-card combo-card">
+              <span>Combo</span>
+              <strong id="hudCombo">x1.0</strong>
+              <div class="mini-bar"><div id="comboFill"></div></div>
+            </div>
+            <button id="pauseButton" class="icon-button hud-button" aria-label="Pause">Ⅱ</button>
           </div>
-        </div>
-      </section>
-
-      <section class="screen overlay-screen" id="gameOverScreen">
-        <div class="panel modal-panel large-panel">
-          <p class="eyebrow">Run Complete</p>
-          <h2 id="gameOverTitle">Tunnel Lost</h2>
-          <div class="summary-grid" id="summaryGrid"></div>
-          <div class="cta-row stretch">
-            <button class="primary-button" id="restartButton">Run Again</button>
-            <button class="secondary-button" id="postRunMetaButton">Spend Alloy</button>
+          <div class="hud-bottom">
+            <div class="hud-pill"><span>Height</span><strong id="hudHeight">0m</strong></div>
+            <div class="hud-pill"><span>Best</span><strong id="hudBest">0</strong></div>
+            <div class="hud-pill"><span>Biome</span><strong id="hudBiome">Neon Core</strong></div>
+            <div class="hud-pill"><span>Speed</span><strong id="hudSpeed">1.0x</strong></div>
           </div>
-        </div>
-      </section>
+          <div id="powerupTimers" class="powerup-row"></div>
+        </section>
 
-      <section class="touch-ui hidden" id="touchUi">
-        <div class="joystick" id="joystickZone">
-          <div class="joystick-base"></div>
-          <div class="joystick-stick" id="joystickStick"></div>
-        </div>
-        <div class="touch-buttons">
-          <button class="touch-button" id="touchPause">Ⅱ</button>
-          <button class="touch-button primary-touch" id="touchDash">Dash</button>
-        </div>
-      </section>
+        <section id="gameOverScreen" class="screen overlay-screen hidden">
+          <div class="panel modal-panel">
+            <p class="eyebrow">Run Over</p>
+            <h2 id="gameOverTitle">Wall Breach</h2>
+            <div class="summary-grid" id="runSummary"></div>
+            <div class="hero-buttons tight">
+              <button id="restartButton" class="primary-button">Restart</button>
+              <button id="menuButton" class="secondary-button">Menu</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="pauseScreen" class="screen overlay-screen hidden">
+          <div class="panel modal-panel compact-panel">
+            <p class="eyebrow">Paused</p>
+            <h2>Flow Interrupted</h2>
+            <div class="hero-buttons tight stack-buttons">
+              <button id="resumeButton" class="primary-button">Resume</button>
+              <button id="restartPauseButton" class="secondary-button">Restart</button>
+              <button data-open="settingsScreen" class="secondary-button">Settings</button>
+              <button id="quitButton" class="secondary-button">Quit To Title</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="shopScreen" class="screen modal-screen hidden">
+          <div class="panel modal-panel large-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Cosmetics</p>
+                <h2>Signal Shop</h2>
+              </div>
+              <button class="icon-button" data-close>×</button>
+            </div>
+            <div class="shop-topline">
+              <div class="chip">Coins <strong id="shopCoinsValue">0</strong></div>
+              <div class="chip">Skin <strong id="selectedSkinValue">Default</strong></div>
+              <div class="chip">Trail <strong id="selectedTrailValue">Pulse</strong></div>
+            </div>
+            <div class="shop-section">
+              <h3>Core Skins</h3>
+              <div id="skinGrid" class="card-grid"></div>
+            </div>
+            <div class="shop-section">
+              <h3>Trail Effects</h3>
+              <div id="trailGrid" class="card-grid"></div>
+            </div>
+            <div class="shop-section">
+              <h3>Aura Effects</h3>
+              <div id="auraGrid" class="card-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="missionsScreen" class="screen modal-screen hidden">
+          <div class="panel modal-panel large-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Daily-Style Goals</p>
+                <h2>Shift Missions</h2>
+              </div>
+              <button class="icon-button" data-close>×</button>
+            </div>
+            <div id="missionsList" class="mission-list"></div>
+          </div>
+        </section>
+
+        <section id="settingsScreen" class="screen modal-screen hidden">
+          <div class="panel modal-panel compact-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Preferences</p>
+                <h2>Settings</h2>
+              </div>
+              <button class="icon-button" data-close>×</button>
+            </div>
+            <div class="settings-list">
+              <button id="audioToggle" class="setting-button"></button>
+              <button id="effectsToggle" class="setting-button"></button>
+              <button id="vibrationToggle" class="setting-button"></button>
+              <button id="resetProgressButton" class="setting-button danger-button">Reset Progress</button>
+            </div>
+            <p class="control-copy">Controls: tap/click/space/up to jump, P or pause button to pause.</p>
+          </div>
+        </section>
+
+        <section id="rotateOverlay" class="screen overlay-screen hidden">
+          <div class="panel modal-panel compact-panel rotate-panel">
+            <p class="eyebrow">Portrait Required</p>
+            <h2>Rotate Your Device</h2>
+            <p class="lede compact">Wall Shift is designed for a 9:16 portrait playfield.</p>
+          </div>
+        </section>
+      </main>
+      <div class="desktop-matte right"></div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="js/main.js"></script>
   </body>
 </html>
