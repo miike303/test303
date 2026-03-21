@@ -6,11 +6,11 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
     />
-    <meta name="theme-color" content="#10251c" />
+    <meta name="theme-color" content="#08110f" />
     <title>Pocket Golf Deluxe</title>
     <meta
       name="description"
-      content="Pocket Golf Deluxe is a polished, touch-first mini-golf game built with vanilla HTML, CSS, and JavaScript."
+      content="Pocket Golf Deluxe is a premium mobile-first mini-golf game with a smart camera that always frames the shot."
     />
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -18,112 +18,83 @@
     <div class="app-shell">
       <canvas id="gameCanvas" aria-label="Pocket Golf Deluxe game canvas"></canvas>
 
-      <div class="backdrop" aria-hidden="true"></div>
-      <div class="grain" aria-hidden="true"></div>
+      <div class="ambient ambient--one" aria-hidden="true"></div>
+      <div class="ambient ambient--two" aria-hidden="true"></div>
+      <div class="vignette" aria-hidden="true"></div>
 
-      <header class="hud glass hidden" id="hud">
-        <div class="hud__group">
-          <div class="pill"><span>Hole</span><strong id="hudHole">1</strong></div>
-          <div class="pill"><span>Par</span><strong id="hudPar">3</strong></div>
-          <div class="pill"><span>Strokes</span><strong id="hudStrokes">0</strong></div>
-          <div class="pill"><span>Best</span><strong id="hudBest">—</strong></div>
+      <header class="hud glass">
+        <div class="hud__stats">
+          <div class="hud-card">
+            <span>Hole</span>
+            <strong id="hudHole">1</strong>
+          </div>
+          <div class="hud-card">
+            <span>Par</span>
+            <strong id="hudPar">3</strong>
+          </div>
+          <div class="hud-card">
+            <span>Strokes</span>
+            <strong id="hudStrokes">0</strong>
+          </div>
+          <div class="hud-card">
+            <span>Best</span>
+            <strong id="hudBest">—</strong>
+          </div>
         </div>
-        <div class="hud__group hud__group--actions">
-          <button class="icon-button" id="muteButton" aria-label="Toggle audio">🔊</button>
-          <button class="icon-button" id="pauseButton" aria-label="Pause game">⏸</button>
+
+        <div class="hud__actions">
+          <button class="icon-button" id="restartButton" aria-label="Restart current hole">↺</button>
+          <button class="icon-button" id="muteButton" aria-label="Toggle sound">🔊</button>
+          <button class="icon-button" id="pauseButton" aria-label="Pause game">❚❚</button>
         </div>
       </header>
 
-      <div class="aim-panel glass hidden" id="aimPanel">
-        <div class="aim-panel__label">Shot Power</div>
-        <div class="aim-meter"><div class="aim-meter__fill" id="powerFill"></div></div>
-        <div class="aim-panel__hint" id="aimHint">Drag away from the ball to aim.</div>
-      </div>
-
-      <main class="overlay-layer" id="overlayRoot">
-        <section class="screen screen--menu active" id="mainMenu">
-          <div class="hero glass">
-            <p class="eyebrow">Premium Mini Golf</p>
+      <aside class="shot-card glass">
+        <div class="shot-card__top">
+          <div>
+            <p class="eyebrow">Smart Camera</p>
             <h1>Pocket Golf Deluxe</h1>
-            <p class="hero__text">
-              Elegant touch-first golf with handcrafted holes, silky physics, and relaxing modern presentation.
-            </p>
-            <div class="menu-grid">
-              <button class="primary-button" data-action="play-campaign">Play Campaign</button>
-              <button class="secondary-button" data-action="quick-play">Quick Play</button>
-              <button class="secondary-button" data-action="practice">Practice</button>
-              <button class="secondary-button" data-action="course-select">Course Select</button>
-              <button class="ghost-button danger" data-action="reset-progress">Reset Progress</button>
-            </div>
-            <div class="hero__footer">
-              <span id="campaignSummary">12 handcrafted holes • progress saved locally</span>
-              <button class="inline-button" id="menuMuteButton">Audio On</button>
-            </div>
           </div>
-        </section>
+          <div class="camera-badge" id="cameraModeLabel">Aiming View</div>
+        </div>
+        <div class="power-meter">
+          <div class="power-meter__fill" id="powerFill"></div>
+        </div>
+        <p class="shot-card__hint" id="aimHint">
+          Drag near the ball to pull back, line up the hole, and release.
+        </p>
+      </aside>
 
-        <section class="screen" id="courseSelectScreen">
-          <div class="panel glass panel--wide">
-            <div class="panel__header">
-              <div>
-                <p class="eyebrow">Course Select</p>
-                <h2>Choose Your Hole</h2>
-              </div>
-              <button class="inline-button" data-action="back-to-menu">Back</button>
-            </div>
-            <div class="course-grid" id="courseGrid"></div>
+      <section class="overlay" id="pauseOverlay" hidden>
+        <div class="panel glass">
+          <p class="eyebrow">Paused</p>
+          <h2>Take Your Time</h2>
+          <p>Study the course, then jump back in when you are ready.</p>
+          <div class="panel__actions">
+            <button class="primary-button" id="resumeButton">Resume</button>
+            <button class="secondary-button" id="pauseRestartButton">Restart Hole</button>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section class="screen" id="pauseScreen">
-          <div class="panel glass panel--compact">
-            <p class="eyebrow">Paused</p>
-            <h2>Take a Breath</h2>
-            <div class="stack">
-              <button class="primary-button" data-action="resume">Resume</button>
-              <button class="secondary-button" data-action="restart-hole">Restart Hole</button>
-              <button class="secondary-button" data-action="course-select">Course Select</button>
-              <button class="ghost-button" data-action="back-to-menu">Main Menu</button>
-            </div>
+      <section class="overlay" id="completeOverlay" hidden>
+        <div class="panel glass">
+          <p class="eyebrow">Hole Complete</p>
+          <h2 id="completeTitle">Birdie!</h2>
+          <p id="completeSummary">You finished in 2 strokes.</p>
+          <div class="panel__stats">
+            <div><span>Score</span><strong id="completeScore">-1</strong></div>
+            <div><span>Best</span><strong id="completeBest">2</strong></div>
+            <div><span>Total</span><strong id="completeTotal">2</strong></div>
           </div>
-        </section>
-
-        <section class="screen" id="holeCompleteScreen">
-          <div class="panel glass panel--compact">
-            <p class="eyebrow">Hole Complete</p>
-            <h2 id="resultTitle">Birdie!</h2>
-            <p class="result-copy" id="resultSummary">You finished in 2 strokes.</p>
-            <div class="result-stats">
-              <div class="result-stat"><span>Strokes</span><strong id="resultStrokes">2</strong></div>
-              <div class="result-stat"><span>Score</span><strong id="resultScore">-1</strong></div>
-              <div class="result-stat"><span>Medal</span><strong id="resultMedal">Gold</strong></div>
-            </div>
-            <div class="stack stack--tight">
-              <button class="primary-button" id="nextHoleButton">Next Hole</button>
-              <button class="secondary-button" data-action="replay-hole">Replay Hole</button>
-              <button class="ghost-button" data-action="course-select">Course Select</button>
-            </div>
+          <div class="panel__actions">
+            <button class="primary-button" id="nextHoleButton">Next Hole</button>
+            <button class="secondary-button" id="replayButton">Replay Hole</button>
           </div>
-        </section>
-
-        <section class="screen" id="campaignCompleteScreen">
-          <div class="panel glass panel--compact">
-            <p class="eyebrow">Campaign Complete</p>
-            <h2>Clubhouse Glory</h2>
-            <p class="result-copy" id="campaignResultCopy"></p>
-            <div class="result-stats" id="campaignStats"></div>
-            <div class="stack stack--tight">
-              <button class="primary-button" data-action="replay-campaign">Replay Campaign</button>
-              <button class="secondary-button" data-action="course-select">Course Select</button>
-              <button class="ghost-button" data-action="back-to-menu">Main Menu</button>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <div class="toast hidden" id="toast"></div>
+        </div>
+      </section>
     </div>
 
-    <script type="module" src="js/main.js"></script>
+    <script src="script.js"></script>
   </body>
 </html>
