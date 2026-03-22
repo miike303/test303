@@ -1,1199 +1,301 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f7f5f2" />
-    <meta
-      name="description"
-      content="Central Café, futur café-boutique au cœur de la ville : une adresse élégante, éditoriale et raffinée."
-    />
-    <title>Central Café — Bientôt</title>
-    <style>
-      :root {
-        --black: #0d0d0d;
-        --charcoal: #2a2a2a;
-        --warm-white: #f7f5f2;
-        --stone: #e7e2dc;
-        --gray: #d9d4cf;
-        --taupe: #b8aca1;
-        --line: rgba(13, 13, 13, 0.12);
-        --line-strong: rgba(13, 13, 13, 0.2);
-        --shadow: 0 24px 60px rgba(13, 13, 13, 0.08);
-        --shadow-soft: 0 14px 34px rgba(13, 13, 13, 0.05);
-        --radius: 24px;
-        --radius-sm: 16px;
-        --container: min(1180px, calc(100vw - 2rem));
-        --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Times New Roman", serif;
-        --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --ease: 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
-      }
-
-      * { box-sizing: border-box; }
-      html { scroll-behavior: smooth; }
-      @media (prefers-reduced-motion: reduce) {
-        html { scroll-behavior: auto; }
-        *, *::before, *::after {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-        }
-      }
-
-      body {
-        margin: 0;
-        font-family: var(--sans);
-        color: var(--charcoal);
-        background:
-          radial-gradient(circle at top left, rgba(184, 172, 161, 0.16), transparent 32%),
-          linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0.3)),
-          var(--warm-white);
-        line-height: 1.6;
-        overflow-x: hidden;
-      }
-
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        opacity: 0.14;
-        background-image:
-          radial-gradient(rgba(13,13,13,0.18) 0.55px, transparent 0.7px),
-          radial-gradient(rgba(255,255,255,0.75) 0.45px, transparent 0.7px);
-        background-position: 0 0, 22px 18px;
-        background-size: 24px 24px, 24px 24px;
-        mix-blend-mode: multiply;
-      }
-
-      a { color: inherit; text-decoration: none; }
-      img { max-width: 100%; display: block; }
-      button, input { font: inherit; }
-
-      .page-shell {
-        position: relative;
-        isolation: isolate;
-      }
-
-      .floating-monogram {
-        position: fixed;
-        top: 6rem;
-        right: -2rem;
-        width: 15rem;
-        aspect-ratio: 1;
-        border: 1px solid rgba(13, 13, 13, 0.08);
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        color: rgba(13, 13, 13, 0.06);
-        font-family: var(--serif);
-        font-size: clamp(4rem, 7vw, 6rem);
-        letter-spacing: -0.08em;
-        z-index: -1;
-      }
-
-      .topbar {
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        backdrop-filter: blur(18px);
-        background: rgba(247, 245, 242, 0.72);
-        border-bottom: 1px solid rgba(13, 13, 13, 0.07);
-      }
-
-      .topbar-inner,
-      .section-inner,
-      .footer-inner {
-        width: var(--container);
-        margin: 0 auto;
-      }
-
-      .topbar-inner {
-        min-height: 4.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-      }
-
-      .brand-lockup {
-        display: flex;
-        flex-direction: column;
-        gap: 0.1rem;
-      }
-
-      .brand-lockup strong,
-      .hero-wordmark,
-      .wordmark {
-        font-family: var(--serif);
-        font-weight: 400;
-        letter-spacing: 0.16em;
-      }
-
-      .brand-lockup strong {
-        font-size: 0.98rem;
-      }
-
-      .brand-lockup span,
-      .micro-label {
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.3em;
-        color: rgba(42, 42, 42, 0.62);
-      }
-
-      .nav {
-        display: none;
-        align-items: center;
-        gap: 1.25rem;
-        font-size: 0.92rem;
-      }
-
-      .nav a {
-        position: relative;
-        padding-bottom: 0.2rem;
-      }
-
-      .nav a::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        height: 1px;
-        background: var(--black);
-        transform: scaleX(0);
-        transform-origin: right;
-        transition: transform 280ms ease;
-      }
-
-      .nav a:hover::after,
-      .nav a:focus-visible::after {
-        transform: scaleX(1);
-        transform-origin: left;
-      }
-
-      .button,
-      .button-secondary,
-      .newsletter-button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.6rem;
-        min-height: 3.35rem;
-        padding: 0 1.35rem;
-        border-radius: 999px;
-        border: 1px solid transparent;
-        transition: transform 240ms ease, box-shadow 240ms ease, background 240ms ease, border-color 240ms ease;
-      }
-
-      .button {
-        color: var(--warm-white);
-        background: linear-gradient(135deg, #1f1f1f, #0d0d0d);
-        box-shadow: 0 14px 28px rgba(13, 13, 13, 0.14);
-      }
-
-      .button-secondary,
-      .newsletter-button.secondary {
-        background: rgba(255, 255, 255, 0.58);
-        border-color: rgba(13, 13, 13, 0.11);
-        color: var(--black);
-      }
-
-      .button:hover,
-      .button-secondary:hover,
-      .newsletter-button:hover,
-      .button:focus-visible,
-      .button-secondary:focus-visible,
-      .newsletter-button:focus-visible,
-      .nav a:focus-visible,
-      .footer-links a:focus-visible,
-      .socials a:focus-visible,
-      input:focus-visible {
-        transform: translateY(-2px);
-        outline: none;
-        box-shadow: 0 16px 30px rgba(13, 13, 13, 0.12);
-      }
-
-      .section {
-        padding: 5.5rem 0;
-      }
-
-      .section + .section {
-        border-top: 1px solid rgba(13, 13, 13, 0.06);
-      }
-
-      .section-intro {
-        display: grid;
-        gap: 0.85rem;
-        margin-bottom: 2rem;
-      }
-
-      .section-intro h2,
-      .hero-copy h1,
-      .board-title,
-      .type-serif {
-        margin: 0;
-        font-family: var(--serif);
-        font-weight: 400;
-        line-height: 0.96;
-        letter-spacing: -0.03em;
-        color: var(--black);
-      }
-
-      .section-intro h2 {
-        font-size: clamp(2.2rem, 5vw, 4rem);
-      }
-
-      .section-intro p,
-      .hero-copy p,
-      .card p,
-      .essence-card p,
-      .about-copy p,
-      .newsletter-card p,
-      .footer-note {
-        max-width: 62ch;
-        color: rgba(42, 42, 42, 0.78);
-      }
-
-      .hero {
-        padding: 2.25rem 0 4rem;
-      }
-
-      .hero-grid {
-        width: var(--container);
-        margin: 0 auto;
-        display: grid;
-        gap: 2rem;
-        align-items: center;
-      }
-
-      .hero-copy {
-        position: relative;
-        z-index: 1;
-      }
-
-      .coming-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.65rem;
-        padding: 0.6rem 0.95rem;
-        margin-bottom: 1.35rem;
-        border-radius: 999px;
-        border: 1px solid rgba(13, 13, 13, 0.08);
-        background: rgba(255, 255, 255, 0.68);
-        box-shadow: var(--shadow-soft);
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.28em;
-      }
-
-      .coming-badge::before {
-        content: "";
-        width: 0.52rem;
-        height: 0.52rem;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--black), var(--taupe));
-      }
-
-      .hero-copy h1 {
-        font-size: clamp(3.8rem, 12vw, 7.75rem);
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      .hero-kicker {
-        margin: 1.2rem 0 0.75rem;
-        font-family: var(--serif);
-        font-size: clamp(1.2rem, 2.5vw, 1.7rem);
-        color: rgba(13, 13, 13, 0.84);
-      }
-
-      .hero-copy p {
-        font-size: 1rem;
-      }
-
-      .hero-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.85rem;
-        margin-top: 1.8rem;
-      }
-
-      .hero-board {
-        position: relative;
-        padding: 1rem;
-        border-radius: calc(var(--radius) + 6px);
-        background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(231,226,220,0.72));
-        border: 1px solid rgba(13,13,13,0.08);
-        box-shadow: var(--shadow);
-        overflow: hidden;
-        transform-style: preserve-3d;
-      }
-
-      .hero-board::before,
-      .hero-board::after {
-        content: "";
-        position: absolute;
-        inset: 1rem;
-        border: 1px solid rgba(13, 13, 13, 0.06);
-        border-radius: calc(var(--radius) - 4px);
-        pointer-events: none;
-      }
-
-      .hero-board::after {
-        inset: auto 1.4rem 1.4rem;
-        height: 5rem;
-        background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.55));
-        border: none;
-        border-radius: 0 0 22px 22px;
-      }
-
-      .board-grid {
-        position: relative;
-        display: grid;
-        grid-template-columns: 1.08fr 0.92fr;
-        gap: 0.95rem;
-        z-index: 1;
-      }
-
-      .board-panel,
-      .brand-board-card,
-      .about-visual,
-      .card,
-      .essence-card,
-      .newsletter-card,
-      .footer-panel {
-        border-radius: var(--radius-sm);
-        background: rgba(255, 255, 255, 0.76);
-        border: 1px solid rgba(13, 13, 13, 0.08);
-        box-shadow: var(--shadow-soft);
-      }
-
-      .board-panel {
-        padding: 1rem;
-        min-height: 9rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-
-      .board-panel.dark {
-        background: linear-gradient(180deg, #161616, #0d0d0d);
-        color: var(--warm-white);
-      }
-
-      .board-title {
-        font-size: clamp(1.8rem, 5vw, 3rem);
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-
-      .board-sub {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        font-size: 0.76rem;
-        letter-spacing: 0.28em;
-        text-transform: uppercase;
-      }
-
-      .board-sub::before,
-      .board-sub::after,
-      .line-title::before,
-      .line-title::after {
-        content: "";
-        height: 1px;
-        flex: 1;
-        background: currentColor;
-        opacity: 0.3;
-      }
-
-      .monogram-ring {
-        width: clamp(7rem, 20vw, 10rem);
-        aspect-ratio: 1;
-        border-radius: 50%;
-        border: 1px solid rgba(13, 13, 13, 0.16);
-        display: grid;
-        place-items: center;
-        margin-inline: auto;
-        font-family: var(--serif);
-        font-size: clamp(3rem, 8vw, 4.8rem);
-        letter-spacing: -0.1em;
-      }
-
-      .swatches {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.45rem;
-      }
-
-      .swatch {
-        aspect-ratio: 1.3;
-        border-radius: 0.55rem;
-        border: 1px solid rgba(13, 13, 13, 0.08);
-      }
-
-      .cup-stage,
-      .bag-stage {
-        position: relative;
-        min-height: 12rem;
-      }
-
-      .cup,
-      .bag,
-      .card-stock {
-        position: absolute;
-        bottom: 0;
-        border-radius: 1rem;
-        box-shadow: 0 20px 34px rgba(13, 13, 13, 0.12);
-      }
-
-      .cup {
-        right: 0.9rem;
-        width: 5.25rem;
-        height: 7.4rem;
-        background: linear-gradient(180deg, #181818, #050505);
-        border-radius: 1rem 1rem 1.6rem 1.6rem;
-      }
-
-      .cup::before {
-        content: "Central\A Café";
-        white-space: pre;
-        position: absolute;
-        inset: 2.6rem 0 0;
-        text-align: center;
-        color: rgba(247, 245, 242, 0.95);
-        font-family: var(--serif);
-        font-size: 0.92rem;
-        letter-spacing: 0.14em;
-        line-height: 1.35;
-        text-transform: uppercase;
-      }
-
-      .cup::after {
-        content: "";
-        position: absolute;
-        inset: -0.7rem -0.1rem auto;
-        height: 1.25rem;
-        border-radius: 999px;
-        background: linear-gradient(180deg, #3a3a3a, #0c0c0c);
-      }
-
-      .bag {
-        left: 0.8rem;
-        width: 5rem;
-        height: 7rem;
-        background: linear-gradient(180deg, #202020, #0b0b0b);
-        border-radius: 0.45rem 0.45rem 1rem 1rem;
-      }
-
-      .bag::before {
-        content: "CENTRAL";
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 2.7rem;
-        text-align: center;
-        color: rgba(247, 245, 242, 0.92);
-        font-family: var(--serif);
-        font-size: 0.84rem;
-        letter-spacing: 0.16em;
-      }
-
-      .card-stock {
-        left: 4.8rem;
-        width: 4.4rem;
-        height: 2.7rem;
-        background: linear-gradient(180deg, #1d1d1d, #121212);
-      }
-
-      .card-stock::before {
-        content: "CC";
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        color: var(--warm-white);
-        font-family: var(--serif);
-        font-size: 1.4rem;
-        letter-spacing: -0.1em;
-      }
-
-      .essence-grid,
-      .experience-grid,
-      .preview-grid {
-        display: grid;
-        gap: 1rem;
-      }
-
-      .essence-card,
-      .card {
-        padding: 1.5rem;
-      }
-
-      .line-title {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        margin-bottom: 1rem;
-        font-size: 0.78rem;
-        text-transform: uppercase;
-        letter-spacing: 0.28em;
-        color: rgba(42, 42, 42, 0.75);
-      }
-
-      .essence-card h3,
-      .card h3,
-      .about-copy h3,
-      .newsletter-card h3,
-      .brand-board-card h3 {
-        margin: 0 0 0.6rem;
-        font-family: var(--serif);
-        font-weight: 400;
-        color: var(--black);
-        font-size: 1.55rem;
-      }
-
-      .about-grid {
-        display: grid;
-        gap: 1.5rem;
-      }
-
-      .about-copy {
-        display: grid;
-        gap: 1rem;
-        align-content: start;
-      }
-
-      .about-visual {
-        position: relative;
-        min-height: 22rem;
-        padding: 1.25rem;
-        background:
-          linear-gradient(180deg, rgba(255,255,255,0.9), rgba(231,226,220,0.9)),
-          linear-gradient(135deg, rgba(184,172,161,0.2), rgba(255,255,255,0));
-        overflow: hidden;
-      }
-
-      .about-visual::before {
-        content: "";
-        position: absolute;
-        inset: 1rem;
-        border-radius: calc(var(--radius-sm) - 2px);
-        border: 1px solid rgba(13, 13, 13, 0.08);
-      }
-
-      .future-space {
-        position: absolute;
-        inset: 1.85rem;
-        border-radius: 1.2rem;
-        overflow: hidden;
-        display: grid;
-        align-content: end;
-        padding: 1.5rem;
-        background:
-          linear-gradient(180deg, rgba(255,255,255,0.06), rgba(13,13,13,0.18)),
-          radial-gradient(circle at top left, rgba(255,255,255,0.82), transparent 36%),
-          linear-gradient(135deg, #f8f6f3, #e9e2db 50%, #d7cfc7);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35);
-      }
-
-      .future-space::before,
-      .future-space::after {
-        content: "";
-        position: absolute;
-        background: rgba(13, 13, 13, 0.08);
-      }
-
-      .future-space::before {
-        left: 12%;
-        bottom: 0;
-        width: 28%;
-        height: 65%;
-        border-radius: 1rem 1rem 0 0;
-        box-shadow: 8rem 0 0 rgba(13, 13, 13, 0.05), 16rem 0 0 rgba(13, 13, 13, 0.04);
-      }
-
-      .future-space::after {
-        right: 12%;
-        bottom: 14%;
-        width: 26%;
-        height: 0.28rem;
-        box-shadow: 0 3rem 0 rgba(13, 13, 13, 0.07), -8rem 3rem 0 rgba(13, 13, 13, 0.05);
-      }
-
-      .future-caption {
-        position: relative;
-        display: inline-flex;
-        width: fit-content;
-        padding: 0.65rem 0.95rem;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.72);
-        border: 1px solid rgba(13,13,13,0.08);
-        font-size: 0.74rem;
-        text-transform: uppercase;
-        letter-spacing: 0.24em;
-      }
-
-      .icon-wrap {
-        width: 3.35rem;
-        height: 3.35rem;
-        display: grid;
-        place-items: center;
-        margin-bottom: 1rem;
-        border-radius: 50%;
-        background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(231,226,220,0.92));
-        border: 1px solid rgba(13,13,13,0.08);
-      }
-
-      .card {
-        transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
-      }
-
-      .card:hover,
-      .card:focus-within {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(13, 13, 13, 0.09);
-        border-color: rgba(13, 13, 13, 0.16);
-      }
-
-      .brand-board-card {
-        padding: 1.25rem;
-      }
-
-      .preview-grid .brand-board-card {
-        min-height: 100%;
-      }
-
-      .wordmark {
-        font-size: clamp(2.2rem, 6vw, 4rem);
-        text-transform: uppercase;
-      }
-
-      .wordmark small {
-        display: block;
-        margin-top: 0.2rem;
-        font-size: 0.44em;
-        letter-spacing: 0.32em;
-      }
-
-      .monogram-large {
-        width: min(100%, 13rem);
-        aspect-ratio: 1;
-        margin: 0.4rem auto 0;
-        border: 1px solid rgba(13, 13, 13, 0.14);
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        position: relative;
-      }
-
-      .monogram-large::before,
-      .monogram-large::after {
-        content: "C";
-        position: absolute;
-        font-family: var(--serif);
-        font-size: clamp(4rem, 10vw, 5.4rem);
-        line-height: 1;
-      }
-
-      .monogram-large::before { transform: translateX(-0.75rem); }
-      .monogram-large::after { transform: translateX(0.75rem); }
-
-      .type-preview {
-        display: grid;
-        gap: 0.7rem;
-      }
-
-      .type-serif {
-        font-size: clamp(2rem, 5vw, 3.4rem);
-      }
-
-      .type-sans {
-        font-size: 0.94rem;
-        text-transform: uppercase;
-        letter-spacing: 0.35em;
-      }
-
-      .packaging-preview {
-        position: relative;
-        min-height: 15rem;
-      }
-
-      .packaging-preview .bag { left: 1rem; bottom: 0.5rem; }
-      .packaging-preview .cup {
-        right: 1.4rem;
-        bottom: 0.5rem;
-        width: 5.8rem;
-        height: 8.1rem;
-        background: linear-gradient(180deg, #f8f6f3, #ddd7d1);
-        border: 1px solid rgba(13, 13, 13, 0.08);
-      }
-      .packaging-preview .cup::before { color: var(--black); }
-      .packaging-preview .cup::after { background: linear-gradient(180deg, #f9f7f5, #d3cbc3); }
-      .packaging-preview .card-stock {
-        left: 4.6rem;
-        bottom: 0.8rem;
-        background: linear-gradient(180deg, #222, #0d0d0d);
-      }
-
-      .newsletter-card {
-        padding: 1.5rem;
-        display: grid;
-        gap: 1.2rem;
-      }
-
-      .newsletter-form {
-        display: grid;
-        gap: 0.85rem;
-      }
-
-      .input-row {
-        display: grid;
-        gap: 0.8rem;
-      }
-
-      .newsletter-input {
-        min-height: 3.5rem;
-        padding: 0 1rem;
-        border-radius: 999px;
-        border: 1px solid rgba(13, 13, 13, 0.12);
-        background: rgba(255, 255, 255, 0.82);
-        color: var(--black);
-      }
-
-      .success-message {
-        min-height: 1.5rem;
-        color: rgba(42, 42, 42, 0.85);
-        font-size: 0.94rem;
-      }
-
-      .footer {
-        padding: 2rem 0 2.8rem;
-      }
-
-      .footer-panel {
-        padding: 1.3rem 1.2rem;
-      }
-
-      .footer-row {
-        display: grid;
-        gap: 1.2rem;
-      }
-
-      .footer-links,
-      .socials {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        font-size: 0.92rem;
-      }
-
-      .footer-links a,
-      .socials a {
-        color: rgba(42, 42, 42, 0.8);
-      }
-
-      .reveal {
-        opacity: 0;
-        transform: translateY(28px);
-        transition: opacity var(--ease), transform var(--ease);
-      }
-
-      .reveal.is-visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      @media (min-width: 760px) {
-        .nav { display: flex; }
-        .hero-grid,
-        .about-grid,
-        .footer-row {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .hero {
-          padding: 3.5rem 0 5.5rem;
-        }
-        .hero-grid { gap: 2.5rem; }
-        .essence-grid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-        .experience-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .preview-grid {
-          grid-template-columns: 1.15fr 0.85fr;
-        }
-        .preview-grid .span-2 {
-          grid-column: span 2;
-        }
-        .newsletter-card {
-          padding: 2rem;
-        }
-        .input-row {
-          grid-template-columns: 1fr auto;
-        }
-      }
-
-      @media (min-width: 1024px) {
-        .experience-grid {
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
-        .hero-copy p {
-          font-size: 1.05rem;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="page-shell">
-      <div class="floating-monogram" aria-hidden="true">CC</div>
-
-      <header class="topbar">
-        <div class="topbar-inner">
-          <a href="#hero" class="brand-lockup" aria-label="Central Café, retour en haut">
-            <strong>Central Café</strong>
-            <span>Bientôt en ville</span>
-          </a>
-          <nav class="nav" aria-label="Navigation principale">
-            <a href="#esprit">Esprit</a>
-            <a href="#concept">Concept</a>
-            <a href="#identite">Identité</a>
-            <a href="#newsletter">Ouverture</a>
-          </nav>
-        </div>
-      </header>
-
-      <main>
-        <section class="hero" id="hero">
-          <div class="hero-grid">
-            <div class="hero-copy reveal">
-              <div class="coming-badge">Bientôt • Nouvelle adresse</div>
-              <p class="micro-label">Café-boutique • Signature urbaine</p>
-              <h1>Central Café</h1>
-              <p class="hero-kicker">Un café-boutique élégant au cœur de la ville.</p>
-              <p>
-                Un lieu pensé pour savourer un café d’exception, ralentir, se rencontrer et découvrir une ambiance raffinée.
-              </p>
-              <div class="hero-actions">
-                <a class="button" href="#identite">Découvrir l’univers</a>
-                <a class="button-secondary" href="#newsletter">Nous suivre</a>
-              </div>
-            </div>
-
-            <div class="hero-board reveal" id="heroBoard" aria-label="Aperçu visuel de l'univers Central Café">
-              <div class="board-grid">
-                <article class="board-panel" style="grid-column: span 2; min-height: 10.5rem;">
-                  <span class="micro-label">Wordmark principal</span>
-                  <div class="board-title">Central</div>
-                  <div class="board-sub">Café</div>
-                </article>
-                <article class="board-panel">
-                  <span class="micro-label">Monogramme</span>
-                  <div class="monogram-ring">CC</div>
-                </article>
-                <article class="board-panel dark">
-                  <span class="micro-label" style="color: rgba(247,245,242,0.7);">Palette</span>
-                  <div class="swatches" aria-hidden="true">
-                    <div class="swatch" style="background:#0d0d0d"></div>
-                    <div class="swatch" style="background:#2a2a2a"></div>
-                    <div class="swatch" style="background:#e7e2dc"></div>
-                    <div class="swatch" style="background:#f7f5f2"></div>
-                  </div>
-                </article>
-                <article class="board-panel" style="grid-column: span 2; min-height: 13rem;">
-                  <span class="micro-label">Emballage & service</span>
-                  <div class="cup-stage" aria-hidden="true">
-                    <div class="bag"></div>
-                    <div class="card-stock"></div>
-                    <div class="cup"></div>
-                  </div>
-                </article>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="section" id="esprit">
-          <div class="section-inner">
-            <div class="section-intro reveal">
-              <p class="micro-label">Essence de marque</p>
-              <h2>L’esprit Central Café</h2>
-            </div>
-            <div class="essence-grid">
-              <article class="essence-card reveal">
-                <div class="line-title">Élégant</div>
-                <p>
-                  Une esthétique sobre, dessinée avec précision, où chaque détail évoque la qualité, la douceur et une allure résolument contemporaine.
-                </p>
-              </article>
-              <article class="essence-card reveal">
-                <div class="line-title">Intemporel</div>
-                <p>
-                  Des lignes pures, une palette maîtrisée et un langage visuel pensé pour durer au-delà des tendances, avec une distinction naturelle.
-                </p>
-              </article>
-              <article class="essence-card reveal">
-                <div class="line-title">Accueillant</div>
-                <p>
-                  Un cadre feutré et lumineux, imaginé pour inviter à s’attarder, échanger ou simplement profiter d’une parenthèse plus belle dans la journée.
-                </p>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section class="section" id="concept">
-          <div class="section-inner about-grid">
-            <div class="about-copy reveal">
-              <div class="section-intro" style="margin-bottom: 0;">
-                <p class="micro-label">Vision du lieu</p>
-                <h2>Un futur lieu signature</h2>
-              </div>
-              <p>
-                Central Café est imaginé comme un café-boutique de nouvelle génération, où l’expérience visuelle, la qualité du café et le confort se rencontrent dans un univers chic et apaisant.
-              </p>
-              <p>
-                Pensé pour les gens qui aiment autant le beau que le bon, Central Café souhaite offrir une pause haut de gamme, accessible et inspirante.
-              </p>
-            </div>
-            <div class="about-visual reveal" aria-label="Illustration du futur espace Central Café">
-              <div class="future-space">
-                <span class="future-caption">Image du futur espace</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="section" id="difference">
-          <div class="section-inner">
-            <div class="section-intro reveal">
-              <p class="micro-label">Signature d’expérience</p>
-              <h2>Ce qui fera notre différence</h2>
-            </div>
-            <div class="experience-grid">
-              <article class="card reveal">
-                <div class="icon-wrap" aria-hidden="true">
-                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 10.5H19.5C20.8807 10.5 22 11.6193 22 13V14.5C22 15.8807 20.8807 17 19.5 17H18.5C18.2239 19.5312 16.0787 21.5 13.5 21.5C10.9213 21.5 8.77614 19.5312 8.5 17H8C6.89543 17 6 16.1046 6 15V12.5C6 11.3954 6.89543 10.5 8 10.5Z" stroke="#0d0d0d" stroke-width="1.3"/>
-                    <path d="M9.5 7.5C10.3 6.5 10.5 5.8 10.1 4.7" stroke="#0d0d0d" stroke-width="1.3" stroke-linecap="round"/>
-                    <path d="M13.7 7.5C14.5 6.5 14.7 5.8 14.3 4.7" stroke="#0d0d0d" stroke-width="1.3" stroke-linecap="round"/>
-                    <path d="M17.9 7.5C18.7 6.5 18.9 5.8 18.5 4.7" stroke="#0d0d0d" stroke-width="1.3" stroke-linecap="round"/>
-                  </svg>
-                </div>
-                <h3>Café soigné</h3>
-                <p>Une carte pensée avec exigence, des extractions précises et une attention portée à chaque tasse, du premier arôme à la dernière note.</p>
-              </article>
-              <article class="card reveal">
-                <div class="icon-wrap" aria-hidden="true">
-                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5.5" y="7" width="17" height="13.5" rx="2" stroke="#0d0d0d" stroke-width="1.3"/>
-                    <path d="M9 20.5V11.5" stroke="#0d0d0d" stroke-width="1.3"/>
-                    <path d="M14 20.5V11.5" stroke="#0d0d0d" stroke-width="1.3"/>
-                    <path d="M19 20.5V11.5" stroke="#0d0d0d" stroke-width="1.3"/>
-                    <path d="M5.5 12H22.5" stroke="#0d0d0d" stroke-width="1.3"/>
-                  </svg>
-                </div>
-                <h3>Ambiance boutique</h3>
-                <p>Un décor éditorial, calme et texturé, où le service, la lumière et les matériaux créent une sensation de boutique confidentielle.</p>
-              </article>
-              <article class="card reveal">
-                <div class="icon-wrap" aria-hidden="true">
-                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="14" cy="14" r="9.5" stroke="#0d0d0d" stroke-width="1.3"/>
-                    <path d="M10 18L18 10" stroke="#0d0d0d" stroke-width="1.3"/>
-                    <path d="M11 10H18V17" stroke="#0d0d0d" stroke-width="1.3"/>
-                  </svg>
-                </div>
-                <h3>Design raffiné</h3>
-                <p>Une identité cohérente, du mot-symbole à l’emballage, pensée comme un univers complet où chaque support prolonge la même élégance.</p>
-              </article>
-              <article class="card reveal">
-                <div class="icon-wrap" aria-hidden="true">
-                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7 17.5C9 16.3 10.7 16.1 12.6 17" stroke="#0d0d0d" stroke-width="1.3" stroke-linecap="round"/>
-                    <path d="M15.4 11C17.3 11.9 19 11.7 21 10.5" stroke="#0d0d0d" stroke-width="1.3" stroke-linecap="round"/>
-                    <path d="M7.5 10.5C9.4 11.4 11.1 11.2 13 10" stroke="#0d0d0d" stroke-width="1.3" stroke-linecap="round"/>
-                    <path d="M15 18C16.9 16.8 18.6 16.6 20.5 17.5" stroke="#0d0d0d" stroke-width="1.3" stroke-linecap="round"/>
-                  </svg>
-                </div>
-                <h3>Pause inspirante</h3>
-                <p>Une adresse pensée pour ralentir sans se couper du rythme urbain, avec l’envie de faire de chaque visite un moment choisi.</p>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section class="section" id="identite">
-          <div class="section-inner">
-            <div class="section-intro reveal">
-              <p class="micro-label">Direction artistique</p>
-              <h2>Aperçu de l’identité</h2>
-              <p>
-                Une composition inspirée d’un véritable brand board : équilibre des matières, présence du noir et du blanc, typographies contrastées et détails pensés comme des objets de désir.
-              </p>
-            </div>
-            <div class="preview-grid">
-              <article class="brand-board-card reveal">
-                <div class="line-title">Wordmark</div>
-                <div class="wordmark">Central <small>Café</small></div>
-              </article>
-              <article class="brand-board-card reveal">
-                <div class="line-title">Monogramme</div>
-                <div class="monogram-large" aria-hidden="true"></div>
-              </article>
-              <article class="brand-board-card reveal">
-                <div class="line-title">Palette</div>
-                <div class="swatches" aria-hidden="true">
-                  <div class="swatch" style="background:#0d0d0d"></div>
-                  <div class="swatch" style="background:#2a2a2a"></div>
-                  <div class="swatch" style="background:#e7e2dc"></div>
-                  <div class="swatch" style="background:#f7f5f2"></div>
-                </div>
-              </article>
-              <article class="brand-board-card reveal">
-                <div class="line-title">Typographie</div>
-                <div class="type-preview">
-                  <div class="type-serif">Élégance moderne</div>
-                  <div class="type-sans">Sobre • Raffiné • Durable</div>
-                </div>
-              </article>
-              <article class="brand-board-card reveal span-2">
-                <div class="line-title">Emballage</div>
-                <div class="packaging-preview" aria-hidden="true">
-                  <div class="bag"></div>
-                  <div class="card-stock"></div>
-                  <div class="cup"></div>
-                </div>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section class="section" id="newsletter">
-          <div class="section-inner">
-            <article class="newsletter-card reveal">
-              <div class="section-intro" style="margin-bottom: 0;">
-                <p class="micro-label">Communauté</p>
-                <h2>Suivre l’ouverture</h2>
-                <p>
-                  Inscrivez-vous pour découvrir les coulisses, les nouveautés et suivre l’évolution de Central Café.
-                </p>
-              </div>
-              <form class="newsletter-form" id="newsletterForm" novalidate>
-                <div class="input-row">
-                  <label class="sr-only" for="email" style="position:absolute;left:-9999px;">Votre courriel</label>
-                  <input class="newsletter-input" id="email" name="email" type="email" placeholder="Votre courriel" aria-describedby="newsletterMessage" required />
-                  <button class="newsletter-button button" type="submit">Rester informé</button>
-                </div>
-                <div class="success-message" id="newsletterMessage" role="status" aria-live="polite"></div>
-              </form>
-            </article>
-          </div>
-        </section>
-      </main>
-
-      <footer class="footer">
-        <div class="footer-inner">
-          <div class="footer-panel reveal">
-            <div class="footer-row">
-              <div>
-                <div class="brand-lockup" style="margin-bottom: 0.9rem;">
-                  <strong>Central Café</strong>
-                  <span>Central Café — bientôt.</span>
-                </div>
-                <p class="footer-note">
-                  Une future adresse pensée pour conjuguer beauté, douceur et café d’exception dans un même geste.
-                </p>
-              </div>
-              <div style="display:grid; gap:1rem; align-content:start;">
-                <div class="footer-links" aria-label="Liens de navigation">
-                  <a href="#hero">Accueil</a>
-                  <a href="#esprit">Esprit</a>
-                  <a href="#concept">Concept</a>
-                  <a href="#identite">Identité</a>
-                </div>
-                <div class="socials" aria-label="Réseaux sociaux">
-                  <a href="#newsletter">Instagram</a>
-                  <a href="#newsletter">Facebook</a>
-                  <a href="#newsletter">TikTok</a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
-
-    <script>
-      (() => {
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-          anchor.addEventListener('click', (event) => {
-            const targetId = anchor.getAttribute('href');
-            if (!targetId || targetId === '#') return;
-            const target = document.querySelector(targetId);
-            if (!target) return;
-            event.preventDefault();
-            target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-          });
-        });
-
-        const revealItems = document.querySelectorAll('.reveal');
-        if (reduceMotion) {
-          revealItems.forEach((item) => item.classList.add('is-visible'));
-        } else {
-          const observer = new IntersectionObserver((entries, obs) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('is-visible');
-                obs.unobserve(entry.target);
-              }
-            });
-          }, { threshold: 0.16, rootMargin: '0px 0px -40px 0px' });
-
-          revealItems.forEach((item) => observer.observe(item));
-        }
-
-        const form = document.getElementById('newsletterForm');
-        const input = document.getElementById('email');
-        const message = document.getElementById('newsletterMessage');
-
-        form.addEventListener('submit', (event) => {
-          event.preventDefault();
-          const value = input.value.trim();
-          if (!value || !input.checkValidity()) {
-            message.textContent = 'Merci de renseigner une adresse valide pour recevoir les prochaines nouvelles.';
-            input.focus();
-            return;
-          }
-
-          message.textContent = 'Merci. Votre intérêt a bien été noté ; nous vous écrirons à l’approche de l’ouverture.';
-          form.reset();
-        });
-
-        const heroBoard = document.getElementById('heroBoard');
-        if (heroBoard && !reduceMotion) {
-          const limit = 7;
-          window.addEventListener('pointermove', (event) => {
-            const rect = heroBoard.getBoundingClientRect();
-            const x = (event.clientX - rect.left) / rect.width - 0.5;
-            const y = (event.clientY - rect.top) / rect.height - 0.5;
-            if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-            heroBoard.style.transform = `perspective(1200px) rotateX(${(-y * limit).toFixed(2)}deg) rotateY(${(x * limit).toFixed(2)}deg) translateY(-2px)`;
-          });
-          window.addEventListener('pointerleave', () => {
-            heroBoard.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg)';
-          });
-          window.addEventListener('scroll', () => {
-            const offset = Math.min(window.scrollY * 0.04, 12);
-            heroBoard.style.boxShadow = `0 ${24 + offset}px ${60 + offset}px rgba(13, 13, 13, 0.08)`;
-          }, { passive: true });
-        }
-      })();
-    </script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simon - Jeu de Mémoire</title>
+<style>
+  /* --- DESIGN ET ERGONOMIE (CSS) --- */
+  body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #1a1a24;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    transition: background-color 0.2s;
+  }
+
+  /* Le plateau circulaire */
+  .game-container {
+    position: relative;
+    width: 450px;
+    height: 450px;
+    border-radius: 50%;
+    background-color: #2a2a35;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 15px;
+    gap: 15px;
+    box-sizing: border-box;
+  }
+
+  /* Les 4 boutons de couleur */
+  .pad {
+    width: calc(50% - 7.5px);
+    height: calc(50% - 7.5px);
+    cursor: pointer;
+    transition: filter 0.15s, transform 0.1s;
+    opacity: 0.7;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+  }
+
+  /* Forme des quartiers de cercle */
+  .green  { background-color: #00a74a; border-top-left-radius: 100%; color: #00ff73; }
+  .red    { background-color: #9f0f17; border-top-right-radius: 100%; color: #ff4c4c; }
+  .yellow { background-color: #cca707; border-bottom-left-radius: 100%; color: #fed93f; }
+  .blue   { background-color: #094a8f; border-bottom-right-radius: 100%; color: #1c8cff; }
+
+  /* Effets au clic et à l'activation */
+  .pad:active { transform: scale(0.97); }
+  .pad.active {
+    opacity: 1;
+    filter: brightness(1.8) drop-shadow(0 0 25px currentColor);
+    z-index: 10;
+  }
+
+  /* Interface centrale (Score et Bouton) */
+  .center-ui {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background-color: #1a1a24;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 12px solid #2a2a35;
+    z-index: 5;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 15px rgba(0,0,0,0.5);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 32px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #eaeaea;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  #score {
+    font-size: 22px;
+    margin: 15px 0;
+    font-weight: bold;
+    color: #777;
+    transition: color 0.3s;
+  }
+
+  .game-over-text { color: #ff4c4c !important; }
+
+  button {
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    border-radius: 25px;
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  button:hover { box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4); }
+  button:active { transform: scale(0.95); }
+
+  /* Rendre le jeu responsive pour mobile */
+  @media (max-width: 500px) {
+    .game-container { width: 320px; height: 320px; }
+    .center-ui { width: 140px; height: 140px; border-width: 8px; }
+    h1 { font-size: 24px; }
+    #score { font-size: 18px; }
+    button { padding: 8px 16px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  <div class="pad green" id="0"></div>
+  <div class="pad red" id="1"></div>
+  <div class="pad yellow" id="2"></div>
+  <div class="pad blue" id="3"></div>
+  
+  <div class="center-ui">
+    <h1>Simon</h1>
+    <div id="score">Prêt ?</div>
+    <button id="start-btn">Jouer</button>
+  </div>
+</div>
+
+<script>
+  /* --- LOGIQUE DU JEU (JAVASCRIPT) --- */
+  const pads = document.querySelectorAll('.pad');
+  const startBtn = document.getElementById('start-btn');
+  const scoreDisplay = document.getElementById('score');
+
+  let sequence = [];
+  let playerSequence = [];
+  let level = 0;
+  let canClick = false;
+
+  // Configuration Audio (Sons classiques du Simon)
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  const audioCtx = new AudioContext();
+  const frequencies = [329.6, 261.6, 277.2, 415.3]; // Mi4 (Vert), Do4 (Rouge), Do#4 (Jaune), Sol#4 (Bleu)
+
+  // Fonction pour jouer une note
+  function playTone(freq, duration) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    oscillator.type = 'sine'; // Son doux
+    oscillator.frequency.value = freq;
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    oscillator.start();
+    // Baisse progressive du volume pour éviter les "clics" audios
+    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    oscillator.stop(audioCtx.currentTime + duration);
+  }
+
+  // Fonction pour le son d'erreur
+  function playErrorTone() {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    oscillator.type = 'sawtooth'; // Son plus agressif pour l'erreur
+    oscillator.frequency.value = 110; // Note grave
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    oscillator.start();
+    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.8);
+    oscillator.stop(audioCtx.currentTime + 0.8);
+  }
+
+  // Illumine un bouton et joue son son
+  function activatePad(id) {
+    const pad = document.getElementById(id);
+    pad.classList.add('active');
+    playTone(frequencies[id], 0.4);
+    
+    setTimeout(() => {
+      pad.classList.remove('active');
+    }, 300);
+  }
+
+  // Passe au niveau suivant
+  function nextLevel() {
+    level++;
+    playerSequence = [];
+    scoreDisplay.textContent = `Niveau ${level}`;
+    scoreDisplay.classList.remove('game-over-text');
+    
+    // Ajoute une nouvelle couleur aléatoire (0 à 3) à la séquence
+    const nextColor = Math.floor(Math.random() * 4);
+    sequence.push(nextColor);
+    
+    playSequence();
+  }
+
+  // Joue la séquence enregistrée par l'ordinateur
+  function playSequence() {
+    canClick = false; // Bloque les clics du joueur pendant la démonstration
+    let delay = 0;
+    
+    sequence.forEach((color, index) => {
+      setTimeout(() => {
+        activatePad(color);
+      }, delay);
+      // Accélère légèrement la séquence au fur et à mesure des niveaux
+      let speed = Math.max(400, 800 - (level * 20)); 
+      delay += speed;
+    });
+    
+    // Autorise le joueur à cliquer une fois la séquence terminée
+    setTimeout(() => {
+      canClick = true;
+    }, delay);
+  }
+
+  // Gère le clic du joueur
+  function handlePadClick(e) {
+    if (!canClick) return;
+    
+    const colorId = parseInt(e.target.id);
+    activatePad(colorId);
+    playerSequence.push(colorId);
+    
+    checkSequence(playerSequence.length - 1);
+  }
+
+  // Vérifie si le joueur a cliqué sur la bonne couleur
+  function checkSequence(currentStep) {
+    // Si la couleur est fausse
+    if (playerSequence[currentStep] !== sequence[currentStep]) {
+      gameOver();
+      return;
+    }
+    
+    // Si le joueur a terminé la séquence complète avec succès
+    if (playerSequence.length === sequence.length) {
+      canClick = false;
+      setTimeout(nextLevel, 1000); // Pause avant le prochain niveau
+    }
+  }
+
+  // Gère la fin de partie
+  function gameOver() {
+    playErrorTone();
+    scoreDisplay.textContent = "PERDU !";
+    scoreDisplay.classList.add('game-over-text');
+    
+    // Flash rouge sur l'écran
+    document.body.style.backgroundColor = '#4a0909';
+    setTimeout(() => { document.body.style.backgroundColor = '#1a1a24'; }, 300);
+    
+    // Réinitialisation de l'état
+    sequence = [];
+    canClick = false;
+    
+    // Réaffiche le bouton jouer
+    startBtn.textContent = "Rejouer";
+    startBtn.style.display = 'block';
+  }
+
+  // Lance le jeu
+  startBtn.addEventListener('click', () => {
+    // Nécessaire pour initialiser l'audio sur certains navigateurs
+    if(audioCtx.state === 'suspended') audioCtx.resume(); 
+    
+    startBtn.style.display = 'none';
+    level = 0;
+    sequence = [];
+    
+    setTimeout(nextLevel, 500);
+  });
+
+  // Attache les événements de clics aux boutons de couleur
+  pads.forEach(pad => pad.addEventListener('click', handlePadClick));
+
+</script>
+</body>
 </html>
