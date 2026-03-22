@@ -1,86 +1,48 @@
-# Wall Shift
+# Écosphère
 
-Wall Shift is a polished portrait-first mobile arcade game built with HTML, CSS, and vanilla JavaScript. You play as a glowing core climbing an endless procedural shaft by bouncing between walls, dodging telegraphed hazards, collecting coins, triggering power-ups, and chasing short addictive high-score runs.
+Écosphère est une simulation 2D d'écosystème vivant réalisée en HTML, CSS et JavaScript dans un seul fichier statique. Le projet met en scène des herbivores, des prédateurs, des ressources alimentaires dynamiques, des mutations légères, des événements écologiques, un cycle jour/nuit et une interface d'observation premium pensée comme un mini jeu de simulation contemplatif.
 
-## Features
+## Fonctionnalités
 
-- Portrait 9:16 single-page web app tuned for mobile Safari and desktop testing.
-- Endless procedural generation with escalating difficulty, biome changes, and rare run events.
-- Touch-first wall-jump controls with keyboard and mouse support for testing.
-- Multiple hazard types including spikes, moving spikes, lasers, rotating bars, gates, fake grips, collapsing grips, and drones.
-- Power-ups, combo scoring, coins, persistent missions, cosmetics, settings, and local save data.
-- Premium neon UI with title, shop, missions, settings, pause, tutorial, and game-over flows.
-- Lightweight generated Web Audio sound effects with mute support.
+- Vue de dessus 2D avec rendu Canvas fluide et stylisé.
+- Herbivores autonomes capables d'errer, fuir, chercher de la nourriture et se reproduire.
+- Prédateurs avec logique de chasse, gestion de l'énergie et reproduction plus rare.
+- Nourriture commune et rare, zones fertiles, lacs, repousse dynamique et pression écologique.
+- Cycles de population visibles via statistiques et courbes en direct.
+- Presets de démarrage : écosystème stable, surpopulation, monde hostile, prédateurs dominants, paradis fertile et mode personnalisé.
+- Contrôles en temps réel pour densité de nourriture, agressivité, reproduction, vitesse de simulation, zoom, pause et réinitialisation.
+- Événements activables : sécheresse, abondance, maladie, hiver, nouvelle meute, mutation rare et catastrophe locale.
+- Sélection d'individus, suivi caméra, fiche détaillée, lignée simplifiée et export JSON du résumé statistique.
+- Mode cinématique pour regarder le monde sans interface latérale.
 
-## Project structure
+## Structure
 
-- `index.html` — app shell, menus, overlays, and HUD.
-- `style.css` — mobile-first premium portrait styling and responsive UI.
-- `js/main.js` — bootstraps the requestAnimationFrame loop.
-- `js/game.js` — gameplay orchestration, scoring, progression, collisions, and run flow.
-- `js/config.js` — centralized gameplay tuning, cosmetics, missions, and biome data.
-- `js/player.js` — wall-jump player state and movement.
-- `js/generator.js` — endless chunk generation, events, power-ups, and coin placement.
-- `js/obstacles.js` — obstacle factory and procedural pattern definitions.
-- `js/renderer.js` — canvas rendering, VFX, and biome presentation.
-- `js/effects.js` — particles, floating text, and screen shake.
-- `js/audio.js` — generated SFX.
-- `js/storage.js` — localStorage persistence and reset handling.
-- `js/ui.js` — HUD, menu, shop, settings, and mission rendering.
-- `js/shop.js` — cosmetic unlock and selection logic.
-- `js/missions.js` — rotating objective progress and claiming.
+- `index.html` — application complète : interface, styles, moteur de simulation, rendu et logique UI.
 
-## Run locally
+## Lancer localement
 
-No build step is required.
+Aucun build n'est nécessaire.
 
-### Option 1: open directly
+### Option 1
 
-Open `index.html` in a modern browser.
+Ouvrez simplement `index.html` dans un navigateur moderne.
 
-### Option 2: use a simple local server
+### Option 2
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then visit `http://localhost:8000`.
+Puis ouvrez `http://localhost:8000`.
 
-## Deploy to GitHub Pages
+## Contrôles
 
-1. Push this folder to a GitHub repository.
-2. In GitHub, open **Settings → Pages**.
-3. Under **Build and deployment**, choose **Deploy from a branch**.
-4. Select your main branch and the repository root.
-5. Save and wait for Pages to publish.
+- **Clic** sur une créature : sélectionner / suivre un individu.
+- **Glisser-déposer** sur le monde : déplacer la caméra libre.
+- **Molette** : zoom avant / arrière.
+- **Pause / Reprise** : arrêter ou relancer la simulation.
+- **x1 / x2 / x4 / x8** : accélérer l'évolution de l'écosystème.
 
-Because the project is static and framework-free, it works well on GitHub Pages without any extra configuration.
+## Export
 
-## Controls
-
-### Touch / mobile
-- Tap anywhere in the play area to leap to the opposite wall.
-- Use the pause button in the HUD to pause.
-- Keep the device in portrait orientation.
-
-### Desktop
-- Click to jump.
-- `Space`, `W`, or `Arrow Up` to jump.
-- `P` or `Escape` to pause.
-
-## Save data
-
-Wall Shift stores the following in `localStorage`:
-
-- best score and best height
-- total coins, runs, and distance climbed
-- cosmetics unlocked and equipped
-- mission progress and rewards claimed
-- audio/effects/settings preferences
-- lifetime stats and tutorial completion
-
-## Notes
-
-- The game is intentionally designed around portrait play.
-- If the browser is landscape, a rotate overlay is shown.
-- Audio unlocks on first interaction to comply with mobile browser policies.
+Le bouton d'export génère un fichier JSON contenant le preset actif, la saison courante, les paramètres de simulation, les statistiques et un journal récent des événements.

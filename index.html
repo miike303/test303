@@ -1,603 +1,1162 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIMON 2026: Édition Interstellaire</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
-<style>
-  /* --- STYLES DE BASE ET ARRIÈRE-PLAN --- */
-  :root {
-    --bg-color: #030308;
-    --machine-body: #12121e;
-    --machine-rim: #1e1e2d;
-    --center-bg: #090912;
-    --card-bg: rgba(18, 18, 30, 0.7);
-    --card-border: rgba(255, 255, 255, 0.1);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Écosphère — Simulation vivante</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07111b;
+      --bg2: #0d1d27;
+      --panel: rgba(9, 20, 32, 0.78);
+      --panel-strong: rgba(9, 20, 32, 0.92);
+      --line: rgba(174, 231, 211, 0.16);
+      --text: #edf7ef;
+      --muted: #9db3af;
+      --accent: #67f2b5;
+      --accent2: #77c8ff;
+      --danger: #ff7a91;
+      --gold: #ffd56c;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    }
 
-    /* Couleurs actives (allumées) - Effet iris/néon */
-    --pad-g-on: #00ffaa;
-    --pad-r-on: #ff4d4d;
-    --pad-y-on: #ffd933;
-    --pad-b-on: #33aaff;
+    * { box-sizing: border-box; }
 
-    /* Couleurs de base (éteintes) - Teintes de cristal */
-    --pad-g-off: #005a3c;
-    --pad-r-off: #802626;
-    --pad-y-off: #806c1a;
-    --pad-b-off: #1a5680;
-  }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(103, 242, 181, 0.14), transparent 26%),
+        radial-gradient(circle at top right, rgba(119, 200, 255, 0.16), transparent 24%),
+        linear-gradient(180deg, #08111a 0%, #071018 40%, #050b12 100%);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+    }
 
-  * { box-sizing: border-box; }
+    body { overflow: hidden; }
 
-  body {
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: var(--bg-color);
-    background-image:
-      radial-gradient(circle at 10% 10%, rgba(30, 30, 60, 0.4) 0%, transparent 40%),
-      radial-gradient(circle at 90% 90%, rgba(30, 100, 30, 0.3) 0%, transparent 40%),
-      radial-gradient(circle at 50% 50%, #0d0d1a 0%, #030308 100%);
-    font-family: 'Poppins', sans-serif;
-    color: white;
-    user-select: none;
-    overflow: hidden;
-  }
+    .shell {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr) 320px;
+      gap: 18px;
+      padding: 18px;
+    }
 
-  /* --- LOGO ET MISE EN PAGE --- */
-  .app-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 40px;
-    width: 100%;
-    max-width: 1000px;
-    padding: 20px;
-  }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+    }
 
-  header {
-    width: 100%;
-    text-align: center;
-  }
+    .sidebar {
+      padding: 18px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
 
-  .logo {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 32px;
-    font-weight: 800;
-    letter-spacing: 6px;
-    color: #fff;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 0 30px rgba(0, 255, 255, 0.3);
-    margin-bottom: 20px;
-  }
+    .hero {
+      padding: 16px 16px 18px;
+      background: linear-gradient(180deg, rgba(20, 39, 53, 0.82), rgba(9, 20, 32, 0.7));
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.06);
+    }
 
-  main {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    gap: 40px;
-  }
+    .eyebrow, .section-title, .stat-label, label { text-transform: uppercase; letter-spacing: .12em; }
+    .eyebrow { color: var(--accent); font-size: 11px; font-weight: 700; }
+    h1 { margin: 10px 0 8px; font: 700 30px/1.05 "Space Grotesk", sans-serif; }
+    .hero p, .hint, .preset-copy { color: var(--muted); line-height: 1.5; }
 
-  /* --- CARTES DE STATUT ÉPURÉES --- */
-  .status-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
+    .controls-grid, .events-grid, .preset-grid, .stats-grid {
+      display: grid;
+      gap: 12px;
+    }
 
-  .card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 16px;
-    padding: 16px 24px;
-    width: 200px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(8px);
-    transition: transform 0.2s;
-  }
+    .control, .event-card, .preset, .stat-card, .selected-card {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 18px;
+      padding: 12px 14px;
+    }
 
-  .card:hover { transform: translateY(-2px); }
+    label { font-size: 10px; color: var(--muted); font-weight: 700; display: block; margin-bottom: 8px; }
+    .range-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+    .value-pill, .mini-pill {
+      border-radius: 999px; padding: 5px 10px; background: rgba(103,242,181,.12); border: 1px solid rgba(103,242,181,.18); color: var(--accent); font-size: 12px; font-weight: 700;
+    }
 
-  .label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #6a6a7a;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
+    button, select {
+      width: 100%; border: 0; border-radius: 14px; padding: 12px 14px; font: 600 14px Inter, sans-serif;
+    }
+    button {
+      background: linear-gradient(135deg, rgba(103,242,181,.22), rgba(119,200,255,.2)); color: var(--text); cursor: pointer; border: 1px solid rgba(255,255,255,.08);
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    }
+    button:hover { transform: translateY(-1px); border-color: rgba(103,242,181,.35); }
+    button.secondary { background: rgba(255,255,255,.05); }
+    button.active-speed { outline: 1px solid rgba(255,213,108,.65); color: var(--gold); }
+    select { background: rgba(255,255,255,.06); color: var(--text); border: 1px solid rgba(255,255,255,.08); }
 
-  .value {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 32px;
-    font-weight: 800;
-    color: #fff;
-    line-height: 1;
-  }
+    .button-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .speed-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 
-  .record-value {
-    color: var(--pad-g-on);
-    text-shadow: 0 0 10px rgba(0, 255, 170, 0.4);
-  }
+    .world-panel {
+      position: relative;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
 
-  /* --- LE CONTRÔLEUR SIMON (EFFET WOW) --- */
-  @keyframes shake {
-    0%, 100% { transform: translate(0, 0); }
-    20% { transform: translate(-5px, 3px); }
-    40% { transform: translate(5px, -3px); }
-    60% { transform: translate(-5px, -3px); }
-    80% { transform: translate(5px, 3px); }
-  }
+    .world-header {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 8px 12px 0;
+    }
 
-  .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+    .headline { display: flex; flex-direction: column; gap: 4px; }
+    .headline strong { font-size: 22px; font-family: "Space Grotesk", sans-serif; }
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  .game-board {
-    position: relative;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    background: linear-gradient(145deg, var(--machine-rim), var(--machine-body));
-    box-shadow:
-      0 40px 80px rgba(0, 0, 0, 0.9),
-      inset 0 4px 10px rgba(255, 255, 255, 0.03),
-      inset 0 -10px 20px rgba(0, 0, 0, 0.6);
-    padding: 16px;
-  }
+    .canvas-wrap {
+      position: relative; flex: 1; min-height: 420px; border-radius: 24px; overflow: hidden;
+      background: radial-gradient(circle at 50% 20%, rgba(119,200,255,.06), transparent 35%), linear-gradient(180deg, #0f2b2b, #10222d 42%, #0f1824 100%);
+      border: 1px solid rgba(255,255,255,.06);
+    }
 
-  .simon-controller {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 16px;
-    overflow: hidden;
-  }
+    canvas { width: 100%; height: 100%; display: block; }
 
-  /* Style des boutons (Effet de cristal) */
-  .pad {
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-    transition: background-color 0.1s, box-shadow 0.1s;
-    box-shadow:
-      inset -4px -4px 12px rgba(0, 0, 0, 0.5),
-      inset 4px 4px 12px rgba(255, 255, 255, 0.1);
-  }
+    .overlay {
+      position: absolute; inset: 16px; display: flex; justify-content: space-between; pointer-events: none;
+    }
+    .legend, .tooltip {
+      width: min(290px, 42%); background: rgba(5,12,19,.58); border: 1px solid rgba(255,255,255,.06); border-radius: 18px; padding: 12px; backdrop-filter: blur(16px);
+    }
+    .tooltip { margin-left: auto; min-height: 150px; }
+    .legend-item { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; margin: 8px 0; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
 
-  .green  { background-color: var(--pad-g-off); border-radius: 100% 0 0 0; }
-  .red    { background-color: var(--pad-r-off); border-radius: 0 100% 0 0; }
-  .yellow { background-color: var(--pad-y-off); border-radius: 0 0 0 100%; }
-  .blue   { background-color: var(--pad-b-off); border-radius: 0 0 100% 0; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-card strong { display:block; font-size: 28px; margin-top: 4px; font-family: "Space Grotesk", sans-serif; }
+    .stat-card small { color: var(--muted); }
 
-  /* ÉTAT ILLUMINÉ (Effet WOW de cristal laser) */
-  .green.active {
-    background-color: var(--pad-g-on);
-    box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.7), inset 2px 2px 10px rgba(255, 255, 255, 0.9);
-    filter: drop-shadow(0 0 20px rgba(0, 255, 170, 0.7));
-  }
-  .red.active {
-    background-color: var(--pad-r-on);
-    box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.7), inset 2px 2px 10px rgba(255, 255, 255, 0.9);
-    filter: drop-shadow(0 0 20px rgba(255, 77, 77, 0.7));
-  }
-  .yellow.active {
-    background-color: var(--pad-y-on);
-    box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.7), inset 2px 2px 10px rgba(255, 255, 255, 0.9);
-    filter: drop-shadow(0 0 20px rgba(255, 217, 51, 0.7));
-  }
-  .blue.active {
-    background-color: var(--pad-b-on);
-    box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.7), inset 2px 2px 10px rgba(255, 255, 255, 0.9);
-    filter: drop-shadow(0 0 20px rgba(51, 170, 255, 0.7));
-  }
+    .chart-wrap { height: 160px; position: relative; }
+    .chart-wrap canvas { border-radius: 16px; background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)); }
 
-  /* CONSOLE CENTRALE ÉPURÉE */
-  .center-display {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 240px;
-    height: 240px;
-    background-color: var(--center-bg);
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border: 16px solid var(--machine-rim);
-    box-shadow:
-      0 12px 24px rgba(0, 0, 0, 0.7),
-      inset 0 4px 15px rgba(0, 0, 0, 0.8);
-    z-index: 10;
-  }
+    .selected-card h3, .section-title { margin: 0 0 10px; font-size: 12px; color: var(--muted); }
+    .selected-grid { display:grid; grid-template-columns: repeat(2,1fr); gap: 8px; font-size: 13px; color: var(--muted); }
+    .selected-grid strong { display:block; color: var(--text); font-size: 15px; margin-top: 3px; }
 
-  .status-text {
-    font-size: 12px;
-    font-weight: 600;
-    color: #6a6a7a;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 6px;
-  }
+    .splash {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(2, 8, 12, 0.45); pointer-events: none; transition: opacity .5s ease;
+    }
+    .splash.hidden { opacity: 0; }
+    .splash-card {
+      width: min(720px, calc(100% - 48px)); padding: 30px; border-radius: 28px; background: linear-gradient(180deg, rgba(6,18,25,.88), rgba(8,14,22,.86));
+      border: 1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); pointer-events: auto;
+    }
+    .splash-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 20px 0; }
+    .preset { cursor: pointer; }
+    .preset.active { outline: 1px solid rgba(103,242,181,.42); background: rgba(103,242,181,.08); }
 
-  .game-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 26px;
-    font-weight: 800;
-    letter-spacing: 4px;
-    color: #ffffff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-    margin-bottom: 12px;
-  }
+    .footer-note { font-size: 12px; color: var(--muted); }
 
-  .current-score {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 64px;
-    font-weight: 800;
-    color: var(--pad-g-on);
-    line-height: 1;
-    margin-bottom: 6px;
-    text-shadow: 0 0 20px rgba(0, 255, 170, 0.5);
-    transition: color 0.3s, text-shadow 0.3s;
-  }
-
-  .record-text {
-    font-size: 11px;
-    font-weight: 600;
-    color: #6a6a7a;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  /* --- EFFETS DE PARTICULES ET HALO --- */
-  .particle-system {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 5;
-  }
-
-  @keyframes pulse-halo {
-    0%, 100% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); }
-    50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.05); }
-  }
-
-  .halo-ring {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 12px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 60px rgba(255, 255, 255, 0.1);
-    animation: pulse-halo 4s infinite linear;
-    pointer-events: none;
-    z-index: 2;
-  }
-
-  /* RESPONSIVE */
-  @media (max-width: 800px) {
-    body { overflow-y: auto; }
-    main { flex-direction: column-reverse; gap: 20px; }
-    .status-panel { flex-direction: row; gap: 10px; flex-wrap: wrap; justify-content: center; }
-    .card { width: 150px; padding: 12px 16px; }
-    .value { font-size: 26px; }
-    .game-board { width: 380px; height: 380px; padding: 12px; }
-    .center-display { width: 180px; height: 180px; border-width: 12px; }
-    .game-title { font-size: 20px; letter-spacing: 2px; }
-    .current-score { font-size: 48px; }
-  }
-</style>
+    @media (max-width: 1280px) {
+      body { overflow: auto; }
+      .shell { grid-template-columns: 1fr; height: auto; min-height: 100vh; }
+      .sidebar { max-height: none; }
+      .overlay { position: static; display: grid; grid-template-columns: 1fr; gap: 10px; padding: 12px; pointer-events: none; }
+      .legend, .tooltip { width: 100%; }
+      .canvas-wrap { min-height: 70vh; }
+    }
+  </style>
 </head>
 <body>
+  <div class="shell">
+    <aside class="panel sidebar">
+      <section class="hero">
+        <div class="eyebrow">Simulation émergente premium</div>
+        <h1>Écosphère</h1>
+        <p>Observez un monde autonome où herbivores, prédateurs, saisons, pénuries et mutations tissent des cycles écologiques fascinants.</p>
+      </section>
 
-<div class="app-container">
-  <header>
-    <div class="logo">SIMON 2026</div>
-  </header>
+      <section>
+        <h2 class="section-title">Contrôles temps réel</h2>
+        <div class="controls-grid" id="controls"></div>
+        <div class="button-row" style="margin-top:12px;">
+          <button id="pauseBtn">Pause</button>
+          <button id="resetBtn" class="secondary">Réinitialiser</button>
+        </div>
+        <div class="speed-row" style="margin-top:10px;">
+          <button class="speed active-speed" data-speed="1">x1</button>
+          <button class="speed" data-speed="2">x2</button>
+          <button class="speed" data-speed="4">x4</button>
+          <button class="speed" data-speed="8">x8</button>
+        </div>
+      </section>
 
-  <main>
-    <div class="status-panel">
-      <div class="card"><div class="label">NIVEAU</div><div class="value" id="level-val">1</div></div>
-      <div class="card"><div class="label">COMBO MAX</div><div class="value" id="combo-val">x1</div></div>
-      <div class="card"><div class="label">MEILLEUR SCORE</div><div class="value record-value" id="best-val">2712</div></div>
-    </div>
+      <section>
+        <h2 class="section-title">Événements dynamiques</h2>
+        <div class="events-grid" id="events"></div>
+      </section>
 
-    <div class="game-board" id="game-board">
-      <div class="particle-system" id="particles"></div>
-      <div class="halo-ring"></div>
+      <section class="selected-card">
+        <h2 class="section-title">Astuce d'observation</h2>
+        <div class="hint">Cliquez une créature pour la suivre. Molette ou slider = zoom. Faites glisser le monde pour le recadrer.</div>
+      </section>
+    </aside>
 
-      <div class="simon-controller">
-        <div class="pad green" id="0"></div>
-        <div class="pad red" id="1"></div>
-        <div class="pad yellow" id="2"></div>
-        <div class="pad blue" id="3"></div>
+    <main class="panel world-panel">
+      <div class="world-header">
+        <div class="headline">
+          <span class="eyebrow">Aquarium numérique autonome</span>
+          <strong id="worldTitle">Écosystème stable</strong>
+        </div>
+        <div class="badge-row">
+          <span class="mini-pill" id="seasonBadge">Saison: Printemps</span>
+          <span class="mini-pill" id="modeBadge">Mode: Sandbox</span>
+          <span class="mini-pill" id="cameraBadge">Caméra libre</span>
+        </div>
       </div>
-
-      <div class="center-display">
-        <div class="status-text" id="status-display">PRÊT</div>
-        <div class="game-title">SIMON 2026</div>
-        <div class="current-score" id="score-display">12</div>
-        <div class="record-text" id="record-display">RECORD : 2712</div>
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="world"></canvas>
+        <div class="overlay">
+          <div class="legend">
+            <div class="section-title">Légende vivante</div>
+            <div class="legend-item"><span class="dot" style="background:#7ef2a9"></span>Herbivores — errance, fuite, reproduction, faim</div>
+            <div class="legend-item"><span class="dot" style="background:#ff7f8f"></span>Prédateurs — chasse rapide, endurance limitée</div>
+            <div class="legend-item"><span class="dot" style="background:#9cff78"></span>Nourriture commune — repousse régulière</div>
+            <div class="legend-item"><span class="dot" style="background:#ffd96c"></span>Nourriture rare — très nutritive</div>
+            <div class="legend-item"><span class="dot" style="background:#67c9ff"></span>Zones fertiles / eau — bonus environnementaux</div>
+          </div>
+          <div class="tooltip selected-card" id="selectionPanel">
+            <h2 class="section-title">Individu sélectionné</h2>
+            <div class="hint">Sélectionnez un être vivant pour afficher son âge, son énergie, sa fertilité, sa génération et son état.</div>
+          </div>
+        </div>
+        <div class="splash" id="splash">
+          <div class="splash-card">
+            <div class="eyebrow">Lancement cinématique</div>
+            <h1 style="margin-top:10px;">Choisissez le destin de votre écosystème</h1>
+            <p class="preset-copy">Chaque preset modifie les ressources, la pression des prédateurs, la vitesse de reproduction et la difficulté globale. Vous pouvez ensuite affiner tous les paramètres en direct.</p>
+            <div class="splash-grid" id="presets"></div>
+            <div class="button-row">
+              <button id="launchBtn">Lancer la simulation</button>
+              <button id="cinematicBtn" class="secondary">Mode cinématique</button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </main>
-</div>
+    </main>
 
-<script>
-  /* --- LOGIQUE DU JEU --- */
-  const pads = document.querySelectorAll('.pad');
-  const scoreDisplay = document.getElementById('score-display');
-  const levelVal = document.getElementById('level-val');
-  const comboVal = document.getElementById('combo-val');
-  const bestVal = document.getElementById('best-val');
-  const statusDisplay = document.getElementById('status-display');
-  const recordDisplay = document.getElementById('record-display');
-  const gameBoard = document.getElementById('game-board');
-  const particlesContainer = document.getElementById('particles');
+    <aside class="panel sidebar">
+      <section>
+        <h2 class="section-title">Statistiques en direct</h2>
+        <div class="stats-grid" id="stats"></div>
+      </section>
 
-  let sequence = [];
-  let playerSequence = [];
-  let level = 1;
-  let score = 12;
-  let canClick = false;
+      <section class="selected-card">
+        <h2 class="section-title">Courbes de population</h2>
+        <div class="chart-wrap"><canvas id="chart"></canvas></div>
+      </section>
 
-  let lastClickTime = 0;
-  let currentCombo = 1;
-  let maxCombo = 1;
-  const COMBO_TIME_LIMIT = 800;
+      <section class="selected-card">
+        <h2 class="section-title">Résumé exportable</h2>
+        <button id="exportBtn">Exporter un résumé JSON</button>
+        <div class="hint" id="exportStatus" style="margin-top:10px;">Aucun export généré pour le moment.</div>
+      </section>
 
-  // Gestion du meilleur score local
-  let bestScore = Number(localStorage.getItem('simon2026Record') || 2712);
-  bestVal.textContent = bestScore;
-  recordDisplay.textContent = `RECORD : ${bestScore}`;
+      <section class="selected-card" id="bloodlineCard">
+        <h2 class="section-title">Lignée simplifiée</h2>
+        <div class="hint">La fiche affichera les ancêtres connus de l'individu sélectionné.</div>
+      </section>
 
-  // Audio (Générateur natif)
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  const audioCtx = AudioContextClass ? new AudioContextClass() : null;
-  const frequencies = [329.6, 261.6, 277.2, 415.3];
+      <div class="footer-note">Jour / nuit, météo légère, heatmap implicite, presets, mode sandbox, équilibre difficile et survie extrême sont inclus.</div>
+    </aside>
+  </div>
 
-  function playTone(freq, duration, type = 'sine') {
-    if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+  <script>
+    const controlsConfig = [
+      ["initialHerbivores", "Herbivores initiaux", 10, 180, 70, 1],
+      ["initialPredators", "Prédateurs initiaux", 0, 40, 10, 1],
+      ["reproductionRate", "Vitesse reproduction", 0.3, 2.5, 1, 0.1],
+      ["foodRegrowth", "Repousse nourriture", 0.2, 3, 1, 0.1],
+      ["foodDensity", "Densité nourriture", 0.4, 2.2, 1, 0.1],
+      ["predatorAggression", "Agressivité prédateurs", 0.5, 2, 1, 0.1],
+      ["zoom", "Zoom caméra", 0.6, 1.8, 1, 0.05],
+    ];
 
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
+    const eventConfig = [
+      ["drought", "Sécheresse", "Réduit la repousse et assombrit le terrain."],
+      ["abundance", "Abondance", "Crée des poussées de nourriture très nutritive."],
+      ["disease", "Maladie légère", "Affaiblit temporairement l'énergie moyenne."],
+      ["winter", "Hiver", "Ralentit les déplacements et la fertilité."],
+      ["newPredators", "Nouvelle meute", "Fait apparaître des chasseurs supplémentaires."],
+      ["rareMutation", "Mutation rare", "Favorise l'émergence d'un trait avantageux."],
+      ["meteor", "Catastrophe locale", "Endommage une zone limitée du monde."],
+    ];
 
-    oscillator.type = type;
-    oscillator.frequency.value = freq;
+    const presets = {
+      stable: { name: "Écosystème stable", initialHerbivores: 74, initialPredators: 9, foodRegrowth: 1.1, foodDensity: 1.1, reproductionRate: 1.0, predatorAggression: 1.0, difficulty: "Sandbox" },
+      overpop: { name: "Surpopulation", initialHerbivores: 130, initialPredators: 8, foodRegrowth: 0.8, foodDensity: 0.9, reproductionRate: 1.4, predatorAggression: 1.0, difficulty: "Équilibre difficile" },
+      hostile: { name: "Monde hostile", initialHerbivores: 56, initialPredators: 16, foodRegrowth: 0.7, foodDensity: 0.75, reproductionRate: 0.9, predatorAggression: 1.4, difficulty: "Survie extrême" },
+      dominants: { name: "Prédateurs dominants", initialHerbivores: 90, initialPredators: 22, foodRegrowth: 1.0, foodDensity: 1.0, reproductionRate: 1.2, predatorAggression: 1.75, difficulty: "Survie extrême" },
+      fertile: { name: "Paradis fertile", initialHerbivores: 60, initialPredators: 6, foodRegrowth: 1.7, foodDensity: 1.8, reproductionRate: 1.25, predatorAggression: 0.85, difficulty: "Sandbox" },
+      custom: { name: "Personnalisé", initialHerbivores: 70, initialPredators: 10, foodRegrowth: 1.0, foodDensity: 1.0, reproductionRate: 1.0, predatorAggression: 1.0, difficulty: "Sandbox" },
+    };
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
+    const app = {
+      width: 1600,
+      height: 1000,
+      time: 0,
+      speed: 1,
+      paused: false,
+      cinematic: false,
+      selectedPreset: 'stable',
+      seasonIndex: 0,
+      seasonTimer: 0,
+      dayTime: 0,
+      weatherPulse: 0,
+      camera: { x: 800, y: 500, zoom: 1, targetId: null, dragging: false, dragX: 0, dragY: 0 },
+      counters: { births: 0, deaths: 0, kills: 0 },
+      charts: [],
+      particles: [],
+      log: [],
+      genealogy: new Map(),
+      events: Object.fromEntries(eventConfig.map(([k]) => [k, false])),
+      settings: Object.fromEntries(controlsConfig.map(([k, , , , value]) => [k, value])),
+      herbs: [],
+      predators: [],
+      foods: [],
+      fertileZones: [],
+      lakes: [],
+      stats: {},
+      nextEntityId: 1,
+    };
 
-    oscillator.start();
-    gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-    oscillator.stop(audioCtx.currentTime + duration);
-  }
+    const seasons = [
+      { name: 'Printemps', growth: 1.2, fertility: 1.1, tint: [0.10, 0.25, 0.14] },
+      { name: 'Été', growth: 1.0, fertility: 1.0, tint: [0.14, 0.18, 0.10] },
+      { name: 'Automne', growth: 0.8, fertility: 0.92, tint: [0.22, 0.16, 0.10] },
+      { name: 'Hiver', growth: 0.56, fertility: 0.7, tint: [0.07, 0.12, 0.16] },
+    ];
 
-  // --- EFFETS VISUELS ET PARTICULES (EFFET WOW) ---
-  function createPadParticles(colorId) {
-    const colors = ['#00ffaa', '#ff4d4d', '#ffd933', '#33aaff'];
-    const particleColor = colors[colorId];
+    const canvas = document.getElementById('world');
+    const ctx = canvas.getContext('2d');
+    const chartCanvas = document.getElementById('chart');
+    const chartCtx = chartCanvas.getContext('2d');
+    const canvasWrap = document.getElementById('canvasWrap');
+    const splash = document.getElementById('splash');
 
-    for (let i = 0; i < 30; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.style.background = particleColor;
-      particle.style.left = `${Math.random() * 100}%`;
-      particle.style.top = `${Math.random() * 100}%`;
-      particle.style.width = `${Math.random() * 6 + 2}px`;
-      particle.style.height = particle.style.width;
+    function resizeCanvas() {
+      const rect = canvasWrap.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = rect.width * ratio;
+      canvas.height = rect.height * ratio;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-      const angle = Math.random() * Math.PI * 2;
-      const velocity = Math.random() * 8 + 4;
-      particle.velocityX = Math.cos(angle) * velocity;
-      particle.velocityY = Math.sin(angle) * velocity;
-
-      particlesContainer.appendChild(particle);
-      setTimeout(() => particle.remove(), 1000);
+      const cRect = chartCanvas.parentElement.getBoundingClientRect();
+      chartCanvas.width = cRect.width * ratio;
+      chartCanvas.height = cRect.height * ratio;
+      chartCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
     }
-  }
 
-  function activatePad(id, isPlayer = false) {
-    const pad = document.getElementById(String(id));
-    pad.classList.add('active');
-    playTone(frequencies[id], 0.3);
-    if (isPlayer) createPadParticles(id);
-
-    setTimeout(() => {
-      pad.classList.remove('active');
-    }, 250);
-  }
-
-  function nextLevel() {
-    level++;
-    levelVal.textContent = level;
-    playerSequence = [];
-    currentCombo = 1;
-    comboVal.textContent = 'x1';
-
-    const nextColor = Math.floor(Math.random() * 4);
-    sequence.push(nextColor);
-
-    playSequence();
-  }
-
-  function playSequence() {
-    canClick = false;
-    statusDisplay.textContent = 'ATTENTE';
-    statusDisplay.style.color = '#6a6a7a';
-
-    let delay = 500;
-
-    sequence.forEach((color) => {
-      setTimeout(() => {
-        activatePad(color);
-      }, delay);
-      const speed = Math.max(250, 650 - (level * 30));
-      delay += speed;
-    });
-
-    setTimeout(() => {
-      canClick = true;
-      statusDisplay.textContent = 'À VOUS DE JOUER';
-      statusDisplay.style.color = 'var(--pad-g-on)';
-      lastClickTime = Date.now();
-    }, delay);
-  }
-
-  function updateScore(points) {
-    score += points;
-
-    let currentVal = parseInt(scoreDisplay.textContent, 10);
-    const step = Math.max(1, Math.ceil(points / 10));
-
-    const timer = setInterval(() => {
-      currentVal += step;
-      if (currentVal >= score) {
-        currentVal = score;
-        clearInterval(timer);
+    class Entity {
+      constructor(type, x, y, genes = {}) {
+        this.id = app.nextEntityId++;
+        this.type = type;
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.angle = Math.random() * Math.PI * 2;
+        this.age = 0;
+        this.state = 'wander';
+        this.generation = genes.generation || 1;
+        this.sex = Math.random() > 0.5 ? 'F' : 'M';
+        this.parents = genes.parents || [];
+        this.cooldown = Math.random() * 8;
+        this.wanderTimer = 0;
       }
-      scoreDisplay.textContent = currentVal;
-    }, 20);
-  }
-
-  function handlePadClick(e) {
-    if (!canClick) return;
-
-    const colorId = parseInt(e.target.id, 10);
-    activatePad(colorId, true);
-    playerSequence.push(colorId);
-
-    const now = Date.now();
-    if (now - lastClickTime < COMBO_TIME_LIMIT) {
-      currentCombo++;
-      if (currentCombo > maxCombo) {
-        maxCombo = currentCombo;
-        comboVal.textContent = `x${maxCombo}`;
+      distanceTo(other) { return Math.hypot(this.x - other.x, this.y - other.y); }
+      clamp() {
+        this.x = Math.max(12, Math.min(app.width - 12, this.x));
+        this.y = Math.max(12, Math.min(app.height - 12, this.y));
       }
-    } else {
-      currentCombo = 1;
-    }
-    lastClickTime = now;
-
-    checkSequence(playerSequence.length - 1);
-  }
-
-  function checkSequence(currentStep) {
-    if (playerSequence[currentStep] !== sequence[currentStep]) {
-      gameOver();
-      return;
     }
 
-    const pointsGained = 10 * currentCombo * level;
-    updateScore(pointsGained);
+    class Herbivore extends Entity {
+      constructor(x, y, genes = {}) {
+        super('herbivore', x, y, genes);
+        this.speed = clamp((genes.speed || rand(42, 58)) * mutationBias(), 32, 82);
+        this.detection = clamp((genes.detection || rand(90, 135)) * mutationBias(), 70, 185);
+        this.foodEfficiency = clamp((genes.foodEfficiency || rand(0.9, 1.2)) * mutationBias(0.04), 0.7, 1.5);
+        this.fertility = clamp((genes.fertility || rand(0.8, 1.2)) * mutationBias(0.06), 0.55, 1.6);
+        this.resistance = clamp((genes.resistance || rand(0.85, 1.15)) * mutationBias(0.05), 0.6, 1.5);
+        this.fleeBias = clamp((genes.fleeBias || rand(0.8, 1.2)) * mutationBias(0.05), 0.6, 1.7);
+        this.lifeExpectancy = rand(125, 190);
+        this.energy = genes.energy || rand(72, 108);
+        this.health = 1;
+        this.hunger = rand(18, 36);
+        this.reproThreshold = rand(102, 132);
+        this.maturity = rand(13, 20);
+        this.radius = rand(5, 8);
+        this.gestation = 0;
+        this.state = 'wander';
+      }
+      update(dt) {
+        this.age += dt;
+        this.cooldown = Math.max(0, this.cooldown - dt);
+        this.hunger += dt * 3.4;
+        this.energy -= dt * (3.3 + this.speed * 0.02 + this.hunger * 0.01) / this.resistance;
+        if (app.events.disease) this.energy -= dt * 2.4;
+        if (app.events.winter || currentSeason().name === 'Hiver') this.energy -= dt * 0.8;
+        this.health = clamp(this.energy / 115, 0, 1.15);
 
-    if (playerSequence.length === sequence.length) {
-      canClick = false;
-      setTimeout(nextLevel, 800);
+        const predator = nearest(this, app.predators, this.detection + 25);
+        if (predator) {
+          this.state = 'flee';
+          steerAway(this, predator.x, predator.y, this.speed * 1.55 * this.fleeBias, dt);
+        } else {
+          const hungry = this.energy < 92 || this.hunger > 42;
+          const canMate = this.age > this.maturity && this.energy > this.reproThreshold && this.cooldown <= 0 && foodAbundance() > 0.14;
+          if (hungry) {
+            const targetFood = nearestFood(this, this.detection * (this.health < 0.6 ? 1.15 : 1));
+            if (targetFood) {
+              this.state = 'seek_food';
+              steerToward(this, targetFood.x, targetFood.y, this.speed * 1.05, dt);
+              if (this.distanceTo(targetFood) < this.radius + targetFood.radius + 4) {
+                this.state = 'eat';
+                const gain = targetFood.consume(28 * this.foodEfficiency * dt);
+                this.energy = Math.min(150, this.energy + gain * 1.9);
+                this.hunger = Math.max(0, this.hunger - gain * 1.3);
+                spawnParticle(targetFood.x, targetFood.y, gain > 20 ? '#ffe078' : '#92ff90', 2);
+              }
+            } else {
+              this.wander(dt, 0.9);
+            }
+          } else if (canMate) {
+            const mate = findMate(this);
+            if (mate) {
+              this.state = 'seek_mate';
+              steerToward(this, mate.x, mate.y, this.speed * 0.94, dt);
+              if (this.distanceTo(mate) < this.radius + mate.radius + 6) {
+                this.state = 'reproduce';
+                reproduceHerbivores(this, mate);
+              }
+            } else {
+              this.wander(dt, 1.1);
+            }
+          } else if (this.energy > 118 && Math.random() < 0.01 * dt) {
+            this.state = 'rest';
+            this.vx *= 0.93; this.vy *= 0.93;
+          } else {
+            this.wander(dt, 1);
+          }
+        }
+
+        if (this.gestation > 0) this.gestation -= dt;
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.vx *= 0.96; this.vy *= 0.96;
+        this.clamp();
+      }
+      wander(dt, factor) {
+        this.state = 'wander';
+        this.wanderTimer -= dt;
+        if (this.wanderTimer <= 0) {
+          this.wanderTimer = rand(1.2, 4.6);
+          this.angle += rand(-1.25, 1.25);
+        }
+        const seasonalSlow = app.events.winter ? 0.78 : 1;
+        const speed = this.speed * 0.45 * factor * seasonalSlow;
+        this.vx += Math.cos(this.angle) * speed * dt;
+        this.vy += Math.sin(this.angle) * speed * dt;
+      }
     }
-  }
 
-  function gameOver() {
-    playTone(100, 1, 'sawtooth');
-    canClick = false;
-    statusDisplay.textContent = 'PERDU';
-    statusDisplay.style.color = 'var(--pad-r-on)';
+    class Predator extends Entity {
+      constructor(x, y, genes = {}) {
+        super('predator', x, y, genes);
+        this.speed = clamp((genes.speed || rand(62, 82)) * mutationBias(0.04), 52, 110);
+        this.detection = clamp((genes.detection || rand(130, 175)) * mutationBias(0.04), 110, 240);
+        this.endurance = clamp((genes.endurance || rand(0.85, 1.2)) * mutationBias(0.03), 0.7, 1.45);
+        this.fertility = clamp((genes.fertility || rand(0.55, 0.95)) * mutationBias(0.04), 0.4, 1.2);
+        this.energy = genes.energy || rand(118, 160);
+        this.hunger = rand(12, 32);
+        this.lifeExpectancy = rand(150, 220);
+        this.reproThreshold = rand(165, 205);
+        this.maturity = rand(18, 28);
+        this.radius = rand(8, 11);
+      }
+      update(dt) {
+        this.age += dt;
+        this.cooldown = Math.max(0, this.cooldown - dt);
+        this.hunger += dt * 2.2;
+        this.energy -= dt * (2.6 + this.speed * 0.014 + this.hunger * 0.02) / this.endurance;
 
-    gameBoard.classList.add('shake');
-    setTimeout(() => gameBoard.classList.remove('shake'), 300);
-
-    if (score > bestScore) {
-      bestScore = score;
-      localStorage.setItem('simon2026Record', String(bestScore));
-      bestVal.textContent = bestScore;
-      recordDisplay.textContent = `RECORD : ${bestScore}`;
-      recordDisplay.style.color = 'var(--pad-y-on)';
+        const prey = pickPrey(this);
+        const canMate = this.age > this.maturity && this.energy > this.reproThreshold && this.cooldown <= 0 && app.herbs.length > 12;
+        if (prey) {
+          this.state = 'hunt';
+          const sprint = this.hunger > 45 ? 1.45 : 1.2;
+          steerToward(this, prey.x, prey.y, this.speed * sprint * app.settings.predatorAggression, dt);
+          if (this.distanceTo(prey) < this.radius + prey.radius + 6) {
+            prey.energy = 0;
+            prey.state = 'dying';
+            this.energy = Math.min(240, this.energy + 58);
+            this.hunger = Math.max(0, this.hunger - 48);
+            app.counters.kills++;
+            spawnParticle(prey.x, prey.y, '#ff8a99', 5);
+          }
+        } else if (canMate) {
+          const mate = findPredatorMate(this);
+          if (mate) {
+            this.state = 'seek_mate';
+            steerToward(this, mate.x, mate.y, this.speed * 0.72, dt);
+            if (this.distanceTo(mate) < this.radius + mate.radius + 10) reproducePredators(this, mate);
+          } else {
+            this.wander(dt);
+          }
+        } else {
+          this.wander(dt);
+        }
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.vx *= 0.95; this.vy *= 0.95;
+        this.clamp();
+      }
+      wander(dt) {
+        this.state = 'wander';
+        this.wanderTimer -= dt;
+        if (this.wanderTimer <= 0) {
+          this.wanderTimer = rand(1.1, 3.8);
+          this.angle += rand(-1.4, 1.4);
+        }
+        const speed = this.speed * 0.36 * (app.events.winter ? 0.82 : 1);
+        this.vx += Math.cos(this.angle) * speed * dt;
+        this.vy += Math.sin(this.angle) * speed * dt;
+      }
     }
 
-    scoreDisplay.style.color = 'var(--pad-r-on)';
-    scoreDisplay.style.textShadow = '0 0 15px rgba(255, 77, 77, 0.4)';
-
-    // Le jeu se réinitialise après un moment
-    setTimeout(startGame, 2000);
-  }
-
-  function startGame() {
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
-    // Réinitialiser les scores et états
-    scoreDisplay.style.color = 'var(--pad-g-on)';
-    scoreDisplay.style.textShadow = '0 0 15px rgba(0, 255, 170, 0.4)';
-    recordDisplay.style.color = '#6a6a7a';
-    statusDisplay.textContent = 'PRÊT';
-    statusDisplay.style.color = '#6a6a7a';
-
-    level = 1;
-    levelVal.textContent = level;
-    score = 12;
-    scoreDisplay.textContent = '12';
-    currentCombo = 1;
-    maxCombo = 1;
-    comboVal.textContent = 'x1';
-    sequence = [];
-    playerSequence = [];
-
-    // Commencer le premier niveau
-    setTimeout(nextLevel, 500);
-  }
-
-  pads.forEach((pad) => pad.addEventListener('click', handlePadClick));
-
-  // Ajouter des styles pour les particules
-  const styleSheet = document.createElement('style');
-  styleSheet.type = 'text/css';
-  styleSheet.innerText = `
-    .particle {
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-      animation: move-particle 1s ease-out forwards;
-      z-index: 5;
+    class Food {
+      constructor(x, y, rare = false) {
+        this.x = x; this.y = y; this.rare = rare;
+        this.radius = rare ? rand(4, 7) : rand(3, 5.5);
+        this.amount = rare ? rand(110, 150) : rand(46, 88);
+        this.maxAmount = this.amount;
+        this.cooldown = 0;
+      }
+      update(dt) {
+        if (this.amount <= 0) {
+          this.cooldown -= dt;
+          if (this.cooldown <= 0) {
+            this.amount = this.maxAmount * rand(0.75, 1.1);
+            this.x = clamp(this.x + rand(-36, 36), 10, app.width - 10);
+            this.y = clamp(this.y + rand(-36, 36), 10, app.height - 10);
+          }
+          return;
+        }
+        const zoneBoost = fertilityAt(this.x, this.y);
+        const season = currentSeason();
+        let regrowth = app.settings.foodRegrowth * season.growth * zoneBoost * dt;
+        if (app.events.drought) regrowth *= 0.35;
+        if (app.events.abundance) regrowth *= 1.9;
+        if (app.events.winter) regrowth *= 0.68;
+        this.amount = Math.min(this.maxAmount, this.amount + regrowth * (this.rare ? 1.05 : 1.7));
+      }
+      consume(quantity) {
+        const taken = Math.min(this.amount, quantity);
+        this.amount -= taken;
+        if (this.amount <= 0) this.cooldown = rand(12, 35) / app.settings.foodRegrowth;
+        return taken * (this.rare ? 1.95 : 1);
+      }
     }
-    @keyframes move-particle {
-      0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-      100% { transform: translate(calc(-50% + 50px), calc(-50% + 50px)) scale(0); opacity: 0; }
+
+    function rand(min, max) { return min + Math.random() * (max - min); }
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function mutationBias(scale = 0.08) { return 1 + rand(-scale, scale) + (app.events.rareMutation ? rand(0, 0.06) : 0); }
+    function currentSeason() { return seasons[app.seasonIndex]; }
+    function nearest(entity, list, range) {
+      let candidate = null, best = range;
+      for (const item of list) {
+        const d = entity.distanceTo(item);
+        if (d < best) { best = d; candidate = item; }
+      }
+      return candidate;
     }
-  `;
-  document.head.appendChild(styleSheet);
+    function nearestFood(entity, range) {
+      let candidate = null, best = range;
+      for (const food of app.foods) {
+        if (food.amount <= 2) continue;
+        const d = Math.hypot(entity.x - food.x, entity.y - food.y);
+        if (d < best) { best = d; candidate = food; }
+      }
+      return candidate;
+    }
+    function steerToward(entity, x, y, speed, dt) {
+      const dx = x - entity.x, dy = y - entity.y;
+      const len = Math.hypot(dx, dy) || 1;
+      entity.vx += dx / len * speed * dt;
+      entity.vy += dy / len * speed * dt;
+      entity.angle = Math.atan2(dy, dx);
+    }
+    function steerAway(entity, x, y, speed, dt) {
+      const dx = entity.x - x, dy = entity.y - y;
+      const len = Math.hypot(dx, dy) || 1;
+      entity.vx += dx / len * speed * dt;
+      entity.vy += dy / len * speed * dt;
+      entity.angle = Math.atan2(dy, dx);
+    }
+    function fertilityAt(x, y) {
+      let bonus = 0.65;
+      for (const zone of app.fertileZones) {
+        const d = Math.hypot(x - zone.x, y - zone.y);
+        if (d < zone.radius) bonus = Math.max(bonus, 1 + (1 - d / zone.radius) * zone.power);
+      }
+      return bonus;
+    }
+    function waterAt(x, y) {
+      for (const lake of app.lakes) if (Math.hypot(x - lake.x, y - lake.y) < lake.radius) return true;
+      return false;
+    }
+    function foodAbundance() {
+      const total = app.foods.reduce((sum, f) => sum + Math.max(0, f.amount), 0);
+      return total / (app.foods.length * 90 || 1);
+    }
+    function findMate(entity) {
+      let best = null, dist = 70;
+      for (const other of app.herbs) {
+        if (other.id === entity.id || other.sex === entity.sex) continue;
+        if (other.age < other.maturity || other.energy < other.reproThreshold || other.cooldown > 0) continue;
+        const d = entity.distanceTo(other);
+        if (d < dist) { dist = d; best = other; }
+      }
+      return best;
+    }
+    function findPredatorMate(entity) {
+      let best = null, dist = 90;
+      for (const other of app.predators) {
+        if (other.id === entity.id || other.sex === entity.sex) continue;
+        if (other.age < other.maturity || other.energy < other.reproThreshold || other.cooldown > 0) continue;
+        const d = entity.distanceTo(other);
+        if (d < dist) { dist = d; best = other; }
+      }
+      return best;
+    }
+    function pickPrey(predator) {
+      let best = null, score = Infinity;
+      for (const herb of app.herbs) {
+        const d = predator.distanceTo(herb);
+        if (d > predator.detection) continue;
+        const weakness = (1.5 - herb.health) * 40 + herb.age * 0.08 + (herb.generation > 3 ? 4 : 0);
+        const isolation = nearest(herb, app.herbs.filter(h => h.id !== herb.id), 120) ? 0 : -15;
+        const preyScore = d + weakness + isolation;
+        if (preyScore < score) { score = preyScore; best = herb; }
+      }
+      return best;
+    }
+    function inheritGenes(a, b) {
+      const base = {
+        speed: (a.speed + b.speed) / 2,
+        detection: (a.detection + b.detection) / 2,
+        fertility: (a.fertility + b.fertility) / 2,
+        generation: Math.max(a.generation, b.generation) + 1,
+        parents: [a.id, b.id],
+      };
+      if ('foodEfficiency' in a) base.foodEfficiency = (a.foodEfficiency + b.foodEfficiency) / 2;
+      if ('resistance' in a) base.resistance = (a.resistance + b.resistance) / 2;
+      if ('fleeBias' in a) base.fleeBias = (a.fleeBias + b.fleeBias) / 2;
+      if ('endurance' in a) base.endurance = (a.endurance + b.endurance) / 2;
+      return base;
+    }
+    function rememberLineage(child) {
+      app.genealogy.set(child.id, { parents: child.parents, generation: child.generation, type: child.type });
+    }
+    function reproduceHerbivores(a, b) {
+      if (a.cooldown > 0 || b.cooldown > 0) return;
+      const litter = Math.random() < 0.7 * app.settings.reproductionRate ? 2 : 1;
+      for (let i = 0; i < litter; i++) {
+        const child = new Herbivore(a.x + rand(-8, 8), a.y + rand(-8, 8), inheritGenes(a, b));
+        child.energy = rand(54, 74);
+        app.herbs.push(child);
+        rememberLineage(child);
+      }
+      a.energy -= 26; b.energy -= 24;
+      a.cooldown = rand(14, 24) / app.settings.reproductionRate;
+      b.cooldown = rand(14, 24) / app.settings.reproductionRate;
+      app.counters.births += litter;
+      spawnParticle((a.x+b.x)/2, (a.y+b.y)/2, '#7ef2ff', 8);
+    }
+    function reproducePredators(a, b) {
+      if (a.cooldown > 0 || b.cooldown > 0) return;
+      const child = new Predator((a.x+b.x)/2, (a.y+b.y)/2, inheritGenes(a, b));
+      child.energy = rand(94, 118);
+      app.predators.push(child);
+      rememberLineage(child);
+      a.energy -= 38; b.energy -= 32;
+      a.cooldown = rand(28, 44);
+      b.cooldown = rand(28, 44);
+      app.counters.births++;
+      spawnParticle(child.x, child.y, '#ffa3b1', 10);
+    }
+    function spawnParticle(x, y, color, count = 3) {
+      for (let i = 0; i < count; i++) {
+        app.particles.push({ x, y, vx: rand(-20, 20), vy: rand(-24, 24), life: rand(0.5, 1.2), color, size: rand(1, 3.5) });
+      }
+    }
 
-  // Ajouter une fonction pour animer les particules
-  function animateParticles() {
-    const particles = document.querySelectorAll('.particle');
-    particles.forEach((particle) => {
-      const currentX = parseFloat(particle.style.left);
-      const currentY = parseFloat(particle.style.top);
-      particle.style.left = `${currentX + particle.velocityX}px`;
-      particle.style.top = `${currentY + particle.velocityY}px`;
-      particle.velocityX *= 0.98;
-      particle.velocityY *= 0.98;
-    });
-    requestAnimationFrame(animateParticles);
-  }
+    function seedWorld() {
+      app.herbs = [];
+      app.predators = [];
+      app.foods = [];
+      app.particles = [];
+      app.charts = [];
+      app.counters = { births: 0, deaths: 0, kills: 0 };
+      app.log = [];
+      app.genealogy = new Map();
+      app.nextEntityId = 1;
+      app.seasonIndex = 0;
+      app.seasonTimer = 0;
+      app.dayTime = 0;
+      app.camera.targetId = null;
 
-  // Lancer l'animation des particules
-  animateParticles();
+      app.fertileZones = Array.from({ length: 6 }, () => ({ x: rand(140, app.width - 140), y: rand(110, app.height - 110), radius: rand(120, 220), power: rand(0.4, 0.9) }));
+      app.lakes = Array.from({ length: 3 }, () => ({ x: rand(120, app.width - 120), y: rand(100, app.height - 100), radius: rand(70, 120) }));
 
-  // Démarrer le jeu au chargement
-  window.addEventListener('load', startGame);
-</script>
+      const foodCount = Math.round(180 * app.settings.foodDensity);
+      for (let i = 0; i < foodCount; i++) app.foods.push(new Food(rand(0, app.width), rand(0, app.height), Math.random() < 0.12));
+      for (let i = 0; i < app.settings.initialHerbivores; i++) app.herbs.push(new Herbivore(rand(40, app.width-40), rand(40, app.height-40)));
+      for (let i = 0; i < app.settings.initialPredators; i++) app.predators.push(new Predator(rand(40, app.width-40), rand(40, app.height-40)));
+      app.log.push('Simulation initialisée');
+    }
+
+    function updateEvents(dt) {
+      if (Math.random() < 0.002 * dt) app.weatherPulse = rand(0.3, 1);
+      app.weatherPulse = Math.max(0, app.weatherPulse - dt * 0.05);
+      if (app.events.newPredators) {
+        app.events.newPredators = false;
+        for (let i = 0; i < 3; i++) app.predators.push(new Predator(rand(60, app.width - 60), rand(60, app.height - 60)));
+        app.log.push('Nouvelle meute apparue');
+      }
+      if (app.events.meteor && Math.random() < 0.015 * dt) {
+        const mx = rand(200, app.width - 200), my = rand(160, app.height - 160), radius = 90;
+        app.foods.forEach(f => { if (Math.hypot(f.x - mx, f.y - my) < radius) f.amount *= 0.1; });
+        app.herbs.forEach(h => { if (Math.hypot(h.x - mx, h.y - my) < radius) h.energy -= 28; });
+        app.predators.forEach(p => { if (Math.hypot(p.x - mx, p.y - my) < radius) p.energy -= 18; });
+        spawnParticle(mx, my, '#ffd16f', 22);
+        app.events.meteor = false;
+        app.log.push('Catastrophe locale observée');
+      }
+      if (app.events.abundance && Math.random() < 0.06 * dt) app.foods.push(new Food(rand(20, app.width-20), rand(20, app.height-20), true));
+    }
+
+    function updateSimulation(dt) {
+      app.time += dt;
+      app.dayTime += dt * 0.04;
+      app.seasonTimer += dt;
+      if (app.seasonTimer > 48) {
+        app.seasonTimer = 0;
+        app.seasonIndex = (app.seasonIndex + 1) % seasons.length;
+      }
+      updateEvents(dt);
+      for (const food of app.foods) food.update(dt);
+      for (const herb of app.herbs) herb.update(dt * app.settings.reproductionRate * currentSeason().fertility);
+      for (const predator of app.predators) predator.update(dt);
+
+      const beforeH = app.herbs.length;
+      const beforeP = app.predators.length;
+      app.herbs = app.herbs.filter(h => h.energy > 0 && h.age < h.lifeExpectancy);
+      app.predators = app.predators.filter(p => p.energy > 0 && p.age < p.lifeExpectancy);
+      app.counters.deaths += beforeH - app.herbs.length + beforeP - app.predators.length;
+
+      if (app.herbs.length < 8 && foodAbundance() > 0.25) {
+        for (let i = 0; i < 6; i++) app.herbs.push(new Herbivore(rand(50, app.width-50), rand(50, app.height-50)));
+        app.log.push('Réintroduction herbivore automatique');
+      }
+
+      const avgAge = avg(app.herbs.map(h => h.age));
+      const avgEnergy = avg([...app.herbs, ...app.predators].map(e => e.energy));
+      const fertile = app.herbs.filter(h => h.energy > h.reproThreshold && h.age > h.maturity).length;
+      app.stats = {
+        herbivores: app.herbs.length,
+        predators: app.predators.length,
+        food: Math.round(app.foods.reduce((sum, f) => sum + Math.max(0, f.amount), 0)),
+        births: app.counters.births,
+        deaths: app.counters.deaths,
+        avgAge: avgAge.toFixed(1),
+        avgEnergy: avgEnergy.toFixed(0),
+        fertile,
+      };
+
+      if (!app.charts.length || app.time - app.charts[app.charts.length - 1].t > 1.2) {
+        app.charts.push({ t: app.time, herbs: app.herbs.length, predators: app.predators.length, food: app.stats.food / 18 });
+        if (app.charts.length > 140) app.charts.shift();
+      }
+    }
+
+    function avg(values) { return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0; }
+
+    function drawWorld() {
+      const rect = canvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      const zoom = app.settings.zoom;
+      app.camera.zoom = zoom;
+      const follow = entityById(app.camera.targetId);
+      if (follow) {
+        app.camera.x += (follow.x - app.camera.x) * 0.06;
+        app.camera.y += (follow.y - app.camera.y) * 0.06;
+        document.getElementById('cameraBadge').textContent = `Suivi: #${follow.id}`;
+      } else {
+        document.getElementById('cameraBadge').textContent = 'Caméra libre';
+      }
+      const vx = app.camera.x - rect.width / (2 * zoom);
+      const vy = app.camera.y - rect.height / (2 * zoom);
+
+      ctx.save();
+      ctx.scale(zoom, zoom);
+      ctx.translate(-vx, -vy);
+      drawTerrain();
+      drawFood();
+      drawEntities();
+      drawParticles();
+      ctx.restore();
+      drawHUD(rect.width, rect.height);
+    }
+
+    function drawTerrain() {
+      const season = currentSeason();
+      const t = 0.08 + 0.12 * Math.sin(app.dayTime);
+      const overlay = app.events.drought ? 'rgba(196,121,60,0.15)' : `rgba(80, 130, 160, ${0.03 + app.weatherPulse * 0.08})`;
+      ctx.fillStyle = `rgba(${season.tint.map(v => Math.floor(v * 255)).join(',')},0.45)`;
+      ctx.fillRect(0, 0, app.width, app.height);
+      ctx.fillStyle = overlay;
+      ctx.fillRect(0, 0, app.width, app.height);
+      for (const zone of app.fertileZones) {
+        const grad = ctx.createRadialGradient(zone.x, zone.y, 0, zone.x, zone.y, zone.radius);
+        grad.addColorStop(0, 'rgba(103,242,181,0.22)');
+        grad.addColorStop(1, 'rgba(103,242,181,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2); ctx.fill();
+      }
+      for (const lake of app.lakes) {
+        const grad = ctx.createRadialGradient(lake.x, lake.y, 0, lake.x, lake.y, lake.radius);
+        grad.addColorStop(0, 'rgba(86,187,255,0.38)');
+        grad.addColorStop(1, 'rgba(60,96,160,0.02)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(lake.x, lake.y, lake.radius, 0, Math.PI * 2); ctx.fill();
+      }
+      for (let x = 0; x < app.width; x += 80) {
+        for (let y = 0; y < app.height; y += 80) {
+          ctx.fillStyle = `rgba(255,255,255,${0.008 + Math.sin((x + y + app.time * 10) * 0.02) * 0.004})`;
+          ctx.fillRect(x, y, 1.5, 1.5);
+        }
+      }
+      ctx.fillStyle = `rgba(255,255,255,${0.03 + t})`;
+      ctx.fillRect(0, 0, app.width, app.height);
+    }
+
+    function drawFood() {
+      for (const food of app.foods) {
+        if (food.amount <= 1) continue;
+        const alpha = clamp(food.amount / food.maxAmount, 0.2, 1);
+        ctx.save();
+        ctx.translate(food.x, food.y);
+        ctx.fillStyle = food.rare ? `rgba(255,217,108,${alpha})` : `rgba(156,255,120,${alpha})`;
+        ctx.shadowColor = food.rare ? 'rgba(255,217,108,0.75)' : 'rgba(156,255,120,0.5)';
+        ctx.shadowBlur = food.rare ? 14 : 9;
+        ctx.beginPath(); ctx.arc(0, 0, food.radius + Math.sin(app.time * 3 + food.x) * 0.4, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function drawEntities() {
+      for (const herb of app.herbs) drawHerbivore(herb);
+      for (const predator of app.predators) drawPredator(predator);
+    }
+
+    function drawHerbivore(h) {
+      ctx.save();
+      ctx.translate(h.x, h.y);
+      ctx.rotate(h.angle);
+      ctx.shadowColor = `rgba(126,242,169,${0.24 + h.health * 0.24})`;
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = h.energy < 40 ? '#d2ac78' : '#7ef2a9';
+      ctx.beginPath(); ctx.ellipse(0, 0, h.radius * 1.5, h.radius, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#dfffe6'; ctx.beginPath(); ctx.arc(h.radius * 0.7, -1, h.radius * 0.28, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(6,18,25,.35)'; ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(-h.radius * 1.1, 0); ctx.lineTo(-h.radius * 1.9, 0.5); ctx.stroke();
+      if (h.energy > h.reproThreshold && h.age > h.maturity) {
+        ctx.strokeStyle = 'rgba(119,201,255,.8)'; ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.arc(0, 0, h.radius * 2.1 + Math.sin(app.time * 4 + h.id) * 0.7, 0, Math.PI * 2); ctx.stroke();
+      }
+      if (app.camera.targetId === h.id) {
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(0, 0, h.radius * 2.8, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawPredator(p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.shadowColor = 'rgba(255,122,145,.28)';
+      ctx.shadowBlur = 22;
+      ctx.fillStyle = '#ff7f8f';
+      ctx.beginPath(); ctx.moveTo(p.radius * 1.6, 0); ctx.lineTo(-p.radius, p.radius * 0.9); ctx.lineTo(-p.radius * 1.2, 0); ctx.lineTo(-p.radius, -p.radius * 0.9); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#fff0f3'; ctx.beginPath(); ctx.arc(p.radius * 0.35, -1, p.radius * 0.18, 0, Math.PI * 2); ctx.fill();
+      if (app.camera.targetId === p.id) {
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(0, 0, p.radius * 2.6, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawParticles() {
+      app.particles = app.particles.filter(p => p.life > 0);
+      for (const p of app.particles) {
+        p.life -= 0.016 * app.speed;
+        p.x += p.vx * 0.016; p.y += p.vy * 0.016; p.vy *= 0.98;
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = clamp(p.life, 0, 1);
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function drawHUD(w, h) {
+      const darkness = 0.16 + Math.sin(app.dayTime) * 0.08 + (app.cinematic ? 0.06 : 0);
+      ctx.fillStyle = `rgba(4,8,12,${clamp(darkness, 0.08, 0.28)})`;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    function entityById(id) { return [...app.herbs, ...app.predators].find(e => e.id === id) || null; }
+
+    function renderStats() {
+      document.getElementById('seasonBadge').textContent = `Saison: ${currentSeason().name}`;
+      document.getElementById('modeBadge').textContent = `Mode: ${presets[app.selectedPreset].difficulty}`;
+      const statsEl = document.getElementById('stats');
+      const labels = [
+        ['Herbivores', app.stats.herbivores || 0],
+        ['Prédateurs', app.stats.predators || 0],
+        ['Nourriture', app.stats.food || 0],
+        ['Naissances', app.stats.births || 0],
+        ['Morts', app.stats.deaths || 0],
+        ['Âge moyen', app.stats.avgAge || 0],
+        ['Énergie moyenne', app.stats.avgEnergy || 0],
+        ['Fertiles', app.stats.fertile || 0],
+      ];
+      statsEl.innerHTML = labels.map(([label, value]) => `<div class="stat-card"><small>${label}</small><strong>${value}</strong></div>`).join('');
+      renderSelection();
+      drawChart();
+    }
+
+    function renderSelection() {
+      const entity = entityById(app.camera.targetId);
+      const panel = document.getElementById('selectionPanel');
+      const blood = document.getElementById('bloodlineCard');
+      if (!entity) {
+        panel.innerHTML = `<h2 class="section-title">Individu sélectionné</h2><div class="hint">Sélectionnez un être vivant pour afficher son âge, son énergie, sa fertilité, sa génération et son état.</div>`;
+        blood.innerHTML = `<h2 class="section-title">Lignée simplifiée</h2><div class="hint">La fiche affichera les ancêtres connus de l'individu sélectionné.</div>`;
+        return;
+      }
+      panel.innerHTML = `
+        <h2 class="section-title">${entity.type === 'herbivore' ? 'Herbivore' : 'Prédateur'} #${entity.id}</h2>
+        <div class="selected-grid">
+          <div><span>État</span><strong>${entity.state}</strong></div>
+          <div><span>Âge</span><strong>${entity.age.toFixed(1)}</strong></div>
+          <div><span>Énergie</span><strong>${entity.energy.toFixed(0)}</strong></div>
+          <div><span>Faim</span><strong>${entity.hunger.toFixed(0)}</strong></div>
+          <div><span>Vitesse</span><strong>${entity.speed.toFixed(0)}</strong></div>
+          <div><span>Fertilité</span><strong>${entity.fertility.toFixed(2)}</strong></div>
+          <div><span>Génération</span><strong>${entity.generation}</strong></div>
+          <div><span>Sexe</span><strong>${entity.sex}</strong></div>
+        </div>`;
+      const parentLabels = entity.parents.length ? entity.parents.map(id => `#${id}`).join(' • ') : 'Origine initiale';
+      blood.innerHTML = `<h2 class="section-title">Lignée simplifiée</h2><div class="hint">Parents connus: ${parentLabels}. Génération ${entity.generation}.</div>`;
+    }
+
+    function drawChart() {
+      const rect = chartCanvas.getBoundingClientRect();
+      chartCtx.clearRect(0, 0, rect.width, rect.height);
+      chartCtx.strokeStyle = 'rgba(255,255,255,.08)';
+      chartCtx.lineWidth = 1;
+      for (let i = 1; i < 4; i++) {
+        const y = (rect.height / 4) * i;
+        chartCtx.beginPath(); chartCtx.moveTo(0, y); chartCtx.lineTo(rect.width, y); chartCtx.stroke();
+      }
+      if (app.charts.length < 2) return;
+      const maxY = Math.max(20, ...app.charts.flatMap(d => [d.herbs, d.predators, d.food]));
+      const drawLine = (key, color) => {
+        chartCtx.strokeStyle = color; chartCtx.lineWidth = 2;
+        chartCtx.beginPath();
+        app.charts.forEach((d, i) => {
+          const x = i / (app.charts.length - 1) * rect.width;
+          const y = rect.height - (d[key] / maxY) * rect.height;
+          if (i === 0) chartCtx.moveTo(x, y); else chartCtx.lineTo(x, y);
+        });
+        chartCtx.stroke();
+      };
+      drawLine('herbs', '#7ef2a9');
+      drawLine('predators', '#ff7f8f');
+      drawLine('food', '#ffd96c');
+    }
+
+    function buildUI() {
+      const controls = document.getElementById('controls');
+      controls.innerHTML = controlsConfig.map(([key, label, min, max, value, step]) => `
+        <div class="control">
+          <label for="${key}">${label}</label>
+          <div class="range-row">
+            <input id="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${value}" />
+            <span class="value-pill" id="${key}Value">${value}</span>
+          </div>
+        </div>`).join('');
+      controlsConfig.forEach(([key]) => {
+        const input = document.getElementById(key);
+        input.addEventListener('input', () => {
+          app.settings[key] = Number(input.value);
+          document.getElementById(`${key}Value`).textContent = input.value;
+        });
+      });
+
+      const events = document.getElementById('events');
+      events.innerHTML = eventConfig.map(([key, label, desc]) => `
+        <div class="event-card">
+          <label style="margin-bottom:6px;">${label}</label>
+          <button data-event="${key}" class="secondary">${desc}</button>
+        </div>`).join('');
+      events.querySelectorAll('button[data-event]').forEach(btn => btn.addEventListener('click', () => {
+        const key = btn.dataset.event;
+        app.events[key] = !app.events[key];
+        btn.style.borderColor = app.events[key] ? 'rgba(103,242,181,.45)' : 'rgba(255,255,255,.08)';
+        btn.style.color = app.events[key] ? 'var(--accent)' : 'var(--text)';
+      }));
+
+      const presetWrap = document.getElementById('presets');
+      presetWrap.innerHTML = Object.entries(presets).map(([key, preset]) => `<div class="preset ${key === app.selectedPreset ? 'active' : ''}" data-preset="${key}"><strong>${preset.name}</strong><div class="preset-copy">${preset.difficulty}</div></div>`).join('');
+      presetWrap.querySelectorAll('.preset').forEach(card => card.addEventListener('click', () => {
+        presetWrap.querySelectorAll('.preset').forEach(el => el.classList.remove('active'));
+        card.classList.add('active');
+        app.selectedPreset = card.dataset.preset;
+        document.getElementById('worldTitle').textContent = presets[app.selectedPreset].name;
+        applyPreset(app.selectedPreset);
+      }));
+    }
+
+    function applyPreset(name) {
+      const preset = presets[name];
+      Object.entries(preset).forEach(([key, value]) => {
+        if (key in app.settings) {
+          app.settings[key] = value;
+          const input = document.getElementById(key);
+          if (input) { input.value = value; document.getElementById(`${key}Value`).textContent = value; }
+        }
+      });
+      document.getElementById('worldTitle').textContent = preset.name;
+    }
+
+    function exportSummary() {
+      const summary = {
+        date: new Date().toISOString(),
+        preset: app.selectedPreset,
+        season: currentSeason().name,
+        stats: app.stats,
+        counters: app.counters,
+        settings: app.settings,
+        logs: app.log.slice(-12),
+      };
+      const data = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(summary, null, 2));
+      const link = document.createElement('a');
+      link.href = data;
+      link.download = 'ecosphere-summary.json';
+      link.click();
+      document.getElementById('exportStatus').textContent = 'Résumé exporté au format JSON.';
+    }
+
+    function pickEntityAt(screenX, screenY) {
+      const rect = canvas.getBoundingClientRect();
+      const worldX = app.camera.x + (screenX - rect.width / 2) / app.settings.zoom;
+      const worldY = app.camera.y + (screenY - rect.height / 2) / app.settings.zoom;
+      let closest = null, dist = 18;
+      for (const entity of [...app.herbs, ...app.predators]) {
+        const d = Math.hypot(entity.x - worldX, entity.y - worldY);
+        if (d < dist) { dist = d; closest = entity; }
+      }
+      return closest;
+    }
+
+    function bindInteractions() {
+      document.getElementById('pauseBtn').addEventListener('click', () => {
+        app.paused = !app.paused;
+        document.getElementById('pauseBtn').textContent = app.paused ? 'Reprendre' : 'Pause';
+      });
+      document.getElementById('resetBtn').addEventListener('click', () => seedWorld());
+      document.querySelectorAll('.speed').forEach(btn => btn.addEventListener('click', () => {
+        app.speed = Number(btn.dataset.speed);
+        document.querySelectorAll('.speed').forEach(b => b.classList.remove('active-speed'));
+        btn.classList.add('active-speed');
+      }));
+      document.getElementById('exportBtn').addEventListener('click', exportSummary);
+      document.getElementById('launchBtn').addEventListener('click', () => { splash.classList.add('hidden'); splash.style.pointerEvents = 'none'; });
+      document.getElementById('cinematicBtn').addEventListener('click', () => {
+        app.cinematic = !app.cinematic;
+        document.querySelectorAll('.sidebar').forEach(el => el.style.display = app.cinematic ? 'none' : 'flex');
+        document.querySelector('.shell').style.gridTemplateColumns = app.cinematic ? '1fr' : '320px minmax(0, 1fr) 320px';
+        resizeCanvas();
+      });
+
+      canvas.addEventListener('click', e => {
+        const entity = pickEntityAt(e.offsetX, e.offsetY);
+        app.camera.targetId = entity ? entity.id : null;
+      });
+      canvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        app.settings.zoom = clamp(app.settings.zoom + (e.deltaY < 0 ? 0.06 : -0.06), 0.6, 1.8);
+        const input = document.getElementById('zoom');
+        input.value = app.settings.zoom;
+        document.getElementById('zoomValue').textContent = app.settings.zoom.toFixed(2);
+      }, { passive: false });
+
+      canvas.addEventListener('pointerdown', e => {
+        app.camera.dragging = true; app.camera.dragX = e.clientX; app.camera.dragY = e.clientY;
+      });
+      window.addEventListener('pointerup', () => app.camera.dragging = false);
+      window.addEventListener('pointermove', e => {
+        if (!app.camera.dragging || app.camera.targetId) return;
+        const dx = (e.clientX - app.camera.dragX) / app.settings.zoom;
+        const dy = (e.clientY - app.camera.dragY) / app.settings.zoom;
+        app.camera.x -= dx; app.camera.y -= dy;
+        app.camera.dragX = e.clientX; app.camera.dragY = e.clientY;
+      });
+    }
+
+    function loop(now) {
+      if (!loop.last) loop.last = now;
+      const rawDt = Math.min(0.04, (now - loop.last) / 1000);
+      loop.last = now;
+      if (!app.paused) updateSimulation(rawDt * 60 * app.speed);
+      drawWorld();
+      renderStats();
+      requestAnimationFrame(loop);
+    }
+
+    buildUI();
+    applyPreset(app.selectedPreset);
+    bindInteractions();
+    seedWorld();
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    requestAnimationFrame(loop);
+  </script>
 </body>
 </html>
