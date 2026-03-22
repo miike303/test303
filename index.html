@@ -3,31 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simon - Jeu de Mémoire</title>
+<title>Simon - Jeu de Mémoire Addictif</title>
 <style>
-  /* --- DESIGN ET ERGONOMIE (CSS) --- */
+  /* --- DESIGN ET ANIMATIONS --- */
   body {
     margin: 0;
-    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #1a1a24;
+    background-color: #121218;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
-    transition: background-color 0.2s;
+    user-select: none;
+    overflow: hidden;
   }
 
-  /* Le plateau circulaire */
+  /* Tremblement d'écran quand on perd */
+  @keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+  }
+
+  .shake {
+    animation: shake 0.4s;
+  }
+
+  /* Conteneur principal */
   .game-container {
     position: relative;
     width: 450px;
     height: 450px;
     border-radius: 50%;
-    background-color: #2a2a35;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-    overflow: hidden;
+    background-color: #1f1f28;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     display: flex;
     flex-wrap: wrap;
     padding: 15px;
@@ -35,267 +53,330 @@
     box-sizing: border-box;
   }
 
-  /* Les 4 boutons de couleur */
+  /* Les 4 boutons : LA CORRECTION EST ICI */
   .pad {
     width: calc(50% - 7.5px);
     height: calc(50% - 7.5px);
     cursor: pointer;
-    transition: filter 0.15s, transform 0.1s;
-    opacity: 0.7;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+    transition: background-color 0.1s, transform 0.1s, box-shadow 0.1s;
+    opacity: 0.8;
+    /* Ombre de base pour donner du volume */
+    box-shadow: inset -5px -5px 15px rgba(0,0,0,0.4);
   }
 
-  /* Forme des quartiers de cercle */
-  .green  { background-color: #00a74a; border-top-left-radius: 100%; color: #00ff73; }
-  .red    { background-color: #9f0f17; border-top-right-radius: 100%; color: #ff4c4c; }
-  .yellow { background-color: #cca707; border-bottom-left-radius: 100%; color: #fed93f; }
-  .blue   { background-color: #094a8f; border-bottom-right-radius: 100%; color: #1c8cff; }
+  .green  { background-color: #00883d; border-radius: 100% 0 0 0; }
+  .red    { background-color: #b5151e; border-radius: 0 100% 0 0; }
+  .yellow { background-color: #bfa10b; border-radius: 0 0 0 100%; }
+  .blue   { background-color: #0d5cb0; border-radius: 0 0 100% 0; }
 
-  /* Effets au clic et à l'activation */
-  .pad:active { transform: scale(0.97); }
+  /* Effet d'illumination (restreint aux bords du bouton) */
   .pad.active {
     opacity: 1;
-    filter: brightness(1.8) drop-shadow(0 0 25px currentColor);
     z-index: 10;
   }
+  
+  .green.active  { background-color: #00ff73; box-shadow: inset 0 0 40px rgba(255,255,255,0.7); }
+  .red.active    { background-color: #ff4c4c; box-shadow: inset 0 0 40px rgba(255,255,255,0.7); }
+  .yellow.active { background-color: #fed93f; box-shadow: inset 0 0 40px rgba(255,255,255,0.7); }
+  .blue.active   { background-color: #3b9cff; box-shadow: inset 0 0 40px rgba(255,255,255,0.7); }
 
-  /* Interface centrale (Score et Bouton) */
+  .pad:active { transform: scale(0.96); }
+
+  /* Interface centrale repensée */
   .center-ui {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 200px;
-    height: 200px;
-    background-color: #1a1a24;
+    width: 210px;
+    height: 210px;
+    background-color: #121218;
     border-radius: 50%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    border: 12px solid #2a2a35;
+    border: 12px solid #1f1f28;
     z-index: 5;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 15px rgba(0,0,0,0.5);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
   }
 
   h1 {
     margin: 0;
-    font-size: 32px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #eaeaea;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: #fff;
+  }
+
+  .stats {
+    text-align: center;
+    margin: 10px 0;
   }
 
   #score {
-    font-size: 22px;
-    margin: 15px 0;
-    font-weight: bold;
-    color: #777;
-    transition: color 0.3s;
+    font-size: 28px;
+    font-weight: 900;
+    color: #00ff73;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(0,255,115,0.3);
   }
 
-  .game-over-text { color: #ff4c4c !important; }
+  #high-score {
+    font-size: 12px;
+    color: #888;
+    margin-top: 5px;
+    text-transform: uppercase;
+  }
+
+  #combo-display {
+    position: absolute;
+    top: -40px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #fed93f;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    text-shadow: 0 0 10px rgba(254,217,63,0.5);
+  }
+
+  #combo-display.show {
+    opacity: 1;
+    transform: translateY(-10px);
+  }
 
   button {
-    padding: 12px 25px;
-    font-size: 16px;
+    padding: 10px 25px;
+    font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     border: none;
-    border-radius: 25px;
-    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    border-radius: 20px;
+    background: #ff4c4c;
     color: white;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: transform 0.1s, box-shadow 0.2s;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: transform 0.1s, background 0.2s;
+    box-shadow: 0 4px 15px rgba(255, 76, 76, 0.4);
   }
 
-  button:hover { box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4); }
-  button:active { transform: scale(0.95); }
+  button:hover { background: #ff2a2a; }
+  button:active { transform: scale(0.9); }
 
-  /* Rendre le jeu responsive pour mobile */
   @media (max-width: 500px) {
-    .game-container { width: 320px; height: 320px; }
-    .center-ui { width: 140px; height: 140px; border-width: 8px; }
-    h1 { font-size: 24px; }
-    #score { font-size: 18px; }
-    button { padding: 8px 16px; font-size: 14px; }
+    .game-container { width: 340px; height: 340px; }
+    .center-ui { width: 160px; height: 160px; }
+    h1 { font-size: 18px; }
+    #score { font-size: 22px; }
   }
 </style>
 </head>
 <body>
 
-<div class="game-container">
+<div class="game-container" id="game-board">
   <div class="pad green" id="0"></div>
   <div class="pad red" id="1"></div>
   <div class="pad yellow" id="2"></div>
   <div class="pad blue" id="3"></div>
   
   <div class="center-ui">
-    <h1>Simon</h1>
-    <div id="score">Prêt ?</div>
+    <div id="combo-display">x2 COMBO!</div>
+    <h1>SIMON</h1>
+    <div class="stats">
+      <div id="score">0</div>
+      <div id="high-score">Record : 0</div>
+    </div>
     <button id="start-btn">Jouer</button>
   </div>
 </div>
 
 <script>
-  /* --- LOGIQUE DU JEU (JAVASCRIPT) --- */
+  /* --- LOGIQUE DU JEU AVEC MÉCANIQUES ADDICTIVES --- */
   const pads = document.querySelectorAll('.pad');
   const startBtn = document.getElementById('start-btn');
   const scoreDisplay = document.getElementById('score');
+  const highScoreDisplay = document.getElementById('high-score');
+  const comboDisplay = document.getElementById('combo-display');
+  const gameBoard = document.getElementById('game-board');
 
   let sequence = [];
   let playerSequence = [];
   let level = 0;
+  let score = 0;
   let canClick = false;
+  
+  // Variables de Combo
+  let lastClickTime = 0;
+  let currentCombo = 1;
+  const COMBO_TIME_LIMIT = 800; // Millisecondes max entre deux clics pour garder le combo
 
-  // Configuration Audio (Sons classiques du Simon)
+  // Gestion du meilleur score (Sauvegardé dans le navigateur)
+  let bestScore = localStorage.getItem('simonBestScore') || 0;
+  highScoreDisplay.textContent = `Record : ${bestScore}`;
+
+  // Configuration Audio
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   const audioCtx = new AudioContext();
-  const frequencies = [329.6, 261.6, 277.2, 415.3]; // Mi4 (Vert), Do4 (Rouge), Do#4 (Jaune), Sol#4 (Bleu)
+  const frequencies = [329.6, 261.6, 277.2, 415.3];
 
-  // Fonction pour jouer une note
-  function playTone(freq, duration) {
+  function playTone(freq, duration, type = 'sine') {
     if(audioCtx.state === 'suspended') audioCtx.resume();
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     
-    oscillator.type = 'sine'; // Son doux
+    oscillator.type = type;
     oscillator.frequency.value = freq;
     
     oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
     
     oscillator.start();
-    // Baisse progressive du volume pour éviter les "clics" audios
-    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
     oscillator.stop(audioCtx.currentTime + duration);
   }
 
-  // Fonction pour le son d'erreur
-  function playErrorTone() {
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    
-    oscillator.type = 'sawtooth'; // Son plus agressif pour l'erreur
-    oscillator.frequency.value = 110; // Note grave
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    
-    oscillator.start();
-    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.8);
-    oscillator.stop(audioCtx.currentTime + 0.8);
-  }
-
-  // Illumine un bouton et joue son son
-  function activatePad(id) {
+  function activatePad(id, isPlayer = false) {
     const pad = document.getElementById(id);
     pad.classList.add('active');
-    playTone(frequencies[id], 0.4);
+    playTone(frequencies[id], 0.3);
     
     setTimeout(() => {
       pad.classList.remove('active');
-    }, 300);
+    }, 250);
   }
 
-  // Passe au niveau suivant
   function nextLevel() {
     level++;
     playerSequence = [];
-    scoreDisplay.textContent = `Niveau ${level}`;
-    scoreDisplay.classList.remove('game-over-text');
+    currentCombo = 1;
+    hideCombo();
     
-    // Ajoute une nouvelle couleur aléatoire (0 à 3) à la séquence
     const nextColor = Math.floor(Math.random() * 4);
     sequence.push(nextColor);
     
     playSequence();
   }
 
-  // Joue la séquence enregistrée par l'ordinateur
   function playSequence() {
-    canClick = false; // Bloque les clics du joueur pendant la démonstration
-    let delay = 0;
+    canClick = false;
+    let delay = 500;
     
     sequence.forEach((color, index) => {
       setTimeout(() => {
         activatePad(color);
       }, delay);
-      // Accélère légèrement la séquence au fur et à mesure des niveaux
-      let speed = Math.max(400, 800 - (level * 20)); 
+      // Le jeu s'accélère beaucoup plus vite pour augmenter le stress
+      let speed = Math.max(250, 700 - (level * 35)); 
       delay += speed;
     });
     
-    // Autorise le joueur à cliquer une fois la séquence terminée
     setTimeout(() => {
       canClick = true;
+      lastClickTime = Date.now(); // Démarre le chrono pour le combo
     }, delay);
   }
 
-  // Gère le clic du joueur
+  function updateScore(points) {
+    score += points;
+    
+    // Animation sympa du score
+    let currentVal = parseInt(scoreDisplay.textContent);
+    let step = Math.ceil(points / 10);
+    
+    let timer = setInterval(() => {
+      currentVal += step;
+      if(currentVal >= score) {
+        currentVal = score;
+        clearInterval(timer);
+      }
+      scoreDisplay.textContent = currentVal;
+    }, 20);
+  }
+
+  function showCombo() {
+    comboDisplay.textContent = `x${currentCombo} VITESSE!`;
+    comboDisplay.classList.add('show');
+    clearTimeout(comboDisplay.timeout);
+    comboDisplay.timeout = setTimeout(hideCombo, 1000);
+  }
+
+  function hideCombo() {
+    comboDisplay.classList.remove('show');
+  }
+
   function handlePadClick(e) {
     if (!canClick) return;
     
     const colorId = parseInt(e.target.id);
-    activatePad(colorId);
+    activatePad(colorId, true);
     playerSequence.push(colorId);
+    
+    // Logique de Combo
+    const now = Date.now();
+    if (now - lastClickTime < COMBO_TIME_LIMIT) {
+      currentCombo++;
+      if(currentCombo > 2) showCombo(); // Affiche le combo à partir de x3
+    } else {
+      currentCombo = 1;
+      hideCombo();
+    }
+    lastClickTime = now;
     
     checkSequence(playerSequence.length - 1);
   }
 
-  // Vérifie si le joueur a cliqué sur la bonne couleur
   function checkSequence(currentStep) {
-    // Si la couleur est fausse
     if (playerSequence[currentStep] !== sequence[currentStep]) {
       gameOver();
       return;
     }
     
-    // Si le joueur a terminé la séquence complète avec succès
+    // Gain de points par touche validée (Base: 10 * Combo * Niveau)
+    const pointsGained = 10 * currentCombo * level;
+    updateScore(pointsGained);
+    
     if (playerSequence.length === sequence.length) {
       canClick = false;
-      setTimeout(nextLevel, 1000); // Pause avant le prochain niveau
+      setTimeout(nextLevel, 800);
     }
   }
 
-  // Gère la fin de partie
   function gameOver() {
-    playErrorTone();
-    scoreDisplay.textContent = "PERDU !";
-    scoreDisplay.classList.add('game-over-text');
-    
-    // Flash rouge sur l'écran
-    document.body.style.backgroundColor = '#4a0909';
-    setTimeout(() => { document.body.style.backgroundColor = '#1a1a24'; }, 300);
-    
-    // Réinitialisation de l'état
-    sequence = [];
+    playTone(100, 1, 'sawtooth'); // Son grave d'erreur
     canClick = false;
     
-    // Réaffiche le bouton jouer
+    // Effet "Juice" : Tremblement d'écran
+    gameBoard.classList.add('shake');
+    setTimeout(() => gameBoard.classList.remove('shake'), 400);
+    
+    // Sauvegarde du score
+    if (score > bestScore) {
+      bestScore = score;
+      localStorage.setItem('simonBestScore', bestScore);
+      highScoreDisplay.textContent = `Nouveau Record : ${bestScore}!`;
+      highScoreDisplay.style.color = "#fed93f";
+    }
+    
+    scoreDisplay.style.color = "#ff4c4c";
     startBtn.textContent = "Rejouer";
     startBtn.style.display = 'block';
   }
 
-  // Lance le jeu
   startBtn.addEventListener('click', () => {
-    // Nécessaire pour initialiser l'audio sur certains navigateurs
     if(audioCtx.state === 'suspended') audioCtx.resume(); 
-    
     startBtn.style.display = 'none';
+    scoreDisplay.style.color = "#00ff73";
+    
     level = 0;
+    score = 0;
+    scoreDisplay.textContent = "0";
     sequence = [];
+    highScoreDisplay.style.color = "#888";
+    highScoreDisplay.textContent = `Record : ${bestScore}`;
     
     setTimeout(nextLevel, 500);
   });
 
-  // Attache les événements de clics aux boutons de couleur
   pads.forEach(pad => pad.addEventListener('click', handlePadClick));
-
 </script>
 </body>
 </html>
