@@ -3,70 +3,461 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tetris Nova</title>
+  <title>Atelier Central — Café-boutique à Drummondville</title>
+  <meta name="description" content="Café-boutique chaleureux au 330, rue Lindsay à Drummondville. Café de qualité, produits Maison d’Herbes, soins 330, plantes et découvertes." />
+  <meta property="og:title" content="Atelier Central — Café-boutique à Drummondville" />
+  <meta property="og:description" content="Café-boutique chaleureux au 330, rue Lindsay à Drummondville. Café de qualité, produits Maison d’Herbes, soins 330, plantes et découvertes." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="images/atelier-central-og.jpg" />
+  <meta name="theme-color" content="#FAF7F2" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #FAF7F2;
+      --text: #1C1C1C;
+      --accent: #A8B5A0;
+      --accent-dark: #8d9f83;
+      --card: #fdfbf8;
+      --border: #e9e3db;
+      --muted: #5a5a5a;
+      --container: 1120px;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(28, 28, 28, 0.05);
+      --space-xs: 0.75rem;
+      --space-sm: 1rem;
+      --space-md: 1.5rem;
+      --space-lg: 2.25rem;
+      --space-xl: 3.5rem;
+      --space-2xl: 5rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-family: "Playfair Display", Georgia, serif;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0.01em;
+    }
+
+    p {
+      margin: 0;
+      color: var(--text);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .container {
+      width: min(100% - 2.25rem, var(--container));
+      margin-inline: auto;
+    }
+
+    .section {
+      padding-block: var(--space-2xl);
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      margin-bottom: var(--space-md);
+    }
+
+    .section-intro {
+      max-width: 65ch;
+      color: var(--muted);
+    }
+
+    .hero {
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding-block: var(--space-xl);
+    }
+
+    .hero__content {
+      max-width: 760px;
+      display: grid;
+      gap: var(--space-md);
+    }
+
+    .hero__subtitle {
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 0.83rem;
+      color: #4b4b4b;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.7rem, 8vw, 5.4rem);
+    }
+
+    .hero__lead {
+      font-size: clamp(1.05rem, 2.6vw, 1.3rem);
+      color: #3f3f3f;
+      max-width: 56ch;
+      margin-inline: auto;
+    }
+
+    .btn-primary {
+      justify-self: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.9rem 1.45rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: var(--accent);
+      color: #111;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.25s ease, transform 0.25s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:focus-visible,
+    a:focus-visible {
+      outline: 3px solid #556b4f;
+      outline-offset: 3px;
+      border-radius: 6px;
+    }
+
+    .about__content {
+      display: grid;
+      gap: var(--space-md);
+      max-width: 70ch;
+    }
+
+    .about__content p {
+      color: #333;
+    }
+
+    .offer-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .offer-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .offer-card__emoji {
+      display: inline-flex;
+      font-size: 1.35rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .offer-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .offer-card p {
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .find-wrap {
+      display: grid;
+      gap: var(--space-lg);
+    }
+
+    .find-meta {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .find-meta address {
+      font-style: normal;
+      font-weight: 500;
+    }
+
+    .hours {
+      display: grid;
+      gap: 0.25rem;
+      color: #363636;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .map {
+      border: 0;
+      width: 100%;
+      min-height: 320px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      background: #e7e7e7;
+    }
+
+    .contact__links {
+      display: grid;
+      gap: 0.65rem;
+      margin-top: var(--space-md);
+    }
+
+    .contact-link {
+      width: fit-content;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s ease, color 0.2s ease;
+      font-weight: 500;
+    }
+
+    .contact-link:hover {
+      border-color: currentColor;
+      color: #2a2a2a;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding-block: var(--space-xl);
+      text-align: center;
+      color: #3d3d3d;
+    }
+
+    .footer-stack {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .footer-brand {
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: 1.2rem;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+      will-change: opacity, transform;
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (min-width: 700px) {
+      .offer-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .section {
+        padding-block: clamp(4.5rem, 9vw, 6rem);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .offer-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .find-wrap {
+        grid-template-columns: 0.9fr 1.1fr;
+        align-items: start;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .reveal,
+      .reveal.is-visible {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+
+      .btn-primary {
+        transition: none;
+      }
+    }
+
+    noscript .reveal {
+      opacity: 1;
+      transform: none;
+    }
+  </style>
 </head>
 <body>
-  <div class="app-bg"></div>
-  <main class="layout">
-    <section class="main-panel card">
-      <header class="title-row">
-        <div>
-          <p class="eyebrow">Jeu d'arcade moderne</p>
-          <h1>Tetris Nova</h1>
-        </div>
-        <button id="restartBtn" class="btn">Recommencer</button>
-      </header>
+  <header class="hero section">
+    <div class="container hero__content reveal">
+      <p class="hero__subtitle">Café · Boutique · Découvertes</p>
+      <h1>Atelier Central</h1>
+      <p class="hero__lead">Un lieu chaleureux au cœur de Drummondville, pensé pour se retrouver, se faire plaisir, et ralentir.</p>
+      <a class="btn-primary" href="#nous-trouver" aria-label="Aller à la section Nous trouver">Venez nous voir</a>
+    </div>
+  </header>
 
-      <div class="board-wrap">
-        <canvas id="board" width="400" height="800" aria-label="Plateau de Tetris"></canvas>
-        <div id="gameOver" class="overlay hidden">
-          <h2>Partie terminée</h2>
-          <p>Appuyez sur Recommencer pour rejouer.</p>
+  <main>
+    <section class="section about" aria-labelledby="a-propos">
+      <div class="container reveal">
+        <h2 id="a-propos" class="section-title">Un atelier. Un lieu central.</h2>
+        <div class="about__content">
+          <p>Atelier Central, c’est un café-boutique situé au 330, rue Lindsay, à Drummondville.</p>
+          <p>Un espace où se rencontrent la passion du bon café, l’amour des produits faits avec soin, et l’envie de créer un lieu où chacun se sent bien.</p>
+          <p>Ici, on prend le temps. On découvre. On savoure. On revient.</p>
         </div>
       </div>
-
-      <footer class="hint-row">
-        <span>← → déplacer</span>
-        <span>↑ rotation</span>
-        <span>↓ descente</span>
-        <span>Espace chute instantanée</span>
-        <span>C hold</span>
-        <span>P pause</span>
-      </footer>
     </section>
 
-    <aside class="side-panel">
-      <section class="card stat-grid">
-        <article>
-          <p>Score</p>
-          <strong id="score">0</strong>
-        </article>
-        <article>
-          <p>Niveau</p>
-          <strong id="level">1</strong>
-        </article>
-        <article>
-          <p>Lignes</p>
-          <strong id="lines">0</strong>
-        </article>
-      </section>
+    <section class="section" aria-labelledby="offre">
+      <div class="container reveal">
+        <h2 id="offre" class="section-title">Ce que vous trouverez chez nous</h2>
+        <p class="section-intro">Une sélection pensée pour allier pause café, découvertes locales et petits plaisirs du quotidien.</p>
 
-      <section class="card">
-        <p class="panel-title">Prochaine pièce</p>
-        <canvas id="next" width="160" height="160"></canvas>
-      </section>
+        <div class="offer-grid" role="list" aria-label="Offres d'Atelier Central">
+          <article class="offer-card" role="listitem">
+            <span class="offer-card__emoji" aria-hidden="true">☕</span>
+            <h3>Café de qualité</h3>
+            <p>Grains soigneusement sélectionnés, préparations soignées.</p>
+          </article>
 
-      <section class="card">
-        <p class="panel-title">Hold</p>
-        <canvas id="hold" width="160" height="160"></canvas>
-      </section>
-    </aside>
+          <article class="offer-card" role="listitem">
+            <span class="offer-card__emoji" aria-hidden="true">🌿</span>
+            <h3>Produits Maison d’Herbes</h3>
+            <p>Une gamme artisanale toujours disponible chez nous.</p>
+          </article>
+
+          <article class="offer-card" role="listitem">
+            <span class="offer-card__emoji" aria-hidden="true">🧴</span>
+            <h3>Soins corporels 330</h3>
+            <p>Faits avec minutie pour prendre soin de vous.</p>
+          </article>
+
+          <article class="offer-card" role="listitem">
+            <span class="offer-card__emoji" aria-hidden="true">🪴</span>
+            <h3>Plantes décoratives</h3>
+            <p>Pour verdir votre maison et inspirer votre quotidien.</p>
+          </article>
+
+          <article class="offer-card" role="listitem">
+            <span class="offer-card__emoji" aria-hidden="true">🍵</span>
+            <h3>Thés &amp; tisanes</h3>
+            <p>Une sélection pour chaque humeur.</p>
+          </article>
+
+          <article class="offer-card" role="listitem">
+            <span class="offer-card__emoji" aria-hidden="true">✨</span>
+            <h3>Un espace pour vous</h3>
+            <p>Pour travailler, lire, jaser ou décrocher.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="nous-trouver" class="section" aria-labelledby="nous-trouver-titre">
+      <div class="container find-wrap reveal">
+        <div>
+          <h2 id="nous-trouver-titre" class="section-title">Venez nous rencontrer</h2>
+          <div class="find-meta">
+            <address>330, rue Lindsay, Drummondville, QC · J2B 1G5</address>
+            <div class="hours" aria-label="Horaires d'ouverture">
+              <p><strong>Lundi au vendredi :</strong> [à venir]</p>
+              <p><strong>Samedi et dimanche :</strong> [à venir]</p>
+            </div>
+            <p class="note">Les horaires peuvent varier. Consultez notre Facebook pour les mises à jour.</p>
+          </div>
+        </div>
+
+        <iframe
+          class="map"
+          title="Carte Google Maps de Atelier Central à Drummondville"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          src="https://www.google.com/maps?q=330%20rue%20Lindsay%2C%20Drummondville%2C%20QC&output=embed">
+        </iframe>
+      </div>
+    </section>
+
+    <section class="section contact" aria-labelledby="contact">
+      <div class="container reveal">
+        <h2 id="contact" class="section-title">Une question? Une envie?</h2>
+        <div class="contact__links">
+          <a class="contact-link" href="mailto:bonjour.ateliercentral@gmail.com" aria-label="Envoyer un courriel à Atelier Central">bonjour.ateliercentral@gmail.com</a>
+          <a class="contact-link" href="https://www.facebook.com/AtelierCentral" target="_blank" rel="noopener noreferrer" aria-label="Visiter Facebook Atelier Central">Facebook · @AtelierCentral</a>
+          <a class="contact-link" href="https://www.instagram.com/atelier.central" target="_blank" rel="noopener noreferrer" aria-label="Visiter Instagram atelier point central">Instagram · @atelier.central</a>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <script src="js/main.js"></script>
+  <footer>
+    <div class="container footer-stack reveal">
+      <p class="footer-brand">Atelier Central</p>
+      <p>Café · Boutique · Découvertes</p>
+      <p>330, rue Lindsay · Drummondville, QC</p>
+      <p>© 2026 Atelier Central</p>
+    </div>
+  </footer>
+
+  <noscript>
+    <style>
+      .reveal { opacity: 1 !important; transform: none !important; }
+    </style>
+  </noscript>
+
+  <script>
+    (function () {
+      const items = document.querySelectorAll('.reveal');
+      if (!('IntersectionObserver' in window)) {
+        items.forEach((item) => item.classList.add('is-visible'));
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.15,
+        rootMargin: '0px 0px -40px 0px'
+      });
+
+      items.forEach((item) => observer.observe(item));
+    })();
+  </script>
 </body>
 </html>
