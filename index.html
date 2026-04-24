@@ -1,38 +1,37 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr-CA">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Atelier Central — Café-boutique à Drummondville</title>
   <meta name="description" content="Café-boutique chaleureux au 330, rue Lindsay à Drummondville. Café de qualité, produits Maison d’Herbes, soins 330, plantes et découvertes." />
+  <meta name="theme-color" content="#1C1C1C" />
+
   <meta property="og:title" content="Atelier Central — Café-boutique à Drummondville" />
   <meta property="og:description" content="Café-boutique chaleureux au 330, rue Lindsay à Drummondville. Café de qualité, produits Maison d’Herbes, soins 330, plantes et découvertes." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="images/atelier-central-og.jpg" />
-  <meta name="theme-color" content="#FAF7F2" />
+  <meta property="og:image" content="images/hero-cafe-atelier-central.jpeg" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg: #FAF7F2;
-      --text: #1C1C1C;
-      --accent: #A8B5A0;
-      --accent-dark: #8d9f83;
-      --card: #fdfbf8;
-      --border: #e9e3db;
-      --muted: #5a5a5a;
-      --container: 1120px;
-      --radius: 16px;
-      --shadow: 0 10px 30px rgba(28, 28, 28, 0.05);
-      --space-xs: 0.75rem;
-      --space-sm: 1rem;
-      --space-md: 1.5rem;
-      --space-lg: 2.25rem;
-      --space-xl: 3.5rem;
-      --space-2xl: 5rem;
+      --cream: #FAF7F2;
+      --cream-2: #F1E9DE;
+      --ink: #1C1C1C;
+      --muted: #625C55;
+      --sage: #A8B5A0;
+      --sage-dark: #7D8D75;
+      --coffee: #5A3E2B;
+      --latte: #D8C3A5;
+      --white: #FFFFFF;
+      --black: #090909;
+      --shadow: 0 24px 70px rgba(28, 28, 28, 0.10);
+      --soft-shadow: 0 18px 45px rgba(28, 28, 28, 0.08);
+      --radius: 28px;
+      --max: 1160px;
     }
 
     * {
@@ -45,228 +44,616 @@
 
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      font-size: 1rem;
-      line-height: 1.7;
-      -webkit-font-smoothing: antialiased;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(168, 181, 160, 0.22), transparent 32rem),
+        linear-gradient(180deg, #fffaf2 0%, var(--cream) 38%, #f4ede4 100%);
+      line-height: 1.6;
       text-rendering: optimizeLegibility;
     }
 
-    h1, h2, h3 {
-      margin: 0;
-      font-family: "Playfair Display", Georgia, serif;
-      font-weight: 600;
-      line-height: 1.2;
-      letter-spacing: 0.01em;
-    }
-
-    p {
-      margin: 0;
-      color: var(--text);
+    img {
+      max-width: 100%;
+      display: block;
     }
 
     a {
       color: inherit;
+      text-decoration: none;
     }
 
-    .container {
-      width: min(100% - 2.25rem, var(--container));
-      margin-inline: auto;
+    .skip-link {
+      position: absolute;
+      left: -999px;
+      top: 12px;
+      z-index: 2000;
+      padding: 12px 16px;
+      background: var(--ink);
+      color: var(--white);
+      border-radius: 999px;
     }
 
-    .section {
-      padding-block: var(--space-2xl);
+    .skip-link:focus {
+      left: 12px;
     }
 
-    .section-title {
-      font-size: clamp(1.8rem, 4vw, 2.8rem);
-      margin-bottom: var(--space-md);
+    .site-header {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 1000;
+      padding: 14px 18px;
+      transition: background 0.25s ease, box-shadow 0.25s ease, padding 0.25s ease;
     }
 
-    .section-intro {
-      max-width: 65ch;
-      color: var(--muted);
+    .site-header.is-scrolled {
+      background: rgba(250, 247, 242, 0.88);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 10px 35px rgba(28, 28, 28, 0.08);
+      padding: 10px 18px;
+    }
+
+    .nav-shell {
+      width: min(var(--max), calc(100% - 24px));
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.50);
+      border: 1px solid rgba(28, 28, 28, 0.08);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
+    .brand img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      border-radius: 50%;
+      background: var(--black);
+    }
+
+    .nav-links {
+      display: none;
+      align-items: center;
+      gap: 22px;
+      font-size: 0.9rem;
+      color: rgba(28, 28, 28, 0.78);
+    }
+
+    .nav-links a {
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -6px;
+      height: 1px;
+      background: var(--coffee);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.2s ease;
+    }
+
+    .nav-links a:hover::after,
+    .nav-links a:focus-visible::after {
+      transform: scaleX(1);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 13px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(28, 28, 28, 0.12);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(28, 28, 28, 0.14);
+    }
+
+    .btn:focus-visible,
+    a:focus-visible {
+      outline: 3px solid rgba(168, 181, 160, 0.85);
+      outline-offset: 4px;
+    }
+
+    .btn-primary {
+      color: #fff;
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.62);
+      color: var(--ink);
+    }
+
+    .header-cta {
+      display: none;
     }
 
     .hero {
       min-height: 100svh;
+      padding: 114px 18px 64px;
       display: grid;
-      place-items: center;
-      text-align: center;
-      padding-block: var(--space-xl);
+      align-items: center;
+      overflow: hidden;
+      position: relative;
     }
 
-    .hero__content {
-      max-width: 760px;
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(250,247,242,1) 0%, rgba(250,247,242,0.90) 33%, rgba(250,247,242,0.44) 60%, rgba(250,247,242,0.18) 100%),
+        url("images/hero-cafe-atelier-central.jpeg") center/cover no-repeat;
+      opacity: 1;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -12vw;
+      bottom: -22vw;
+      width: 54vw;
+      height: 54vw;
+      min-width: 340px;
+      min-height: 340px;
+      background: rgba(168, 181, 160, 0.28);
+      border-radius: 50%;
+      filter: blur(6px);
+      z-index: 0;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      width: min(var(--max), 100%);
+      margin: 0 auto;
       display: grid;
-      gap: var(--space-md);
+      gap: 34px;
     }
 
-    .hero__subtitle {
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      font-size: 0.83rem;
-      color: #4b4b4b;
-    }
-
-    .hero h1 {
-      font-size: clamp(2.7rem, 8vw, 5.4rem);
-    }
-
-    .hero__lead {
-      font-size: clamp(1.05rem, 2.6vw, 1.3rem);
-      color: #3f3f3f;
-      max-width: 56ch;
-      margin-inline: auto;
-    }
-
-    .btn-primary {
-      justify-self: center;
+    .eyebrow {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      padding: 0.9rem 1.45rem;
+      gap: 10px;
+      width: fit-content;
+      padding: 9px 13px;
       border-radius: 999px;
-      border: 1px solid transparent;
-      background: var(--accent);
-      color: #111;
-      font-weight: 600;
-      text-decoration: none;
-      transition: background 0.25s ease, transform 0.25s ease;
+      background: rgba(255,255,255,0.64);
+      border: 1px solid rgba(28, 28, 28, 0.08);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--coffee);
     }
 
-    .btn-primary:hover {
-      background: var(--accent-dark);
-      transform: translateY(-2px);
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--sage-dark);
     }
 
-    .btn-primary:focus-visible,
-    a:focus-visible {
-      outline: 3px solid #556b4f;
-      outline-offset: 3px;
-      border-radius: 6px;
+    .hero-content {
+      max-width: 720px;
     }
 
-    .about__content {
-      display: grid;
-      gap: var(--space-md);
-      max-width: 70ch;
+    .hero-logo {
+      width: min(620px, 100%);
+      margin-bottom: 28px;
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      background: #000;
     }
 
-    .about__content p {
-      color: #333;
+    h1, h2, h3 {
+      font-family: "Playfair Display", Georgia, serif;
+      line-height: 1.03;
+      margin: 0;
+      letter-spacing: -0.045em;
     }
 
-    .offer-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--space-md);
-      margin-top: var(--space-lg);
+    h1 {
+      font-size: clamp(3.4rem, 14vw, 8.8rem);
     }
 
-    .offer-card {
-      background: var(--card);
-      border: 1px solid var(--border);
+    h2 {
+      font-size: clamp(2.45rem, 7vw, 5.8rem);
+    }
+
+    h3 {
+      font-size: clamp(1.45rem, 3vw, 2rem);
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      max-width: 620px;
+      font-size: clamp(1.1rem, 2.5vw, 1.42rem);
+      color: rgba(28,28,28,0.78);
+      margin: 22px 0 0;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .hero-card {
+      display: none;
+      align-self: end;
+      justify-self: end;
+      width: min(355px, 100%);
+      padding: 18px;
       border-radius: var(--radius);
-      padding: var(--space-lg);
+      background: rgba(255, 255, 255, 0.74);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.58);
       box-shadow: var(--shadow);
     }
 
-    .offer-card__emoji {
-      display: inline-flex;
+    .hero-card img {
+      width: 100%;
+      height: 235px;
+      object-fit: cover;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .hero-card strong {
+      display: block;
+      font-family: "Playfair Display", Georgia, serif;
       font-size: 1.35rem;
-      margin-bottom: 0.55rem;
+      line-height: 1.1;
+      margin-bottom: 8px;
     }
 
-    .offer-card h3 {
-      font-size: 1.25rem;
-      margin-bottom: 0.45rem;
-    }
-
-    .offer-card p {
-      color: var(--muted);
-      font-size: 0.98rem;
-    }
-
-    .find-wrap {
-      display: grid;
-      gap: var(--space-lg);
-    }
-
-    .find-meta {
-      display: grid;
-      gap: 0.5rem;
-    }
-
-    .find-meta address {
-      font-style: normal;
-      font-weight: 500;
-    }
-
-    .hours {
-      display: grid;
-      gap: 0.25rem;
-      color: #363636;
-    }
-
-    .note {
+    .hero-card span {
       color: var(--muted);
       font-size: 0.95rem;
     }
 
-    .map {
-      border: 0;
-      width: 100%;
-      min-height: 320px;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      background: #e7e7e7;
+    section {
+      padding: 86px 18px;
     }
 
-    .contact__links {
+    .container {
+      width: min(var(--max), 100%);
+      margin: 0 auto;
+    }
+
+    .section-kicker {
+      color: var(--sage-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-weight: 800;
+      font-size: 0.78rem;
+      margin-bottom: 18px;
+    }
+
+    .intro-grid {
       display: grid;
-      gap: 0.65rem;
-      margin-top: var(--space-md);
+      gap: 34px;
+      align-items: end;
     }
 
-    .contact-link {
-      width: fit-content;
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.2s ease, color 0.2s ease;
-      font-weight: 500;
+    .intro-text {
+      color: var(--muted);
+      font-size: 1.08rem;
+      max-width: 710px;
     }
 
-    .contact-link:hover {
-      border-color: currentColor;
-      color: #2a2a2a;
+    .intro-text p {
+      margin: 0 0 18px;
     }
 
-    footer {
-      border-top: 1px solid var(--border);
-      padding-block: var(--space-xl);
-      text-align: center;
-      color: #3d3d3d;
-    }
-
-    .footer-stack {
-      display: grid;
-      gap: 0.35rem;
-    }
-
-    .footer-brand {
+    .signature-line {
+      margin-top: 28px;
+      padding-left: 18px;
+      border-left: 3px solid var(--sage);
+      color: var(--coffee);
+      font-size: clamp(1.35rem, 3vw, 2rem);
       font-family: "Playfair Display", Georgia, serif;
-      font-size: 1.2rem;
+      line-height: 1.15;
+      max-width: 620px;
+    }
+
+    .photo-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .photo-card {
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--soft-shadow);
+      background: #ddd;
+      position: relative;
+      min-height: 250px;
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 100%;
+      min-height: 250px;
+      object-fit: cover;
+    }
+
+    .photo-caption {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      color: #fff;
+      background: rgba(0,0,0,0.56);
+      backdrop-filter: blur(12px);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .offer {
+      background: rgba(255,255,255,0.38);
+      position: relative;
+    }
+
+    .section-head {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 34px;
+    }
+
+    .section-head p {
+      max-width: 670px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .offer-card {
+      padding: 26px;
+      min-height: 210px;
+      border-radius: 26px;
+      background: rgba(250,247,242,0.78);
+      border: 1px solid rgba(28,28,28,0.08);
+      box-shadow: 0 18px 45px rgba(28,28,28,0.055);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .offer-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--soft-shadow);
+      border-color: rgba(168,181,160,0.55);
+    }
+
+    .icon {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 10px 28px rgba(28,28,28,0.08);
+      font-size: 1.55rem;
+      margin-bottom: 20px;
+    }
+
+    .offer-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 12px;
+    }
+
+    .offer-card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .mood {
+      background:
+        linear-gradient(135deg, rgba(28,28,28,0.92), rgba(90,62,43,0.78)),
+        url("images/facade-atelier-central.jpeg") center/cover no-repeat;
+      color: #fff;
+      padding: 96px 18px;
+    }
+
+    .mood .section-kicker {
+      color: var(--latte);
+    }
+
+    .mood-grid {
+      display: grid;
+      gap: 34px;
+    }
+
+    .mood p {
+      color: rgba(255,255,255,0.78);
+      font-size: 1.08rem;
+      max-width: 700px;
+    }
+
+    .mood-pills {
+      display: grid;
+      gap: 14px;
+    }
+
+    .mood-pill {
+      padding: 20px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(18px);
+    }
+
+    .mood-pill strong {
+      display: block;
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: 1.5rem;
+      margin-bottom: 6px;
+    }
+
+    .visit-grid {
+      display: grid;
+      gap: 24px;
+    }
+
+    .info-panel {
+      padding: 28px;
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--soft-shadow);
+      border: 1px solid rgba(28,28,28,0.08);
+    }
+
+    .info-list {
+      display: grid;
+      gap: 16px;
+      margin-top: 26px;
+    }
+
+    .info-item {
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(28,28,28,0.08);
+    }
+
+    .info-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .info-item span {
+      display: block;
+      color: var(--sage-dark);
+      font-weight: 800;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .info-item p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .map-wrap {
+      min-height: 420px;
+      overflow: hidden;
+      border-radius: var(--radius);
+      box-shadow: var(--soft-shadow);
+      border: 1px solid rgba(28,28,28,0.08);
+      background: #ddd;
+    }
+
+    .map-wrap iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 420px;
+      border: 0;
+      display: block;
+    }
+
+    .contact {
+      padding-top: 30px;
+    }
+
+    .contact-card {
+      display: grid;
+      gap: 28px;
+      padding: clamp(28px, 6vw, 58px);
+      border-radius: 36px;
+      background:
+        radial-gradient(circle at top right, rgba(168,181,160,0.30), transparent 22rem),
+        #fff;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(28,28,28,0.08);
+    }
+
+    .contact-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.06rem;
+    }
+
+    .contact-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .social-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 16px;
+      border-radius: 999px;
+      background: var(--cream);
+      border: 1px solid rgba(28,28,28,0.08);
+      font-weight: 700;
+    }
+
+    .site-footer {
+      padding: 46px 18px;
+      color: rgba(255,255,255,0.74);
+      background: var(--black);
+    }
+
+    .footer-inner {
+      width: min(var(--max), 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-family: "Playfair Display", Georgia, serif;
+      color: #fff;
+      font-size: clamp(2rem, 6vw, 3.4rem);
+      letter-spacing: -0.04em;
     }
 
     .reveal {
       opacity: 0;
-      transform: translateY(18px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
-      will-change: opacity, transform;
+      transform: translateY(24px);
+      transition: opacity 0.75s ease, transform 0.75s ease;
     }
 
     .reveal.is-visible {
@@ -274,41 +661,100 @@
       transform: translateY(0);
     }
 
-    @media (min-width: 700px) {
-      .offer-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .section {
-        padding-block: clamp(4.5rem, 9vw, 6rem);
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .offer-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .find-wrap {
-        grid-template-columns: 0.9fr 1.1fr;
-        align-items: start;
-      }
-    }
-
     @media (prefers-reduced-motion: reduce) {
       html {
         scroll-behavior: auto;
       }
 
-      .reveal,
-      .reveal.is-visible {
-        opacity: 1;
-        transform: none;
-        transition: none;
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
       }
 
-      .btn-primary {
-        transition: none;
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @media (min-width: 700px) {
+      .nav-links {
+        display: flex;
+      }
+
+      .header-cta {
+        display: inline-flex;
+      }
+
+      .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .mood-pills {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .contact-card {
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: center;
+      }
+    }
+
+    @media (min-width: 940px) {
+      .hero-inner {
+        grid-template-columns: 1fr 360px;
+      }
+
+      .hero-card {
+        display: block;
+      }
+
+      .intro-grid {
+        grid-template-columns: 1fr 0.72fr;
+      }
+
+      .cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .mood-grid {
+        grid-template-columns: 1fr 0.95fr;
+        align-items: end;
+      }
+
+      .visit-grid {
+        grid-template-columns: 0.82fr 1.18fr;
+        align-items: stretch;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .nav-shell {
+        width: 100%;
+      }
+
+      .brand span {
+        max-width: 155px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .hero {
+        padding-top: 96px;
+      }
+
+      .hero-logo {
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      section {
+        padding: 70px 18px;
       }
     }
 
@@ -318,146 +764,244 @@
     }
   </style>
 </head>
+
 <body>
-  <header class="hero section">
-    <div class="container hero__content reveal">
-      <p class="hero__subtitle">Café · Boutique · Découvertes</p>
-      <h1>Atelier Central</h1>
-      <p class="hero__lead">Un lieu chaleureux au cœur de Drummondville, pensé pour se retrouver, se faire plaisir, et ralentir.</p>
-      <a class="btn-primary" href="#nous-trouver" aria-label="Aller à la section Nous trouver">Venez nous voir</a>
+  <a href="#main" class="skip-link">Aller au contenu principal</a>
+
+  <header class="site-header" data-header>
+    <div class="nav-shell">
+      <a class="brand" href="#top" aria-label="Retour en haut de la page">
+        <img src="images/monogramme-atelier-central.png" alt="" aria-hidden="true" />
+        <span>Atelier Central</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Navigation principale">
+        <a href="#apropos">À propos</a>
+        <a href="#decouvrir">Découvrir</a>
+        <a href="#trouver">Nous trouver</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <a class="btn btn-primary header-cta" href="#trouver">Venir nous voir</a>
     </div>
   </header>
 
-  <main>
-    <section class="section about" aria-labelledby="a-propos">
-      <div class="container reveal">
-        <h2 id="a-propos" class="section-title">Un atelier. Un lieu central.</h2>
-        <div class="about__content">
-          <p>Atelier Central, c’est un café-boutique situé au 330, rue Lindsay, à Drummondville.</p>
-          <p>Un espace où se rencontrent la passion du bon café, l’amour des produits faits avec soin, et l’envie de créer un lieu où chacun se sent bien.</p>
-          <p>Ici, on prend le temps. On découvre. On savoure. On revient.</p>
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-inner">
+        <div class="hero-content reveal">
+          <div class="eyebrow">330, rue Lindsay · Drummondville</div>
+          <img class="hero-logo" src="images/logo-atelier-central-large.png" alt="Atelier Central — Café & Boutique" />
+          <h1 id="hero-title">Café. Boutique. Découvertes.</h1>
+          <p>Un lieu chaleureux au cœur de Drummondville, pensé pour se retrouver, se faire plaisir, et ralentir.</p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#trouver">Venez nous voir</a>
+            <a class="btn btn-secondary" href="#decouvrir">Découvrir le lieu</a>
+          </div>
+        </div>
+
+        <aside class="hero-card reveal" aria-label="Aperçu de l’ambiance Atelier Central">
+          <img src="images/facade-atelier-central.jpeg" alt="Façade du café-boutique Atelier Central à Drummondville" />
+          <strong>Un arrêt café au centre-ville</strong>
+          <span>Un lieu simple, beau et accueillant pour une pause, une rencontre ou une découverte.</span>
+        </aside>
+      </div>
+    </section>
+
+    <section id="apropos" aria-labelledby="apropos-title">
+      <div class="container intro-grid">
+        <div class="reveal">
+          <div class="section-kicker">À propos</div>
+          <h2 id="apropos-title">Un nouveau lieu à découvrir au centre-ville</h2>
+          <div class="intro-text">
+            <p>Atelier Central, c’est un café-boutique situé au 330, rue Lindsay, à Drummondville.</p>
+            <p>Un espace où se rencontrent la passion du bon café, les produits choisis avec soin, les plantes décoratives et l’envie de créer un lieu où chacun se sent bien.</p>
+          </div>
+          <div class="signature-line">Ici, on prend le temps. On découvre. On savoure. On revient.</div>
+        </div>
+
+        <div class="photo-stack reveal">
+          <figure class="photo-card">
+            <img src="images/facade-atelier-central.jpeg" alt="Devanture d’Atelier Central sur la rue Lindsay" />
+            <figcaption class="photo-caption">330, rue Lindsay · Drummondville</figcaption>
+          </figure>
         </div>
       </div>
     </section>
 
-    <section class="section" aria-labelledby="offre">
-      <div class="container reveal">
-        <h2 id="offre" class="section-title">Ce que vous trouverez chez nous</h2>
-        <p class="section-intro">Une sélection pensée pour allier pause café, découvertes locales et petits plaisirs du quotidien.</p>
+    <section class="offer" id="decouvrir" aria-labelledby="decouvrir-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <div class="section-kicker">Découvrir</div>
+            <h2 id="decouvrir-title">Ce qu’on vient chercher ici</h2>
+          </div>
+          <p>Un café de qualité, des produits choisis avec soin, des plantes, des trouvailles et une ambiance qui donne envie de rester un peu plus longtemps.</p>
+        </div>
 
-        <div class="offer-grid" role="list" aria-label="Offres d'Atelier Central">
-          <article class="offer-card" role="listitem">
-            <span class="offer-card__emoji" aria-hidden="true">☕</span>
+        <div class="cards-grid">
+          <article class="offer-card reveal">
+            <div class="icon" aria-hidden="true">☕</div>
             <h3>Café de qualité</h3>
-            <p>Grains soigneusement sélectionnés, préparations soignées.</p>
+            <p>Grains soigneusement sélectionnés, préparations soignées et ambiance parfaite pour ralentir.</p>
           </article>
 
-          <article class="offer-card" role="listitem">
-            <span class="offer-card__emoji" aria-hidden="true">🌿</span>
+          <article class="offer-card reveal">
+            <div class="icon" aria-hidden="true">🌿</div>
             <h3>Produits Maison d’Herbes</h3>
             <p>Une gamme artisanale toujours disponible chez nous.</p>
           </article>
 
-          <article class="offer-card" role="listitem">
-            <span class="offer-card__emoji" aria-hidden="true">🧴</span>
+          <article class="offer-card reveal">
+            <div class="icon" aria-hidden="true">🧴</div>
             <h3>Soins corporels 330</h3>
-            <p>Faits avec minutie pour prendre soin de vous.</p>
+            <p>Des soins faits avec minutie pour prendre soin de vous.</p>
           </article>
 
-          <article class="offer-card" role="listitem">
-            <span class="offer-card__emoji" aria-hidden="true">🪴</span>
+          <article class="offer-card reveal">
+            <div class="icon" aria-hidden="true">🪴</div>
             <h3>Plantes décoratives</h3>
-            <p>Pour verdir votre maison et inspirer votre quotidien.</p>
+            <p>Des plantes pour verdir votre maison et inspirer votre quotidien.</p>
           </article>
 
-          <article class="offer-card" role="listitem">
-            <span class="offer-card__emoji" aria-hidden="true">🍵</span>
-            <h3>Thés &amp; tisanes</h3>
-            <p>Une sélection pour chaque humeur.</p>
+          <article class="offer-card reveal">
+            <div class="icon" aria-hidden="true">🍵</div>
+            <h3>Thés & tisanes</h3>
+            <p>Une sélection douce et réconfortante pour chaque humeur.</p>
           </article>
 
-          <article class="offer-card" role="listitem">
-            <span class="offer-card__emoji" aria-hidden="true">✨</span>
+          <article class="offer-card reveal">
+            <div class="icon" aria-hidden="true">✨</div>
             <h3>Un espace pour vous</h3>
-            <p>Pour travailler, lire, jaser ou décrocher.</p>
+            <p>Pour travailler, lire, jaser, créer ou simplement décrocher.</p>
           </article>
         </div>
       </div>
     </section>
 
-    <section id="nous-trouver" class="section" aria-labelledby="nous-trouver-titre">
-      <div class="container find-wrap reveal">
-        <div>
-          <h2 id="nous-trouver-titre" class="section-title">Venez nous rencontrer</h2>
-          <div class="find-meta">
-            <address>330, rue Lindsay, Drummondville, QC · J2B 1G5</address>
-            <div class="hours" aria-label="Horaires d'ouverture">
-              <p><strong>Lundi au vendredi :</strong> [à venir]</p>
-              <p><strong>Samedi et dimanche :</strong> [à venir]</p>
+    <section class="mood" aria-labelledby="mood-title">
+      <div class="container mood-grid">
+        <div class="reveal">
+          <div class="section-kicker">Ambiance</div>
+          <h2 id="mood-title">Un café-boutique avec une âme</h2>
+          <p>Plus qu’un simple arrêt café, Atelier Central est un endroit où l’on vient pour l’ambiance, les découvertes, les rencontres et les petits plaisirs du quotidien.</p>
+        </div>
+
+        <div class="mood-pills">
+          <div class="mood-pill reveal">
+            <strong>Pause café</strong>
+            <span>Un moment pour souffler, savourer et repartir du bon pied.</span>
+          </div>
+          <div class="mood-pill reveal">
+            <strong>Boutique locale</strong>
+            <span>Des produits choisis avec soin et une approche humaine.</span>
+          </div>
+          <div class="mood-pill reveal">
+            <strong>Découvertes</strong>
+            <span>Des plantes, des soins, des thés, des idées et de belles trouvailles.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="trouver" aria-labelledby="trouver-title">
+      <div class="container visit-grid">
+        <div class="info-panel reveal">
+          <div class="section-kicker">Nous trouver</div>
+          <h2 id="trouver-title">Venez nous rencontrer</h2>
+
+          <div class="info-list">
+            <div class="info-item">
+              <span>Adresse</span>
+              <p>330, rue Lindsay, Drummondville, QC · J2B 1G5</p>
             </div>
-            <p class="note">Les horaires peuvent varier. Consultez notre Facebook pour les mises à jour.</p>
+            <div class="info-item">
+              <span>Horaires</span>
+              <p>Lundi au vendredi : [à venir]<br>Samedi et dimanche : [à venir]</p>
+            </div>
+            <div class="info-item">
+              <span>Mise à jour</span>
+              <p>Les horaires peuvent varier. Consultez notre Facebook pour les mises à jour.</p>
+            </div>
           </div>
         </div>
 
-        <iframe
-          class="map"
-          title="Carte Google Maps de Atelier Central à Drummondville"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-          src="https://www.google.com/maps?q=330%20rue%20Lindsay%2C%20Drummondville%2C%20QC&output=embed">
-        </iframe>
+        <div class="map-wrap reveal" aria-label="Carte Google Maps pour trouver Atelier Central">
+          <iframe
+            title="Carte Google Maps — Atelier Central, 330 rue Lindsay, Drummondville"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.google.com/maps?q=330%20rue%20Lindsay%2C%20Drummondville%2C%20QC%20J2B%201G5&output=embed">
+          </iframe>
+        </div>
       </div>
     </section>
 
-    <section class="section contact" aria-labelledby="contact">
-      <div class="container reveal">
-        <h2 id="contact" class="section-title">Une question? Une envie?</h2>
-        <div class="contact__links">
-          <a class="contact-link" href="mailto:bonjour.ateliercentral@gmail.com" aria-label="Envoyer un courriel à Atelier Central">bonjour.ateliercentral@gmail.com</a>
-          <a class="contact-link" href="https://www.facebook.com/AtelierCentral" target="_blank" rel="noopener noreferrer" aria-label="Visiter Facebook Atelier Central">Facebook · @AtelierCentral</a>
-          <a class="contact-link" href="https://www.instagram.com/atelier.central" target="_blank" rel="noopener noreferrer" aria-label="Visiter Instagram atelier point central">Instagram · @atelier.central</a>
+    <section class="contact" id="contact" aria-labelledby="contact-title">
+      <div class="container">
+        <div class="contact-card reveal">
+          <div>
+            <div class="section-kicker">Contact</div>
+            <h2 id="contact-title">Une question? Une envie?</h2>
+            <p>Écrivez-nous ou suivez Atelier Central pour les nouveautés, les découvertes et les mises à jour de la boutique.</p>
+          </div>
+
+          <div class="contact-links" aria-label="Liens de contact et réseaux sociaux">
+            <a class="social-link" href="mailto:bonjour.ateliercentral@gmail.com">✉️ Courriel</a>
+            <a class="social-link" href="#" aria-label="Page Facebook Atelier Central">Facebook · @AtelierCentral</a>
+            <a class="social-link" href="#" aria-label="Page Instagram Atelier Central">Instagram · @atelier.central</a>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer>
-    <div class="container footer-stack reveal">
-      <p class="footer-brand">Atelier Central</p>
-      <p>Café · Boutique · Découvertes</p>
-      <p>330, rue Lindsay · Drummondville, QC</p>
-      <p>© 2026 Atelier Central</p>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-logo">Atelier Central</div>
+      <div>Café · Boutique · Découvertes</div>
+      <div>330, rue Lindsay · Drummondville, QC</div>
+      <div>© 2026 Atelier Central</div>
     </div>
   </footer>
 
   <noscript>
     <style>
-      .reveal { opacity: 1 !important; transform: none !important; }
+      .reveal { opacity: 1; transform: none; }
     </style>
   </noscript>
 
   <script>
-    (function () {
-      const items = document.querySelectorAll('.reveal');
-      if (!('IntersectionObserver' in window)) {
-        items.forEach((item) => item.classList.add('is-visible'));
-        return;
-      }
+    const header = document.querySelector("[data-header]");
 
+    function updateHeader() {
+      if (window.scrollY > 20) {
+        header.classList.add("is-scrolled");
+      } else {
+        header.classList.remove("is-scrolled");
+      }
+    }
+
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+
+    const revealElements = document.querySelectorAll(".reveal");
+
+    if ("IntersectionObserver" in window) {
       const observer = new IntersectionObserver((entries, obs) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
+            entry.target.classList.add("is-visible");
             obs.unobserve(entry.target);
           }
         });
-      }, {
-        threshold: 0.15,
-        rootMargin: '0px 0px -40px 0px'
-      });
+      }, { threshold: 0.12 });
 
-      items.forEach((item) => observer.observe(item));
-    })();
+      revealElements.forEach((el) => observer.observe(el));
+    } else {
+      revealElements.forEach((el) => el.classList.add("is-visible"));
+    }
   </script>
 </body>
 </html>
